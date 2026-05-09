@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumo do Dia - Cuidar</title>
+<script src="notificacoes.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .header-data { font-size:0.8em; opacity:0.85; }
+  .conteudo { padding:16px; padding-bottom:40px; }
+
+  .boas-vindas { background:linear-gradient(135deg, #2e7d32, #43a047);
+                 border-radius:20px; padding:20px; color:white; margin-bottom:16px;
+                 box-shadow:0 4px 12px rgba(46,125,50,0.3); }
+  .boas-vindas h2 { font-size:1.3em; margin-bottom:4px; }
+  .boas-vindas p { font-size:0.88em; opacity:0.9; }
+  .boas-vindas .hora { font-size:2.2em; font-weight:bold; margin-top:8px; }
+
+  .alertas-container { margin-bottom:16px; }
+  .alerta-item { border-radius:12px; padding:12px 16px; margin-bottom:8px;
+                 display:flex; align-items:center; gap:10px; font-size:0.88em; }
+  .alerta-vermelho { background:#ffebee; color:#c62828; border-left:4px solid #c62828; }
+  .alerta-laranja { background:#fff3e0; color:#e65100; border-left:4px solid #ff9800; }
+  .alerta-azul { background:#e3f2fd; color:#1565c0; border-left:4px solid #1565c0; }
+  .alerta-verde { background:#e8f5e9; color:#2e7d32; border-left:4px solid #2e7d32; }
+
+  .secao-titulo { font-size:0.82em; font-weight:bold; color:#888; margin:16px 0 8px;
+                  text-transform:uppercase; letter-spacing:0.08em; }
+
+  .grid-resumo { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .mini-card { background:white; border-radius:14px; padding:14px;
+               box-shadow:0 2px 8px rgba(0,0,0,0.07); cursor:pointer; }
+  .mini-card:active { transform:scale(0.97); }
+  .mini-card .mc-icone { font-size:1.6em; margin-bottom:6px; }
+  .mini-card .mc-titulo { font-size:0.75em; color:#888; text-transform:uppercase; letter-spacing:0.05em; }
+  .mini-card .mc-valor { font-size:1.1em; font-weight:bold; color:#2e7d32; margin-top:2px; }
+  .mini-card .mc-valor.alerta { color:#f44336; }
+  .mini-card .mc-valor.aviso { color:#ff9800; }
+  .mini-card .mc-sub { font-size:0.75em; color:#aaa; margin-top:2px; }
+
+  .card-med { background:white; border-radius:16px; padding:16px;
+              margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .med-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .med-titulo { font-size:0.9em; font-weight:bold; color:#333; }
+  .med-badge { font-size:0.75em; padding:3px 10px; border-radius:20px; }
+  .med-ok { background:#e8f5e9; color:#2e7d32; }
+  .med-pendente { background:#ffebee; color:#c62828; }
+  .med-item { display:flex; align-items:center; gap:10px; padding:8px 0;
+              border-bottom:1px solid #f5f5f5; }
+  .med-item:last-child { border-bottom:none; }
+  .med-check { width:24px; height:24px; border-radius:6px; display:flex;
+               align-items:center; justify-content:center; font-size:0.9em; flex-shrink:0; }
+  .med-check.ok { background:#e8f5e9; color:#2e7d32; }
+  .med-check.nao { background:#ffebee; color:#c62828; border:2px solid #ffcdd2; }
+  .med-info { flex:1; }
+  .med-nome { font-size:0.9em; font-weight:bold; }
+  .med-detalhe { font-size:0.75em; color:#888; }
+
+  .card-checklist { background:white; border-radius:16px; padding:16px;
+                    margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .check-item { display:flex; align-items:center; gap:10px; padding:7px 0;
+                border-bottom:1px solid #f5f5f5; }
+  .check-item:last-child { border-bottom:none; }
+  .check-box { width:22px; height:22px; border-radius:6px; display:flex;
+               align-items:center; justify-content:center; font-size:0.85em; flex-shrink:0; }
+  .check-box.ok { background:#e8f5e9; color:#2e7d32; }
+  .check-box.nao { background:#f5f5f5; border:2px solid #ddd; }
+  .check-nome { font-size:0.88em; }
+  .check-nome.feito { text-decoration:line-through; color:#aaa; }
+
+  .consulta-hoje { background:#fff3e0; border-radius:16px; padding:16px;
+                   margin-bottom:10px; border-left:4px solid #ff9800; }
+  .consulta-hoje h3 { color:#e65100; font-size:0.95em; margin-bottom:8px; }
+  .consulta-info { font-size:0.88em; color:#555; display:flex; flex-direction:column; gap:4px; }
+
+  .agua-barra-cont { background:#e3f2fd; border-radius:20px; height:12px; margin:8px 0; overflow:hidden; }
+  .agua-barra { height:12px; border-radius:20px; background:linear-gradient(90deg,#1565c0,#42a5f5); transition:width 0.5s; }
+
+  .btn-acao { display:flex; align-items:center; gap:10px; background:white;
+              border-radius:14px; padding:14px 16px; margin-bottom:8px;
+              box-shadow:0 2px 8px rgba(0,0,0,0.07); cursor:pointer;
+              text-decoration:none; color:#333; border:none; width:100%; font-size:1em; }
+  .btn-acao:active { background:#f5f5f5; }
+  .btn-acao .ba-icone { font-size:1.4em; }
+  .btn-acao .ba-texto { flex:1; text-align:left; }
+  .btn-acao .ba-texto strong { display:block; font-size:0.92em; }
+  .btn-acao .ba-texto span { font-size:0.78em; color:#888; }
+  .btn-acao .ba-seta { color:#aaa; }
+
+  .diario-hoje { background:white; border-radius:16px; padding:16px;
+                 margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .diario-hoje .humor { font-size:2em; margin-bottom:4px; }
+  .diario-hoje .resumo { font-size:0.85em; color:#666; display:flex; flex-wrap:wrap; gap:8px; }
+  .diario-tag { background:#f5f5f5; padding:4px 10px; border-radius:20px; font-size:0.8em; }
+
+  .sem-dados { text-align:center; color:#bbb; padding:16px; font-size:0.88em; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>🌅 Resumo do Dia</h1>
+  <span class="header-data" id="headerData"></span>
+</header>
+
+<div class="conteudo">
+  <div class="boas-vindas">
+    <h2 id="saudacao">Olá!</h2>
+    <p id="subtitulo">Aqui está o resumo de hoje</p>
+    <div class="hora" id="horaResumo">--:--</div>
+  </div>
+
+  <div class="alertas-container" id="alertas"></div>
+
+  <div class="secao-titulo">📊 Visão geral</div>
+  <div class="grid-resumo" id="gridResumo"></div>
+
+  <div id="secaoMeds"></div>
+  <div id="secaoConsulta"></div>
+  <div id="secaoChecklist"></div>
+  <div id="secaoAgua"></div>
+  <div id="secaoDiario"></div>
+
+  <div class="secao-titulo">⚡ Ações rápidas</div>
+  <button class="btn-acao" onclick="window.location='medicamentos.html'">
+    <span class="ba-icone">💊</span>
+    <span class="ba-texto"><strong>Confirmar remédio</strong><span>Registrar administração</span></span>
+    <span class="ba-seta">›</span>
+  </button>
+  <button class="btn-acao" onclick="window.location='diario.html'">
+    <span class="ba-icone">📓</span>
+    <span class="ba-texto"><strong>Registrar no diário</strong><span>Humor, sono, apetite</span></span>
+    <span class="ba-seta">›</span>
+  </button>
+  <button class="btn-acao" onclick="window.location='hidratacao.html'">
+    <span class="ba-icone">💧</span>
+    <span class="ba-texto"><strong>Registrar água</strong><span>Controle de hidratação</span></span>
+    <span class="ba-seta">›</span>
+  </button>
+  <button class="btn-acao" onclick="window.location='checklist.html'">
+    <span class="ba-icone">✅</span>
+    <span class="ba-texto"><strong>Ver checklist</strong><span>Tarefas do cuidador</span></span>
+    <span class="ba-seta">›</span>
+  </button>
+  <button class="btn-acao" onclick="window.location='dashboard.html'">
+    <span class="ba-icone">📊</span>
+    <span class="ba-texto"><strong>Registrar medição</strong><span>Pressão, glicemia, peso</span></span>
+    <span class="ba-seta">›</span>
+  </button>
+  <button class="btn-acao" onclick="window.location='emergencia.html'">
+    <span class="ba-icone">🆘</span>
+    <span class="ba-texto"><strong>Emergência</strong><span>Alertar familiares</span></span>
+    <span class="ba-seta">›</span>
+  </button>
+</div>
+
+<script>
+  var medicamentos = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+  var consultas = JSON.parse(localStorage.getItem('consultas') || '[]');
+  var diario = JSON.parse(localStorage.getItem('diario') || '[]');
+  var hidratacao = JSON.parse(localStorage.getItem('hidratacao') || '{}');
+  var checklistRegistros = JSON.parse(localStorage.getItem('checklistRegistros') || '{}');
+  var perfil = JSON.parse(localStorage.getItem('perfilIdoso') || 'null');
+  var hojeISO = new Date().toISOString().split('T')[0];
+  var hojeLocal = new Date().toLocaleDateString('pt-BR');
+  var metaAgua = parseInt(localStorage.getItem('metaHidratacao') || '2000');
+
+  // Relógio
+  function atualizarHora() {
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('horaResumo').textContent = hora;
+    document.getElementById('headerData').textContent =
+      agora.toLocaleDateString('pt-BR', {weekday:'short', day:'numeric', month:'short'});
+  }
+  atualizarHora();
+  setInterval(atualizarHora, 1000);
+
+  // Saudação
+  var h = new Date().getHours();
+  var saud = h < 12 ? '☀️ Bom dia!' : h < 18 ? '🌤️ Boa tarde!' : '🌙 Boa noite!';
+  if (perfil && perfil.nome) saud += ' Cuidando de ' + perfil.nome.split(' ')[0];
+  document.getElementById('saudacao').textContent = saud;
+
+  // Subtítulo motivacional
+  var frases = [
+    'Cada cuidado conta. Você está fazendo a diferença! 💚',
+    'Cuidar é um ato de amor. Obrigado por estar aqui! 💚',
+    'Um dia de cada vez. Você não está sozinho! 💚',
+    'O cuidado que você dá hoje transforma a vida de amanhã! 💚'
+  ];
+  document.getElementById('subtitulo').textContent = frases[new Date().getDay() % frases.length];
+
+  // ─── ALERTAS ───
+  function gerarAlertas() {
+    var alertas = [];
+    var agora = new Date();
+
+    // Remédios não confirmados
+    var medsNaoConf = medicamentos.filter(function(m) {
+      if (!m.horario || m.confirmadoHoje) return false;
+      var p = m.horario.split(':');
+      var alvo = new Date(); alvo.setHours(parseInt(p[0]), parseInt(p[1]), 0, 0);
+      return alvo <= agora;
+    });
+    if (medsNaoConf.length > 0) {
+      alertas.push({ tipo:'vermelho', texto:'💊 ' + medsNaoConf.length + ' remédio(s) não confirmado(s) hoje!' });
+    }
+
+    // Consulta hoje
+    var consultaHoje = consultas.filter(function(c) { return c.data === hojeISO; });
+    if (consultaHoje.length > 0) {
+      alertas.push({ tipo:'laranja', texto:'📅 Consulta hoje: ' + consultaHoje[0].medico + ' às ' + consultaHoje[0].hora });
+    }
+
+    // Consulta próxima (3 dias)
+    consultas.forEach(function(c) {
+      var dias = Math.ceil((new Date(c.data) - agora) / (1000*60*60*24));
+      if (dias > 0 && dias <= 3) {
+        alertas.push({ tipo:'laranja', texto:'📅 Consulta em ' + dias + ' dia(s): ' + c.medico });
+      }
+    });
+
+    // Hidratação baixa
+    var aguaHoje = (hidratacao[hojeISO] && hidratacao[hojeISO].total) || 0;
+    if (h >= 14 && aguaHoje < metaAgua * 0.4) {
+      alertas.push({ tipo:'azul', texto:'💧 Hidratação baixa! Apenas ' + (aguaHoje/1000).toFixed(2).replace('.',',') + 'L hoje' });
+    }
+
+    // Diário não registrado
+    var diarioHoje = diario.filter(function(d) { return d.data === hojeLocal; });
+    if (h >= 18 && diarioHoje.length === 0) {
+      alertas.push({ tipo:'azul', texto:'📓 Diário de hoje ainda não foi preenchido' });
+    }
+
+    // Estoque baixo
+    medicamentos.forEach(function(m) {
+      if (m.estoque && parseInt(m.estoque) <= 5) {
+        alertas.push({ tipo:'laranja', texto:'📦 Estoque baixo: ' + m.nome + ' (' + m.estoque + ' unidades)' });
+      }
+    });
+
+    // Sem alertas
+    if (alertas.length === 0) {
+      alertas.push({ tipo:'verde', texto:'✅ Tudo em ordem por enquanto! Bom cuidado hoje.' });
+    }
+
+    var el = document.getElementById('alertas');
+    el.innerHTML = alertas.map(function(a) {
+      return '<div class="alerta-item alerta-' + a.tipo + '">' + a.texto + '</div>';
+    }).join('');
+  }
+
+  // ─── GRID RESUMO ───
+  function renderGrid() {
+    var medsConf = medicamentos.filter(function(m) { return m.confirmadoHoje; }).length;
+    var aguaHoje = (hidratacao[hojeISO] && hidratacao[hojeISO].total) || 0;
+    var aguaPct = Math.round((aguaHoje / metaAgua) * 100);
+    var checkHoje = checklistRegistros[hojeISO] || [];
+    var checkFeitos = checkHoje.filter(function(t) { return t.feito; }).length;
+    var diarioHoje = diario.filter(function(d) { return d.data === hojeLocal; });
+    var humor = diarioHoje.length > 0 ? diarioHoje[diarioHoje.length-1].humor : '—';
+
+    document.getElementById('gridResumo').innerHTML =
+      '<div class="mini-card" onclick="window.location=\'medicamentos.html\'">' +
+        '<div class="mc-icone">💊</div>' +
+        '<div class="mc-titulo">Remédios</div>' +
+        '<div class="mc-valor ' + (medsConf < medicamentos.length ? 'alerta' : '') + '">' +
+          medsConf + '/' + medicamentos.length + '</div>' +
+        '<div class="mc-sub">confirmados hoje</div>' +
+      '</div>' +
+      '<div class="mini-card" onclick="window.location=\'hidratacao.html\'">' +
+        '<div class="mc-icone">💧</div>' +
+        '<div class="mc-titulo">Hidratação</div>' +
+        '<div class="mc-valor ' + (aguaPct < 50 && h >= 14 ? 'aviso' : '') + '">' + aguaPct + '%</div>' +
+        '<div class="mc-sub">' + (aguaHoje/1000).toFixed(2).replace('.',',') + 'L de ' + (metaAgua/1000).toFixed(1).replace('.',',') + 'L</div>' +
+      '</div>' +
+      '<div class="mini-card" onclick="window.location=\'checklist.html\'">' +
+        '<div class="mc-icone">✅</div>' +
+        '<div class="mc-titulo">Checklist</div>' +
+        '<div class="mc-valor">' + checkFeitos + '/' + checkHoje.length + '</div>' +
+        '<div class="mc-sub">tarefas feitas</div>' +
+      '</div>' +
+      '<div class="mini-card" onclick="window.location=\'diario.html\'">' +
+        '<div class="mc-icone">📓</div>' +
+        '<div class="mc-titulo">Humor</div>' +
+        '<div class="mc-valor" style="font-size:1.6em">' + (humor || '—') + '</div>' +
+        '<div class="mc-sub">registro de hoje</div>' +
+      '</div>';
+  }
+
+  // ─── MEDICAMENTOS ───
+  function renderMeds() {
+    var el = document.getElementById('secaoMeds');
+    if (medicamentos.length === 0) { el.innerHTML = ''; return; }
+    var agora = new Date();
+    var itens = medicamentos.map(function(m) {
+      var passou = false;
+      if (m.horario) {
+        var p = m.horario.split(':');
+        var alvo = new Date(); alvo.setHours(parseInt(p[0]), parseInt(p[1]), 0, 0);
+        passou = alvo <= agora;
+      }
+      return '<div class="med-item">' +
+        '<div class="med-check ' + (m.confirmadoHoje ? 'ok' : (passou ? 'nao' : '')) + '">' +
+          (m.confirmadoHoje ? '✓' : (passou ? '!' : '⏰')) + '</div>' +
+        '<div class="med-info">' +
+          '<div class="med-nome">' + m.nome + '</div>' +
+          '<div class="med-detalhe">' + m.dose + ' · ' + m.horario + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    var pendentes = medicamentos.filter(function(m) { return !m.confirmadoHoje; }).length;
+    el.innerHTML =
+      '<div class="secao-titulo">💊 Medicamentos de hoje</div>' +
+      '<div class="card-med">' +
+        '<div class="med-header">' +
+          '<span class="med-titulo">Remédios do dia</span>' +
+          '<span class="med-badge ' + (pendentes === 0 ? 'med-ok' : 'med-pendente') + '">' +
+            (pendentes === 0 ? '✅ Todos confirmados' : pendentes + ' pendente(s)') + '</span>' +
+        '</div>' + itens +
+      '</div>';
+  }
+
+  // ─── CONSULTA HOJE ───
+  function renderConsulta() {
+    var el = document.getElementById('secaoConsulta');
+    var hoje = consultas.filter(function(c) { return c.data === hojeISO; });
+    if (hoje.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div class="secao-titulo">📅 Consulta hoje</div>' +
+      hoje.map(function(c) {
+        return '<div class="consulta-hoje">' +
+          '<h3>🏥 ' + c.especialidade + ' — ' + c.medico + '</h3>' +
+          '<div class="consulta-info">' +
+            '<span>⏰ ' + c.hora + '</span>' +
+            '<span>📍 ' + (c.local || '—') + '</span>' +
+            '<span>🚗 Leva: ' + (c.quemLeva || '—') + '</span>' +
+            (c.obs ? '<span>📝 ' + c.obs + '</span>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+  }
+
+  // ─── CHECKLIST ───
+  function renderChecklist() {
+    var el = document.getElementById('secaoChecklist');
+    var lista = checklistRegistros[hojeISO] || [];
+    if (lista.length === 0) { el.innerHTML = ''; return; }
+    var primeiros = lista.slice(0, 5);
+    el.innerHTML = '<div class="secao-titulo">✅ Checklist do cuidador</div>' +
+      '<div class="card-checklist">' +
+      primeiros.map(function(t) {
+        return '<div class="check-item">' +
+          '<div class="check-box ' + (t.feito ? 'ok' : 'nao') + '">' + (t.feito ? '✓' : '') + '</div>' +
+          '<span class="check-nome ' + (t.feito ? 'feito' : '') + '">' + t.desc + '</span>' +
+        '</div>';
+      }).join('') +
+      (lista.length > 5 ? '<div style="text-align:center;color:#aaa;font-size:0.82em;padding:8px">+ ' + (lista.length-5) + ' tarefas</div>' : '') +
+      '</div>';
+  }
+
+  // ─── ÁGUA ───
+  function renderAgua() {
+    var el = document.getElementById('secaoAgua');
+    var aguaHoje = (hidratacao[hojeISO] && hidratacao[hojeISO].total) || 0;
+    var pct = Math.min((aguaHoje / metaAgua) * 100, 100);
+    el.innerHTML = '<div class="secao-titulo">💧 Hidratação de hoje</div>' +
+      '<div class="card-med">' +
+        '<div class="med-header">' +
+          '<span class="med-titulo">' + (aguaHoje/1000).toFixed(2).replace('.',',') + 'L de ' + (metaAgua/1000).toFixed(1).replace('.',',') + 'L</span>' +
+          '<span class="med-badge ' + (pct >= 100 ? 'med-ok' : 'med-pendente') + '">' + Math.round(pct) + '%</span>' +
+        '</div>' +
+        '<div class="agua-barra-cont"><div class="agua-barra" style="width:' + pct + '%"></div></div>' +
+        '<div style="font-size:0.8em;color:#aaa;margin-top:4px">' +
+          ((hidratacao[hojeISO] && hidratacao[hojeISO].registros) ? hidratacao[hojeISO].registros.length : 0) + ' registros hoje' +
+        '</div>' +
+      '</div>';
+  }
+
+  // ─── DIÁRIO ───
+  function renderDiario() {
+    var el = document.getElementById('secaoDiario');
+    var registros = diario.filter(function(d) { return d.data === hojeLocal; });
+    if (registros.length === 0) { el.innerHTML = ''; return; }
+    var r = registros[registros.length-1];
+    el.innerHTML = '<div class="secao-titulo">📓 Diário de hoje</div>' +
+      '<div class="diario-hoje">' +
+        '<div class="humor">' + (r.humor || '😐') + '</div>' +
+        '<div class="resumo">' +
+          (r.sono ? '<span class="diario-tag">😴 Sono: ' + r.sono + '</span>' : '') +
+          (r.apetite ? '<span class="diario-tag">🍽️ Apetite: ' + r.apetite + '</span>' : '') +
+          (r.dor ? '<span class="diario-tag">🤕 Dor: ' + r.dor + '</span>' : '') +
+          (r.mobilidade ? '<span class="diario-tag">🚶 ' + r.mobilidade + '</span>' : '') +
+        '</div>' +
+        (r.obs ? '<div style="font-size:0.82em;color:#888;margin-top:8px;font-style:italic">📝 ' + r.obs + '</div>' : '') +
+      '</div>';
+  }
+
+  gerarAlertas();
+  renderGrid();
+  renderMeds();
+  renderConsulta();
+  renderChecklist();
+  renderAgua();
+  renderDiario();
+</script>
+</body>
+</html>

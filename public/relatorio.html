@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatório - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; }
+  .conteudo { padding:16px; padding-bottom:40px; }
+  .secao { background:white; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .secao h2 { color:#2e7d32; font-size:1em; margin-bottom:12px; }
+  .item { padding:8px 0; border-bottom:1px solid #f5f5f5; font-size:0.88em; }
+  .item:last-child { border-bottom:none; }
+  .item-label { color:#aaa; font-size:0.78em; }
+  .item-valor { color:#333; margin-top:2px; }
+  .btn-gerar { width:100%; padding:18px; background:#2e7d32; color:white; border:none;
+               border-radius:16px; font-size:1.1em; font-weight:bold; cursor:pointer;
+               margin-bottom:12px; box-shadow:0 4px 12px rgba(46,125,50,0.3); }
+  .btn-compartilhar { width:100%; padding:16px; background:white; color:#2e7d32;
+                      border:2px solid #2e7d32; border-radius:16px; font-size:1em;
+                      font-weight:bold; cursor:pointer; margin-bottom:12px; }
+  .preview { background:white; border-radius:16px; padding:20px;
+             box-shadow:0 2px 8px rgba(0,0,0,0.08); white-space:pre-wrap;
+             font-size:0.82em; line-height:1.6; color:#333; display:none; }
+  .preview.visivel { display:block; }
+  .tag { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.75em; margin:2px; }
+  .tag-verde { background:#e8f5e9; color:#2e7d32; }
+  .tag-laranja { background:#fff3e0; color:#e65100; }
+  .tag-vermelho { background:#ffebee; color:#c62828; }
+  .periodo-btns { display:flex; gap:8px; margin-bottom:16px; }
+  .periodo-btn { flex:1; padding:10px; border:2px solid #eee; border-radius:10px;
+                 background:white; font-size:0.85em; cursor:pointer; color:#555; }
+  .periodo-btn.ativo { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; font-weight:bold; }
+  .resumo-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .resumo-card { background:white; border-radius:12px; padding:14px; text-align:center;
+                 box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+  .resumo-card .num { font-size:1.8em; font-weight:bold; color:#2e7d32; }
+  .resumo-card .leg { font-size:0.75em; color:#888; margin-top:2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>📋 Relatório para Médico</h1>
+</header>
+
+<div class="conteudo">
+
+  <div class="periodo-btns">
+    <button class="periodo-btn ativo" onclick="setPeriodo(7, this)">7 dias</button>
+    <button class="periodo-btn" onclick="setPeriodo(15, this)">15 dias</button>
+    <button class="periodo-btn" onclick="setPeriodo(30, this)">30 dias</button>
+  </div>
+
+  <div class="resumo-grid" id="resumoGrid"></div>
+
+  <button class="btn-gerar" onclick="gerarRelatorio()">📋 Gerar Relatório</button>
+  <button class="btn-compartilhar" onclick="compartilhar()">📤 Compartilhar via WhatsApp</button>
+
+  <div class="preview" id="preview"></div>
+
+</div>
+
+<script>
+  var periodo = 7;
+  var relatorioTexto = '';
+
+  var medicamentos = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+  var consultas = JSON.parse(localStorage.getItem('consultas') || '[]');
+  var diario = JSON.parse(localStorage.getItem('diario') || '[]');
+  var dashboard = JSON.parse(localStorage.getItem('dashboard') || '{}');
+  var perfil = JSON.parse(localStorage.getItem('perfilIdoso') || 'null');
+
+  function setPeriodo(dias, btn) {
+    periodo = dias;
+    document.querySelectorAll('.periodo-btn').forEach(function(b) { b.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    renderResumo();
+  }
+
+  function dentroDoperiodo(dataStr) {
+    if (!dataStr) return false;
+    var partes = dataStr.split('/');
+    if (partes.length !== 3) return false;
+    var data = new Date(partes[2], partes[1]-1, partes[0]);
+    var limite = new Date();
+    limite.setDate(limite.getDate() - periodo);
+    return data >= limite;
+  }
+
+  function renderResumo() {
+    var grid = document.getElementById('resumoGrid');
+    var registrosDiario = diario.filter(function(r) { return dentroDoperiodo(r.data); });
+    var medConfirmados = 0;
+    medicamentos.forEach(function(m) {
+      if (m.historico) {
+        medConfirmados += m.historico.filter(function(h) { return dentroDoperiodo(h.data); }).length;
+      }
+    });
+    var consultasPeriodo = consultas.filter(function(c) {
+      if (!c.data) return false;
+      var data = new Date(c.data);
+      var limite = new Date(); limite.setDate(limite.getDate() - periodo);
+      return data >= limite;
+    }).length;
+    var medicoesTotal = Object.values(dashboard).reduce(function(s, arr) {
+      if (!Array.isArray(arr)) return s;
+      return s + arr.filter(function(m) { return dentroDoperiodo(m.data ? m.data.split(' ')[0] : ''); }).length;
+    }, 0);
+
+    grid.innerHTML =
+      '<div class="resumo-card"><div class="num">' + registrosDiario.length + '</div><div class="leg">Registros no diário</div></div>' +
+      '<div class="resumo-card"><div class="num">' + medConfirmados + '</div><div class="leg">Doses confirmadas</div></div>' +
+      '<div class="resumo-card"><div class="num">' + consultasPeriodo + '</div><div class="leg">Consultas</div></div>' +
+      '<div class="resumo-card"><div class="num">' + medicoesTotal + '</div><div class="leg">Medições de saúde</div></div>';
+  }
+
+  function gerarRelatorio() {
+    var linhas = [];
+    var hoje = new Date().toLocaleDateString('pt-BR');
+
+    linhas.push('╔══════════════════════════════════╗');
+    linhas.push('║   💚 RELATÓRIO - APP CUIDAR      ║');
+    linhas.push('╚══════════════════════════════════╝');
+    linhas.push('');
+    linhas.push('📅 Gerado em: ' + hoje);
+    linhas.push('📊 Período: últimos ' + periodo + ' dias');
+    linhas.push('');
+
+    // Perfil
+    if (perfil && perfil.nome) {
+      linhas.push('══════════════════════════════════');
+      linhas.push('👤 PACIENTE');
+      linhas.push('══════════════════════════════════');
+      linhas.push('Nome: ' + perfil.nome);
+      if (perfil.nascimento) {
+        var nasc = new Date(perfil.nascimento);
+        var idade = new Date().getFullYear() - nasc.getFullYear();
+        linhas.push('Idade: ' + idade + ' anos');
+      }
+      if (perfil.sangue) linhas.push('Tipo sanguíneo: ' + perfil.sangue);
+      if (perfil.alergias) linhas.push('Alergias: ' + perfil.alergias);
+      if (perfil.doencas) linhas.push('Doenças crônicas: ' + perfil.doencas);
+      if (perfil.plano) linhas.push('Plano: ' + perfil.plano + (perfil.carteirinha ? ' | ' + perfil.carteirinha : ''));
+      if (perfil.medico) linhas.push('Médico responsável: ' + perfil.medico);
+      linhas.push('');
+    }
+
+    // Medicamentos
+    linhas.push('══════════════════════════════════');
+    linhas.push('💊 MEDICAMENTOS EM USO');
+    linhas.push('══════════════════════════════════');
+    if (medicamentos.length === 0) {
+      linhas.push('Nenhum medicamento cadastrado.');
+    } else {
+      medicamentos.forEach(function(m) {
+        linhas.push('• ' + m.nome + ' — ' + m.dose + ' — ' + m.horario);
+        if (m.via) linhas.push('  Via: ' + m.via);
+        var confPeriodo = 0;
+        if (m.historico) {
+          confPeriodo = m.historico.filter(function(h) { return dentroDoperiodo(h.data); }).length;
+        }
+        linhas.push('  Doses confirmadas no período: ' + confPeriodo);
+      });
+    }
+    linhas.push('');
+
+    // Diário
+    linhas.push('══════════════════════════════════');
+    linhas.push('📓 DIÁRIO DE SAÚDE');
+    linhas.push('══════════════════════════════════');
+    var registros = diario.filter(function(r) { return dentroDoperiodo(r.data); });
+    if (registros.length === 0) {
+      linhas.push('Nenhum registro no período.');
+    } else {
+      // Resumo
+      var sonoRuim = registros.filter(function(r) { return r.sono === 'Ruim'; }).length;
+      var sonoBom = registros.filter(function(r) { return r.sono === 'Bom'; }).length;
+      var apetiteRuim = registros.filter(function(r) { return r.apetite === 'Ruim'; }).length;
+      var dorForte = registros.filter(function(r) { return r.dor === 'Forte' || r.dor === 'Moderada'; }).length;
+      linhas.push('Total de registros: ' + registros.length);
+      linhas.push('Sono bom: ' + sonoBom + 'x | Sono ruim: ' + sonoRuim + 'x');
+      linhas.push('Apetite ruim: ' + apetiteRuim + 'x');
+      linhas.push('Dor moderada/forte: ' + dorForte + 'x');
+      linhas.push('');
+      linhas.push('Detalhamento:');
+      registros.slice(-7).forEach(function(r) {
+        linhas.push('• ' + r.data + ' ' + (r.humor || '') +
+          ' | Sono: ' + (r.sono || '—') +
+          ' | Apetite: ' + (r.apetite || '—') +
+          ' | Dor: ' + (r.dor || '—'));
+        if (r.obs) linhas.push('  Obs: ' + r.obs);
+      });
+    }
+    linhas.push('');
+
+    // Dashboard
+    linhas.push('══════════════════════════════════');
+    linhas.push('📊 MEDIÇÕES DE SAÚDE');
+    linhas.push('══════════════════════════════════');
+    var tipos = {
+      pressao: '❤️ Pressão arterial',
+      glicemia: '🩸 Glicemia',
+      peso: '⚖️ Peso',
+      oxigenio: '💨 Oxigenação',
+      temperatura: '🌡️ Temperatura',
+      frequencia: '💓 Freq. cardíaca'
+    };
+    var unidades = { pressao:'mmHg', glicemia:'mg/dL', peso:'kg', oxigenio:'%', temperatura:'°C', frequencia:'bpm' };
+    var temMedicao = false;
+    Object.keys(tipos).forEach(function(tipo) {
+      var lista = (dashboard[tipo] || []).filter(function(m) {
+        return dentroDoperiodo(m.data ? m.data.split(' ')[0] : '');
+      });
+      if (lista.length > 0) {
+        temMedicao = true;
+        var ult = lista[lista.length-1];
+        var val = tipo === 'pressao' ? ult.sistolica + '/' + ult.diastolica : ult.valor;
+        linhas.push(tipos[tipo] + ': ' + val + ' ' + unidades[tipo] + ' (última: ' + ult.data + ')');
+        if (lista.length > 1) {
+          var primeira = lista[0];
+          var primVal = tipo === 'pressao' ? primeira.sistolica + '/' + primeira.diastolica : primeira.valor;
+          linhas.push('  Variação no período: ' + primVal + ' → ' + val);
+        }
+      }
+    });
+    if (!temMedicao) linhas.push('Nenhuma medição no período.');
+    linhas.push('');
+
+    // Consultas
+    linhas.push('══════════════════════════════════');
+    linhas.push('📅 CONSULTAS NO PERÍODO');
+    linhas.push('══════════════════════════════════');
+    var consultasFiltradas = consultas.filter(function(c) {
+      if (!c.data) return false;
+      var data = new Date(c.data);
+      var limite = new Date(); limite.setDate(limite.getDate() - periodo);
+      return data >= limite;
+    });
+    if (consultasFiltradas.length === 0) {
+      linhas.push('Nenhuma consulta no período.');
+    } else {
+      consultasFiltradas.forEach(function(c) {
+        linhas.push('• ' + new Date(c.data).toLocaleDateString('pt-BR',{timeZone:'UTC'}) +
+          ' — ' + c.especialidade + ' com ' + c.medico);
+        if (c.obs) linhas.push('  Obs: ' + c.obs);
+      });
+    }
+    linhas.push('');
+    linhas.push('══════════════════════════════════');
+    linhas.push('Gerado pelo app Cuidar — ' + hoje);
+    linhas.push('Cuidado Familiar Inteligente 💚');
+    linhas.push('══════════════════════════════════');
+
+    relatorioTexto = linhas.join('\n');
+    var preview = document.getElementById('preview');
+    preview.textContent = relatorioTexto;
+    preview.classList.add('visivel');
+    preview.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function compartilhar() {
+    if (!relatorioTexto) { gerarRelatorio(); }
+    if (navigator.share) {
+      navigator.share({
+        title: 'Relatório Cuidar',
+        text: relatorioTexto
+      });
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(relatorioTexto).then(function() {
+        alert('✅ Relatório copiado! Cole no WhatsApp para o médico.');
+      });
+    } else {
+      alert(relatorioTexto);
+    }
+  }
+
+  renderResumo();
+</script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendário - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+
+  .filtros { display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:4px; }
+  .filtros::-webkit-scrollbar { display:none; }
+  .fil-btn { padding:8px 14px; border:2px solid #e0e0e0; border-radius:20px; background:white;
+             font-size:0.82em; cursor:pointer; white-space:nowrap; color:#555; flex-shrink:0; }
+  .fil-btn.ativo { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; font-weight:bold; }
+
+  .cal-grid { background:white; border-radius:16px; padding:16px;
+              box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:16px; }
+  .cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .cal-header h2 { font-size:1.1em; color:#2e7d32; font-weight:bold; }
+  .cal-nav { background:none; border:none; font-size:1.4em; cursor:pointer; color:#2e7d32; padding:4px 10px; }
+  .cal-dias-semana { display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:6px; }
+  .cal-dia-nome { text-align:center; font-size:0.72em; color:#888; font-weight:bold; padding:4px 0; }
+  .cal-dias { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .cal-dia { min-height:40px; border-radius:8px; display:flex; flex-direction:column;
+             align-items:center; padding:4px 2px; cursor:pointer; }
+  .cal-dia.outro-mes { opacity:0.3; }
+  .cal-dia.hoje { background:#e8f5e9; }
+  .cal-dia.hoje .dia-num { color:#2e7d32; font-weight:bold; }
+  .cal-dia.selecionado { background:#2e7d32; }
+  .cal-dia.selecionado .dia-num { color:white; font-weight:bold; }
+  .dia-num { font-size:0.88em; line-height:1.4; }
+  .dia-dots { display:flex; gap:2px; flex-wrap:wrap; justify-content:center; margin-top:2px; }
+  .dot { width:5px; height:5px; border-radius:50%; }
+
+  .legenda { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .leg-item { display:flex; align-items:center; gap:4px; font-size:0.75em; color:#555; }
+  .leg-dot { width:8px; height:8px; border-radius:50%; }
+
+  .secao-titulo { font-size:0.85em; font-weight:bold; color:#555; margin-bottom:10px;
+                  text-transform:uppercase; letter-spacing:0.04em; }
+
+  .evento-card { background:white; border-radius:14px; padding:14px; margin-bottom:8px;
+                 box-shadow:0 2px 6px rgba(0,0,0,0.07); display:flex; align-items:flex-start; gap:12px; }
+  .evento-cor { width:4px; min-height:44px; border-radius:4px; flex-shrink:0; margin-top:2px; }
+  .evento-info { flex:1; }
+  .evento-nome { font-size:0.95em; font-weight:bold; margin-bottom:3px; }
+  .evento-meta { font-size:0.78em; color:#888; line-height:1.6; }
+  .evento-badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .badge { font-size:0.72em; padding:2px 8px; border-radius:20px; }
+  .badge-prox { background:#fff3e0; color:#e65100; }
+  .badge-hoje { background:#ffebee; color:#c62828; font-weight:bold; }
+  .badge-passado { background:#f3e5f5; color:#6a1b9a; }
+  .badge-tipo { background:#e8f5e9; color:#2e7d32; }
+  .btn-excluir-ev { background:#ffebee; border:none; border-radius:8px; padding:8px 10px;
+                    color:#f44336; font-size:0.85em; cursor:pointer; flex-shrink:0; }
+
+  .sem-eventos { text-align:center; color:#bbb; padding:24px; font-size:0.9em; }
+
+  .proximos-card { background:white; border-radius:16px; padding:16px; margin-bottom:16px;
+                   box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+
+  .btn-add { position:fixed; bottom:24px; right:24px; background:#2e7d32; color:white;
+             border:none; border-radius:50px; padding:16px 24px; font-size:1em;
+             cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:100; }
+
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:92vh; overflow-y:auto; }
+  .modal h2 { color:#2e7d32; margin-bottom:16px; }
+  .modal input, .modal select, .modal textarea {
+    width:100%; padding:12px; margin-bottom:12px;
+    border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  .modal textarea { height:70px; resize:none; }
+  .modal label { font-size:0.85em; color:#666; margin-bottom:4px; display:block; }
+  .campos-consulta { display:none; }
+  .campos-consulta.visivel { display:block; }
+  .modal-btns { display:flex; gap:10px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#2e7d32; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>🗓️ Calendário Familiar</h1>
+</header>
+
+<div class="conteudo">
+
+  <div class="legenda">
+    <div class="leg-item"><div class="leg-dot" style="background:#1565c0"></div>Consulta</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2e7d32"></div>Medicamento</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#e65100"></div>Tarefa</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#6a1b9a"></div>Outro</div>
+  </div>
+
+  <div class="cal-grid">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="mudarMes(-1)">‹</button>
+      <h2 id="calTitulo"></h2>
+      <button class="cal-nav" onclick="mudarMes(1)">›</button>
+    </div>
+    <div class="cal-dias-semana">
+      <div class="cal-dia-nome">Dom</div>
+      <div class="cal-dia-nome">Seg</div>
+      <div class="cal-dia-nome">Ter</div>
+      <div class="cal-dia-nome">Qua</div>
+      <div class="cal-dia-nome">Qui</div>
+      <div class="cal-dia-nome">Sex</div>
+      <div class="cal-dia-nome">Sáb</div>
+    </div>
+    <div class="cal-dias" id="calDias"></div>
+  </div>
+
+  <div class="filtros">
+    <button class="fil-btn ativo" onclick="setFiltro('todos',this)">📂 Todos</button>
+    <button class="fil-btn" onclick="setFiltro('consulta',this)">🏥 Consultas</button>
+    <button class="fil-btn" onclick="setFiltro('medicamento',this)">💊 Medicamentos</button>
+    <button class="fil-btn" onclick="setFiltro('tarefa',this)">📋 Tarefas</button>
+    <button class="fil-btn" onclick="setFiltro('outro',this)">📌 Outros</button>
+  </div>
+
+  <div class="proximos-card">
+    <div class="secao-titulo">📌 Próximos eventos</div>
+    <div id="proximosLista"></div>
+  </div>
+
+  <div class="secao-titulo" id="diaTitulo"></div>
+  <div id="eventosDia"></div>
+
+</div>
+
+<button class="btn-add" onclick="abrirModal()">+ Evento</button>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Novo Evento</h2>
+
+    <label>Título</label>
+    <input type="text" id="eNome" placeholder="Ex: Consulta cardiologista, Fisioterapia..." />
+
+    <label>Tipo</label>
+    <select id="eTipo" onchange="toggleCamposConsulta()">
+      <option value="consulta">🏥 Consulta médica</option>
+      <option value="medicamento">💊 Medicamento / Procedimento</option>
+      <option value="tarefa">📋 Tarefa de cuidado</option>
+      <option value="outro">📌 Outro compromisso</option>
+    </select>
+
+    <!-- Campos específicos de consulta -->
+    <div class="campos-consulta visivel" id="camposConsulta">
+      <label>Médico</label>
+      <input type="text" id="eMedico" placeholder="Ex: Dr. Carlos" />
+      <label>Especialidade</label>
+      <input type="text" id="eEspec" placeholder="Ex: Cardiologista" />
+      <label>Local / Clínica</label>
+      <input type="text" id="eLocal" placeholder="Ex: Clínica São Lucas" />
+      <label>Quem leva</label>
+      <input type="text" id="eQuem" placeholder="Ex: Ana (filha)" />
+    </div>
+
+    <label>Data</label>
+    <input type="date" id="eData" />
+
+    <label>Hora</label>
+    <input type="time" id="eHora" />
+
+    <label>Responsável (opcional)</label>
+    <input type="text" id="eResp" placeholder="Ex: João (filho)" />
+
+    <label>Observação (opcional)</label>
+    <textarea id="eObs" placeholder="Detalhes do evento..."></textarea>
+
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Migra dados da agenda antiga para o calendário
+  function migrarAgenda() {
+    var agendaAntiga = JSON.parse(localStorage.getItem('agenda') || '[]');
+    var calAtual = JSON.parse(localStorage.getItem('calendario') || '[]');
+    if (agendaAntiga.length === 0) return;
+    var idsExistentes = calAtual.map(function(e) { return e._agendaId; });
+    agendaAntiga.forEach(function(c, i) {
+      if (idsExistentes.indexOf('agenda_' + i) === -1) {
+        calAtual.push({
+          nome: c.medico + (c.especialidade ? ' — ' + c.especialidade : ''),
+          tipo: 'consulta',
+          data: c.data,
+          hora: c.hora || '',
+          medico: c.medico,
+          especialidade: c.especialidade,
+          local: c.local,
+          quem: c.quem,
+          responsavel: c.quem || '',
+          obs: c.obs || '',
+          _agendaId: 'agenda_' + i
+        });
+      }
+    });
+    localStorage.setItem('calendario', JSON.stringify(calAtual));
+  }
+
+  migrarAgenda();
+
+  var eventos = JSON.parse(localStorage.getItem('calendario') || '[]');
+  var hoje = new Date();
+  var hojeStr = hoje.toISOString().split('T')[0];
+  var anoAtual = hoje.getFullYear();
+  var mesAtual = hoje.getMonth();
+  var diaSelecionado = hojeStr;
+  var filtroAtual = 'todos';
+
+  var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var cores = { consulta:'#1565c0', medicamento:'#2e7d32', tarefa:'#e65100', outro:'#6a1b9a' };
+  var dotClass = { consulta:'dot-consulta', medicamento:'dot-medicamento', tarefa:'dot-tarefa', outro:'dot-outro' };
+  var tipoLabel = { consulta:'🏥 Consulta', medicamento:'💊 Medicamento', tarefa:'📋 Tarefa', outro:'📌 Outro' };
+
+  function setFiltro(filtro, btn) {
+    filtroAtual = filtro;
+    document.querySelectorAll('.fil-btn').forEach(function(b) { b.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    renderEventosDia(diaSelecionado);
+    renderProximos();
+  }
+
+  function eventosFiltrados(lista) {
+    if (filtroAtual === 'todos') return lista;
+    return lista.filter(function(e) { return e.tipo === filtroAtual; });
+  }
+
+  function eventosNoDia(dataStr) {
+    return eventos.filter(function(e) { return e.data === dataStr; });
+  }
+
+  function proximidade(dataStr) {
+    var partes = dataStr.split('-');
+    var data = new Date(partes[0], partes[1]-1, partes[2]);
+    var h = new Date(); h.setHours(0,0,0,0);
+    var diff = Math.floor((data - h) / (1000*60*60*24));
+    if (diff < 0) return { classe:'badge-passado', texto:'✅ Realizado' };
+    if (diff === 0) return { classe:'badge-hoje', texto:'🔴 HOJE' };
+    if (diff <= 3) return { classe:'badge-prox', texto:'🟠 Em ' + diff + ' dia(s)' };
+    return null;
+  }
+
+  function mudarMes(delta) {
+    mesAtual += delta;
+    if (mesAtual > 11) { mesAtual = 0; anoAtual++; }
+    if (mesAtual < 0) { mesAtual = 11; anoAtual--; }
+    renderCalendario();
+  }
+
+  function renderCalendario() {
+    document.getElementById('calTitulo').textContent = meses[mesAtual] + ' ' + anoAtual;
+    var container = document.getElementById('calDias');
+    container.innerHTML = '';
+
+    var primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
+    var diasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+    var diasMesAnterior = new Date(anoAtual, mesAtual, 0).getDate();
+
+    for (var i = primeiroDia - 1; i >= 0; i--) {
+      var d = document.createElement('div');
+      d.className = 'cal-dia outro-mes';
+      d.innerHTML = '<span class="dia-num">' + (diasMesAnterior - i) + '</span>';
+      container.appendChild(d);
+    }
+
+    for (var dia = 1; dia <= diasNoMes; dia++) {
+      var dataStr = anoAtual + '-' +
+        String(mesAtual + 1).padStart(2,'0') + '-' +
+        String(dia).padStart(2,'0');
+      var evsDia = eventosNoDia(dataStr);
+      var isHoje = dataStr === hojeStr;
+      var isSel = dataStr === diaSelecionado;
+
+      var d = document.createElement('div');
+      d.className = 'cal-dia' + (isHoje ? ' hoje' : '') + (isSel ? ' selecionado' : '');
+      d.onclick = (function(ds) { return function() { selecionarDia(ds); }; })(dataStr);
+
+      var dots = evsDia.map(function(e) {
+        return '<div class="dot" style="background:' + (cores[e.tipo]||'#888') + '"></div>';
+      }).join('');
+
+      d.innerHTML = '<span class="dia-num">' + dia + '</span>' +
+        (dots ? '<div class="dia-dots">' + dots + '</div>' : '');
+      container.appendChild(d);
+    }
+
+    var total = primeiroDia + diasNoMes;
+    var resto = total % 7 === 0 ? 0 : 7 - (total % 7);
+    for (var j = 1; j <= resto; j++) {
+      var d = document.createElement('div');
+      d.className = 'cal-dia outro-mes';
+      d.innerHTML = '<span class="dia-num">' + j + '</span>';
+      container.appendChild(d);
+    }
+
+    renderEventosDia(diaSelecionado);
+    renderProximos();
+  }
+
+  function selecionarDia(dataStr) {
+    diaSelecionado = dataStr;
+    renderCalendario();
+  }
+
+  function renderCard(ev, i) {
+    var prox = proximidade(ev.data);
+    var dataLabel = ev.data.split('-').reverse().join('/');
+    var div = document.createElement('div');
+    div.className = 'evento-card';
+    div.innerHTML =
+      '<div class="evento-cor" style="background:' + (cores[ev.tipo]||'#888') + '"></div>' +
+      '<div class="evento-info">' +
+        '<div class="evento-nome">' + ev.nome + '</div>' +
+        '<div class="evento-meta">' +
+          '📅 ' + dataLabel +
+          (ev.hora ? ' · ⏰ ' + ev.hora : '') +
+          (ev.medico ? '<br>👨‍⚕️ ' + ev.medico + (ev.especialidade ? ' — ' + ev.especialidade : '') : '') +
+          (ev.local ? '<br>📍 ' + ev.local : '') +
+          (ev.responsavel || ev.quem ? '<br>🚗 ' + (ev.responsavel || ev.quem) : '') +
+          (ev.obs ? '<br>📝 ' + ev.obs : '') +
+        '</div>' +
+        '<div class="evento-badges">' +
+          '<span class="badge badge-tipo">' + (tipoLabel[ev.tipo]||ev.tipo) + '</span>' +
+          (prox ? '<span class="badge ' + prox.classe + '">' + prox.texto + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<button class="btn-excluir-ev" onclick="excluir(' + i + ')">🗑️</button>';
+    return div;
+  }
+
+  function renderEventosDia(dataStr) {
+    var partes = dataStr.split('-');
+    var label = partes[2] + '/' + partes[1] + '/' + partes[0];
+    document.getElementById('diaTitulo').textContent = '📅 ' + label;
+    var evs = eventosFiltrados(eventosNoDia(dataStr));
+    var container = document.getElementById('eventosDia');
+    if (evs.length === 0) {
+      container.innerHTML = '<div class="sem-eventos">Nenhum evento neste dia.</div>';
+      return;
+    }
+    container.innerHTML = '';
+    evs.forEach(function(ev) {
+      container.appendChild(renderCard(ev, eventos.indexOf(ev)));
+    });
+  }
+
+  function renderProximos() {
+    var proximos = eventosFiltrados(eventos)
+      .filter(function(e) { return e.data >= hojeStr; })
+      .sort(function(a,b) { return a.data.localeCompare(b.data) || (a.hora||'').localeCompare(b.hora||''); })
+      .slice(0, 5);
+
+    var lista = document.getElementById('proximosLista');
+    if (proximos.length === 0) {
+      lista.innerHTML = '<div class="sem-eventos">Nenhum evento próximo.</div>';
+      return;
+    }
+    lista.innerHTML = '';
+    proximos.forEach(function(ev) {
+      lista.appendChild(renderCard(ev, eventos.indexOf(ev)));
+    });
+  }
+
+  function excluir(i) {
+    if (!confirm('Excluir "' + eventos[i].nome + '"?')) return;
+    eventos.splice(i, 1);
+    localStorage.setItem('calendario', JSON.stringify(eventos));
+    renderCalendario();
+  }
+
+  function toggleCamposConsulta() {
+    var tipo = document.getElementById('eTipo').value;
+    var campos = document.getElementById('camposConsulta');
+    campos.classList.toggle('visivel', tipo === 'consulta');
+  }
+
+  function abrirModal() {
+    document.getElementById('eData').value = diaSelecionado;
+    document.getElementById('modalBg').classList.add('ativo');
+  }
+
+  function fecharModal() {
+    document.getElementById('modalBg').classList.remove('ativo');
+    ['eNome','eMedico','eEspec','eLocal','eQuem','eHora','eResp','eObs'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('eTipo').value = 'consulta';
+    toggleCamposConsulta();
+  }
+
+  function salvar() {
+    var nome = document.getElementById('eNome').value.trim();
+    var data = document.getElementById('eData').value;
+    if (!nome || !data) { alert('Preencha título e data.'); return; }
+    var tipo = document.getElementById('eTipo').value;
+    var ev = {
+      nome: nome,
+      tipo: tipo,
+      data: data,
+      hora: document.getElementById('eHora').value,
+      responsavel: document.getElementById('eResp').value.trim(),
+      obs: document.getElementById('eObs').value.trim()
+    };
+    if (tipo === 'consulta') {
+      ev.medico = document.getElementById('eMedico').value.trim();
+      ev.especialidade = document.getElementById('eEspec').value.trim();
+      ev.local = document.getElementById('eLocal').value.trim();
+      ev.quem = document.getElementById('eQuem').value.trim();
+    }
+    eventos.push(ev);
+    localStorage.setItem('calendario', JSON.stringify(eventos));
+    diaSelecionado = data;
+    fecharModal();
+    renderCalendario();
+  }
+
+  // Verificar se veio da agenda médica
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('filtro') === 'consulta') {
+    filtroAtual = 'consulta';
+    document.querySelectorAll('.fil-btn').forEach(function(b) {
+      b.classList.remove('ativo');
+      if (b.textContent.includes('Consultas')) b.classList.add('ativo');
+    });
+  }
+
+  renderCalendario();
+</script>
+</body>
+</html>

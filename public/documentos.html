@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentos - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+
+  .cats { display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:4px; }
+  .cats::-webkit-scrollbar { display:none; }
+  .cat-btn { padding:8px 16px; border:2px solid #e0e0e0; border-radius:20px; background:white;
+             font-size:0.85em; cursor:pointer; white-space:nowrap; color:#555; flex-shrink:0; }
+  .cat-btn.ativo { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; font-weight:bold; }
+
+  .doc-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px;
+              box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; gap:12px; align-items:flex-start; }
+  .doc-icone { width:52px; height:52px; border-radius:12px; background:#e8f5e9;
+               display:flex; align-items:center; justify-content:center; font-size:1.6em; flex-shrink:0; }
+  .doc-icone.foto { background:#f3e5f5; }
+  .doc-icone.pdf { background:#ffebee; }
+  .doc-info { flex:1; }
+  .doc-nome { font-weight:bold; font-size:0.95em; margin-bottom:3px; }
+  .doc-meta { font-size:0.78em; color:#888; margin-bottom:6px; }
+  .doc-cat { font-size:0.72em; color:#2e7d32; background:#e8f5e9; padding:2px 8px; border-radius:20px; display:inline-block; }
+  .doc-acoes { display:flex; gap:6px; margin-top:8px; }
+  .btn-ver { background:#e8f5e9; border:none; border-radius:8px; padding:7px 12px;
+             color:#2e7d32; font-size:0.82em; cursor:pointer; font-weight:bold; }
+  .btn-excluir-doc { background:#ffebee; border:none; border-radius:8px; padding:7px 12px;
+                     color:#f44336; font-size:0.82em; cursor:pointer; }
+
+  .btn-add { position:fixed; bottom:24px; right:24px; background:#2e7d32; color:white;
+             border:none; border-radius:50px; padding:16px 24px; font-size:1em;
+             cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:100; }
+
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:92vh; overflow-y:auto; }
+  .modal h2 { color:#2e7d32; margin-bottom:16px; }
+  .modal input, .modal select { width:100%; padding:12px; margin-bottom:12px;
+                                 border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  .modal label { font-size:0.85em; color:#666; margin-bottom:4px; display:block; }
+  .modal-btns { display:flex; gap:10px; margin-top:4px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#2e7d32; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+
+  .upload-area { border:2px dashed #ccc; border-radius:12px; padding:24px; text-align:center;
+                 margin-bottom:12px; cursor:pointer; color:#888; font-size:0.9em; }
+  .upload-area.tem-arquivo { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; }
+  .upload-area input { display:none; }
+
+  .visualizador { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                  background:rgba(0,0,0,0.95); z-index:300; flex-direction:column;
+                  align-items:center; justify-content:center; }
+  .visualizador.ativo { display:flex; }
+  .visualizador img { max-width:95vw; max-height:85vh; border-radius:8px; object-fit:contain; }
+  .visualizador-nome { color:white; font-size:0.9em; margin-bottom:12px; opacity:0.8; }
+  .btn-fechar-vis { position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.2);
+                    border:none; color:white; border-radius:50%; width:40px; height:40px;
+                    font-size:1.2em; cursor:pointer; }
+
+  .vazio { text-align:center; padding:60px 20px; color:#aaa; }
+  .vazio .icon { font-size:3em; margin-bottom:12px; }
+
+  .info-box { background:#e3f2fd; border-left:4px solid #1565c0; padding:10px 16px;
+              border-radius:0 10px 10px 0; font-size:0.8em; color:#1565c0; margin-bottom:16px; }
+
+  .resumo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+  .resumo-card { background:white; border-radius:12px; padding:12px; text-align:center;
+                 box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+  .resumo-card .num { font-size:1.4em; font-weight:bold; color:#2e7d32; }
+  .resumo-card .leg { font-size:0.72em; color:#888; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>📁 Documentos</h1>
+</header>
+
+<div class="conteudo">
+
+  <div class="info-box">📱 Fotos e imagens ficam salvas no app. Para documentos grandes, prefira fotos tiradas diretamente pela câmera.</div>
+
+  <div class="resumo-grid" id="resumoGrid"></div>
+
+  <div class="cats">
+    <button class="cat-btn ativo" onclick="setCategoria('Todos', this)">📂 Todos</button>
+    <button class="cat-btn" onclick="setCategoria('Exame', this)">🔬 Exames</button>
+    <button class="cat-btn" onclick="setCategoria('Receita', this)">📋 Receitas</button>
+    <button class="cat-btn" onclick="setCategoria('Carteirinha', this)">💳 Carteirinha</button>
+    <button class="cat-btn" onclick="setCategoria('Laudo', this)">📄 Laudos</button>
+    <button class="cat-btn" onclick="setCategoria('Outro', this)">📦 Outros</button>
+  </div>
+
+  <div id="listaDocs"></div>
+</div>
+
+<button class="btn-add" onclick="abrirModal()">+ Documento</button>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Novo Documento</h2>
+    <label>Nome do documento</label>
+    <input type="text" id="dNome" placeholder="Ex: Hemograma completo jan/2026" />
+    <label>Categoria</label>
+    <select id="dCat">
+      <option value="Exame">🔬 Exame</option>
+      <option value="Receita">📋 Receita médica</option>
+      <option value="Carteirinha">💳 Carteirinha do plano</option>
+      <option value="Laudo">📄 Laudo médico</option>
+      <option value="Outro">📦 Outro</option>
+    </select>
+    <label>Médico / Laboratório (opcional)</label>
+    <input type="text" id="dMedico" placeholder="Ex: Dr. Carlos / Lab. São Lucas" />
+    <label>Data do documento (opcional)</label>
+    <input type="date" id="dData" />
+    <label>Foto ou imagem do documento</label>
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('dArquivo').click()">
+      <input type="file" id="dArquivo" accept="image/*" onchange="selecionarArquivo(this)" />
+      <div id="uploadTexto">📷 Toque para fotografar ou escolher imagem</div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="visualizador" id="visualizador">
+  <button class="btn-fechar-vis" onclick="fecharVisualizador()">✕</button>
+  <div class="visualizador-nome" id="visNome"></div>
+  <img id="visImg" src="" alt="Documento" />
+</div>
+
+<script>
+  var docs = JSON.parse(localStorage.getItem('documentos') || '[]');
+  var catAtual = 'Todos';
+  var arquivoBase64 = '';
+
+  var catEmojis = { Exame:'🔬', Receita:'📋', Carteirinha:'💳', Laudo:'📄', Outro:'📦' };
+
+  function setCategoria(cat, btn) {
+    catAtual = cat;
+    document.querySelectorAll('.cat-btn').forEach(function(b) { b.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    renderizar();
+  }
+
+  function selecionarArquivo(input) {
+    var file = input.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      alert('Imagem muito grande. Use fotos de até 3MB.');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      arquivoBase64 = e.target.result;
+      document.getElementById('uploadArea').classList.add('tem-arquivo');
+      document.getElementById('uploadTexto').textContent = '✅ ' + file.name;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function renderResumo() {
+    var grid = document.getElementById('resumoGrid');
+    var cats = ['Exame', 'Receita', 'Carteirinha', 'Laudo', 'Outro'];
+    var total = docs.length;
+    var porCat = {};
+    cats.forEach(function(c) { porCat[c] = 0; });
+    docs.forEach(function(d) { if (porCat[d.categoria] !== undefined) porCat[d.categoria]++; });
+
+    grid.innerHTML =
+      '<div class="resumo-card"><div class="num">' + total + '</div><div class="leg">Total</div></div>' +
+      '<div class="resumo-card"><div class="num">' + porCat['Exame'] + '</div><div class="leg">🔬 Exames</div></div>' +
+      '<div class="resumo-card"><div class="num">' + porCat['Receita'] + '</div><div class="leg">📋 Receitas</div></div>';
+  }
+
+  function renderizar() {
+    renderResumo();
+    var lista = document.getElementById('listaDocs');
+    var filtrados = catAtual === 'Todos' ? docs : docs.filter(function(d) { return d.categoria === catAtual; });
+
+    if (filtrados.length === 0) {
+      lista.innerHTML = '<div class="vazio"><div class="icon">📁</div><p>Nenhum documento ' + (catAtual === 'Todos' ? 'ainda' : 'nesta categoria') + '.</p><p>Toque em + para adicionar.</p></div>';
+      return;
+    }
+
+    lista.innerHTML = '';
+    filtrados.slice().reverse().forEach(function(d, iRev) {
+      var i = docs.indexOf(d);
+      var div = document.createElement('div');
+      div.className = 'doc-card';
+      var iconeClass = d.imagem ? 'foto' : '';
+      div.innerHTML =
+        '<div class="doc-icone ' + iconeClass + '">' +
+          (d.imagem ? '<img src="' + d.imagem + '" style="width:52px;height:52px;border-radius:12px;object-fit:cover">' : (catEmojis[d.categoria]||'📦')) +
+        '</div>' +
+        '<div class="doc-info">' +
+          '<div class="doc-nome">' + d.nome + '</div>' +
+          '<div class="doc-meta">' +
+            (d.medico ? d.medico + ' · ' : '') +
+            (d.data ? d.data.split('-').reverse().join('/') : d.adicionado) +
+          '</div>' +
+          '<span class="doc-cat">' + (catEmojis[d.categoria]||'📦') + ' ' + d.categoria + '</span>' +
+          '<div class="doc-acoes">' +
+            (d.imagem ? '<button class="btn-ver" onclick="verDoc(' + i + ')">👁️ Ver</button>' : '') +
+            '<button class="btn-excluir-doc" onclick="excluir(' + i + ')">🗑️ Excluir</button>' +
+          '</div>' +
+        '</div>';
+      lista.appendChild(div);
+    });
+  }
+
+  function verDoc(i) {
+    var d = docs[i];
+    if (!d.imagem) return;
+    document.getElementById('visImg').src = d.imagem;
+    document.getElementById('visNome').textContent = d.nome;
+    document.getElementById('visualizador').classList.add('ativo');
+  }
+
+  function fecharVisualizador() {
+    document.getElementById('visualizador').classList.remove('ativo');
+  }
+
+  function excluir(i) {
+    if (!confirm('Excluir "' + docs[i].nome + '"?')) return;
+    docs.splice(i, 1);
+    localStorage.setItem('documentos', JSON.stringify(docs));
+    renderizar();
+  }
+
+  function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
+  function fecharModal() {
+    document.getElementById('modalBg').classList.remove('ativo');
+    document.getElementById('dNome').value = '';
+    document.getElementById('dMedico').value = '';
+    document.getElementById('dData').value = '';
+    document.getElementById('dCat').value = 'Exame';
+    document.getElementById('dArquivo').value = '';
+    document.getElementById('uploadArea').classList.remove('tem-arquivo');
+    document.getElementById('uploadTexto').textContent = '📷 Toque para fotografar ou escolher imagem';
+    arquivoBase64 = '';
+  }
+
+  function salvar() {
+    var nome = document.getElementById('dNome').value.trim();
+    if (!nome) { alert('Digite o nome do documento.'); return; }
+    var agora = new Date();
+    docs.push({
+      nome: nome,
+      categoria: document.getElementById('dCat').value,
+      medico: document.getElementById('dMedico').value.trim(),
+      data: document.getElementById('dData').value,
+      imagem: arquivoBase64 || '',
+      adicionado: agora.toLocaleDateString('pt-BR')
+    });
+    try {
+      localStorage.setItem('documentos', JSON.stringify(docs));
+    } catch(e) {
+      alert('Armazenamento cheio. Tente uma imagem menor ou exclua documentos antigos.');
+      docs.pop();
+      return;
+    }
+    fecharModal();
+    renderizar();
+  }
+
+  renderizar();
+</script>
+</body>
+</html>

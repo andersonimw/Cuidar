@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuidar — Modo Idoso</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f9f9f9; color:#222; min-height:100vh;
+         display:flex; flex-direction:column; }
+  header { background:#2e7d32; color:white; padding:20px; text-align:center; }
+  header h1 { font-size:1.8em; }
+  header p { font-size:1em; opacity:0.85; margin-top:4px; }
+
+  .conteudo { flex:1; padding:20px; display:flex; flex-direction:column; gap:16px; }
+
+  .card-remedio { background:white; border-radius:20px; padding:24px;
+                  box-shadow:0 2px 12px rgba(0,0,0,0.1); text-align:center; }
+  .card-remedio .titulo { font-size:1.1em; color:#888; margin-bottom:8px; }
+  .card-remedio .remedio-nome { font-size:2em; font-weight:bold; color:#2e7d32; }
+  .card-remedio .remedio-hora { font-size:1.4em; color:#555; margin-top:4px; }
+  .card-remedio .remedio-dose { font-size:1.1em; color:#888; margin-top:4px; }
+  .card-remedio.confirmado { background:#e8f5e9; }
+
+  .btn-confirmar { width:100%; padding:22px; background:#2e7d32; color:white;
+                   border:none; border-radius:20px; font-size:1.5em; font-weight:bold;
+                   cursor:pointer; box-shadow:0 4px 12px rgba(46,125,50,0.3); }
+  .btn-confirmar.feito { background:#a5d6a7; color:#1b5e20; }
+
+  .btn-emergencia { width:100%; padding:28px; background:#c62828; color:white;
+                    border:none; border-radius:20px; font-size:1.6em; font-weight:bold;
+                    cursor:pointer; box-shadow:0 4px 16px rgba(198,40,40,0.4);
+                    display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .btn-emergencia .icone { font-size:1.8em; }
+
+  .contatos { display:flex; flex-direction:column; gap:12px; }
+  .btn-ligar { width:100%; padding:22px; background:white; color:#2e7d32;
+               border:2px solid #2e7d32; border-radius:20px; font-size:1.3em;
+               font-weight:bold; cursor:pointer; display:flex; align-items:center;
+               justify-content:center; gap:12px; }
+  .btn-ligar:active { background:#e8f5e9; }
+
+  .hora-atual { background:white; border-radius:20px; padding:20px;
+                text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .hora-atual .hora { font-size:3em; font-weight:bold; color:#2e7d32; }
+  .hora-atual .data { font-size:1.1em; color:#888; margin-top:4px; }
+
+  .btn-voltar { background:#eee; color:#555; border:none; border-radius:20px;
+                padding:16px; font-size:1em; cursor:pointer; margin-top:8px; }
+
+  .sem-remedio { text-align:center; padding:20px; color:#aaa; font-size:1.1em; }
+
+  .alarme-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+               background:rgba(198,40,40,0.96); z-index:999; flex-direction:column;
+               align-items:center; justify-content:center; color:white;
+               text-align:center; padding:30px; }
+  .alarme-bg.visivel { display:flex; }
+  .alarme-bg .pulso { font-size:5em; animation: pulsar 0.5s infinite alternate; }
+  @keyframes pulsar { from { transform:scale(1); } to { transform:scale(1.2); } }
+  .alarme-bg h2 { font-size:2em; margin:16px 0 8px; }
+  .alarme-bg p { font-size:1.1em; opacity:0.9; margin-bottom:28px; }
+  .btn-ok { background:white; color:#c62828; border:none; border-radius:50px;
+            padding:20px 48px; font-size:1.2em; font-weight:bold; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💚 Cuidar</h1>
+  <p id="saudacao">Olá!</p>
+</header>
+
+<div class="conteudo">
+
+  <!-- HORA ATUAL -->
+  <div class="hora-atual">
+    <div class="hora" id="horaAtual">--:--</div>
+    <div class="data" id="dataAtual">--</div>
+  </div>
+
+  <!-- PRÓXIMO REMÉDIO -->
+  <div id="proximoRemedio"></div>
+
+  <!-- BOTÃO EMERGÊNCIA -->
+  <button class="btn-emergencia" onclick="ativarEmergencia()">
+    <span class="icone">🆘</span>
+    <span>EMERGÊNCIA</span>
+    <span style="font-size:0.6em;opacity:0.85">Pressione para chamar ajuda</span>
+  </button>
+
+  <!-- CONTATOS RÁPIDOS -->
+  <div class="contatos" id="contatos"></div>
+
+  <!-- VOLTAR -->
+  <button class="btn-voltar" onclick="window.location='index.html'">← Voltar ao menu</button>
+
+</div>
+
+<!-- TELA EMERGÊNCIA -->
+<div class="alarme-bg" id="alarmeBg">
+  <div class="pulso">🆘</div>
+  <h2>AJUDA ENVIADA!</h2>
+  <p>Seus familiares foram alertados.<br>Fique onde está.</p>
+  <button class="btn-ok" onclick="fecharAlarme()">✓ Estou bem</button>
+</div>
+
+<script>
+  var medicamentos = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+  var contatos = JSON.parse(localStorage.getItem('contatosEmergencia') || '[]');
+  var perfil = JSON.parse(localStorage.getItem('perfilIdoso') || 'null');
+
+  // Saudação
+  var hora = new Date().getHours();
+  var saud = hora < 12 ? 'Bom dia!' : hora < 18 ? 'Boa tarde!' : 'Boa noite!';
+  if (perfil && perfil.nome) saud += ' ' + perfil.nome.split(' ')[0];
+  document.getElementById('saudacao').textContent = saud;
+
+  // Relógio
+  function atualizarHora() {
+    var agora = new Date();
+    document.getElementById('horaAtual').textContent =
+      agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('dataAtual').textContent =
+      agora.toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
+  }
+  atualizarHora();
+  setInterval(atualizarHora, 1000);
+
+  // Próximo remédio
+  function proximoRemedio() {
+    var el = document.getElementById('proximoRemedio');
+    if (medicamentos.length === 0) {
+      el.innerHTML = '<div class="card-remedio"><div class="sem-remedio">💊 Nenhum medicamento cadastrado</div></div>';
+      return;
+    }
+    var agora = new Date();
+    var horaAtual = agora.getHours() * 60 + agora.getMinutes();
+    var proximo = null;
+    var menorDiff = Infinity;
+
+    medicamentos.forEach(function(m) {
+      if (!m.horario) return;
+      var partes = m.horario.split(':');
+      var minutos = parseInt(partes[0]) * 60 + parseInt(partes[1]);
+      var diff = minutos - horaAtual;
+      if (diff < 0) diff += 1440;
+      if (diff < menorDiff) { menorDiff = diff; proximo = m; }
+    });
+
+    if (!proximo) return;
+    var horas = Math.floor(menorDiff / 60);
+    var mins = menorDiff % 60;
+    var tempo = menorDiff === 0 ? 'AGORA!' :
+      horas > 0 ? 'em ' + horas + 'h ' + mins + 'min' : 'em ' + mins + ' min';
+
+    el.innerHTML =
+      '<div class="card-remedio ' + (proximo.confirmadoHoje ? 'confirmado' : '') + '">' +
+        '<div class="titulo">💊 Próximo remédio — ' + tempo + '</div>' +
+        '<div class="remedio-nome">' + proximo.nome + '</div>' +
+        '<div class="remedio-hora">⏰ ' + proximo.horario + '</div>' +
+        '<div class="remedio-dose">' + proximo.dose + '</div>' +
+      '</div>' +
+      '<button class="btn-confirmar ' + (proximo.confirmadoHoje ? 'feito' : '') + '" onclick="confirmarRemedio()">' +
+        (proximo.confirmadoHoje ? '✅ Já tomei' : '✔ Tomei o remédio') +
+      '</button>';
+  }
+  proximoRemedio();
+
+  function confirmarRemedio() {
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    var data = agora.toLocaleDateString('pt-BR');
+    var nome = (perfil && perfil.nome) ? perfil.nome.split(' ')[0] : 'Idoso';
+
+    medicamentos.forEach(function(m) {
+      if (!m.confirmadoHoje) {
+        if (!m.historico) m.historico = [];
+        m.historico.push({ quem: nome, hora: hora, data: data });
+        m.confirmadoHoje = true;
+      }
+    });
+    localStorage.setItem('medicamentos', JSON.stringify(medicamentos));
+    proximoRemedio();
+  }
+
+  // Contatos rápidos
+  function renderContatos() {
+    var el = document.getElementById('contatos');
+    if (contatos.length === 0) {
+      el.innerHTML = '<div style="text-align:center;color:#aaa;font-size:1em">Cadastre contatos em Emergência</div>';
+      return;
+    }
+    var primeiros = contatos.slice(0, 3);
+    el.innerHTML = primeiros.map(function(c) {
+      return '<button class="btn-ligar" onclick="window.open(\'tel:' + c.tel + '\')">' +
+        '📞 Ligar para ' + c.nome + '</button>';
+    }).join('');
+  }
+  renderContatos();
+
+  // Emergência
+  function ativarEmergencia() {
+    tocarSom();
+    document.getElementById('alarmeBg').classList.add('visivel');
+    // Tenta abrir WhatsApp para cada contato
+    if (contatos.length > 0) {
+      var c = contatos[0];
+      var nome = (perfil && perfil.nome) ? perfil.nome : 'Idoso';
+      var hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+      var msg = encodeURIComponent('🆘 EMERGÊNCIA - CUIDAR APP\n\n' + nome + ' precisa de ajuda!\nHorário: ' + hora);
+      setTimeout(function() {
+        window.open('https://wa.me/55' + c.tel.replace(/\D/g,'') + '?text=' + msg, '_blank');
+      }, 1000);
+    }
+  }
+
+  function fecharAlarme() {
+    document.getElementById('alarmeBg').classList.remove('visivel');
+  }
+
+  function tocarSom() {
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [880,660,880,660].forEach(function(freq, i) {
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        var t = ctx.currentTime + i * 0.25;
+        gain.gain.setValueAtTime(0.5, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        osc.start(t); osc.stop(t + 0.25);
+      });
+    } catch(e) {}
+  }
+</script>
+</body>
+</html>

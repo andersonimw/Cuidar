@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:20px; text-align:center; }
+  header h1 { font-size:2em; }
+  header p { font-size:0.95em; opacity:0.85; margin-top:4px; }
+  .resumo-btn { display:flex; align-items:center; gap:16px; margin:16px;
+                background:linear-gradient(135deg,#2e7d32,#43a047); color:white;
+                border-radius:16px; padding:18px 20px; cursor:pointer;
+                box-shadow:0 4px 12px rgba(46,125,50,0.3); border:none; width:calc(100% - 32px); }
+  .resumo-btn .icon { font-size:2em; }
+  .resumo-btn .texto h2 { font-size:1.1em; color:white; text-align:left; }
+  .resumo-btn .texto p { font-size:0.82em; color:rgba(255,255,255,0.85); text-align:left; margin-top:2px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:0 16px 16px; }
+  .card { background:white; border-radius:16px; padding:20px; text-align:center;
+          box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer; transition:transform 0.1s; border:none; width:100%; }
+  .card:active { transform:scale(0.97); }
+  .card .icon { font-size:2.5em; margin-bottom:10px; }
+  .card h2 { font-size:1em; color:#2e7d32; }
+  .card p { font-size:0.78em; color:#888; margin-top:4px; }
+  .card.destaque { background:#e8f5e9; }
+  .card.vermelho { background:#ffebee; }
+  .card.vermelho h2 { color:#c62828; }
+  .secao-titulo { padding:8px 16px 4px; font-size:0.78em; font-weight:bold;
+                  color:#888; text-transform:uppercase; letter-spacing:0.08em; }
+  footer { text-align:center; padding:20px; color:#aaa; font-size:0.8em; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💚 Cuidar</h1>
+  <p>Cuidado familiar inteligente</p>
+</header>
+
+<button class="resumo-btn" onclick="window.location='resumo.html'">
+  <div class="icon">🌅</div>
+  <div class="texto">
+    <h2>Resumo do Dia</h2>
+    <p>Tudo que importa hoje em um lugar</p>
+  </div>
+</button>
+
+<div class="secao-titulo">🏥 Saúde</div>
+<div class="grid">
+  <button class="card" onclick="window.location='medicamentos.html'">
+    <div class="icon">💊</div>
+    <h2>Medicamentos</h2>
+    <p>Horários e confirmações</p>
+  </button>
+  <button class="card" onclick="window.location='calendario.html'">
+    <div class="icon">📅</div>
+    <h2>Agenda</h2>
+    <p>Consultas e eventos</p>
+  </button>
+  <button class="card" onclick="window.location='diario.html'">
+    <div class="icon">📓</div>
+    <h2>Diário de Saúde</h2>
+    <p>Registros diários</p>
+  </button>
+  <button class="card" onclick="window.location='dashboard.html'">
+    <div class="icon">📊</div>
+    <h2>Dashboard</h2>
+    <p>Pressão, glicemia, peso</p>
+  </button>
+  <button class="card" onclick="window.location='vacinas.html'">
+    <div class="icon">💉</div>
+    <h2>Vacinas</h2>
+    <p>Cartão de vacinação</p>
+  </button>
+  <button class="card" onclick="window.location='hidratacao.html'">
+    <div class="icon">💧</div>
+    <h2>Hidratação</h2>
+    <p>Controle de água diária</p>
+  </button>
+</div>
+
+<div class="secao-titulo">👨‍👩‍👧 Família</div>
+<div class="grid">
+  <button class="card" onclick="window.location='escala.html'">
+    <div class="icon">🔄</div>
+    <h2>Escala de Cuidado</h2>
+    <p>Divisão justa de tarefas</p>
+  </button>
+  <button class="card" onclick="window.location='chat.html'">
+    <div class="icon">💬</div>
+    <h2>Chat Familiar</h2>
+    <p>Comunicação organizada</p>
+  </button>
+  <button class="card" onclick="window.location='financeiro.html'">
+    <div class="icon">💰</div>
+    <h2>Financeiro</h2>
+    <p>Gastos do cuidado</p>
+  </button>
+  <button class="card" onclick="window.location='checklist.html'">
+    <div class="icon">✅</div>
+    <h2>Checklist</h2>
+    <p>Tarefas diárias</p>
+  </button>
+</div>
+
+<div class="secao-titulo">👤 Idoso</div>
+<div class="grid">
+  <button class="card destaque" onclick="window.location='perfil.html'">
+    <div class="icon">👤</div>
+    <h2>Perfil do Idoso</h2>
+    <p>Dados, modo idoso e documentos</p>
+  </button>
+  <button class="card destaque" onclick="window.location='relatorio.html'">
+    <div class="icon">📋</div>
+    <h2>Relatório</h2>
+    <p>Gerar para o médico</p>
+  </button>
+</div>
+
+<div class="secao-titulo">🧘 Cuidador</div>
+<div class="grid">
+  <button class="card" onclick="window.location='bemestar.html'">
+    <div class="icon">🧘</div>
+    <h2>Bem-estar</h2>
+    <p>Cuide de quem cuida</p>
+  </button>
+</div>
+<div class="secao-titulo">⚙️ Sistema</div>
+<div class="grid">
+  <button class="card vermelho" onclick="window.location='emergencia.html'">
+    <div class="icon">🚨</div>
+    <h2>Emergência</h2>
+    <p>Alertas imediatos</p>
+  </button>
+  <button class="card" onclick="window.location='acesso.html'">
+    <div class="icon">🔐</div>
+    <h2>Acesso</h2>
+    <p>ID familiar e médico</p>
+  </button>
+</div>
+
+<footer>Cuidar © 2026 — Feito com amor 💚</footer>
+
+<script src="notificacoes.js"></script>
+</body>
+</html>

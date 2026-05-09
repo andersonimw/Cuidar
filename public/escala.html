@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escala de Cuidado - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+  .secao { background:white; border-radius:16px; padding:16px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .secao h2 { color:#2e7d32; font-size:1em; margin-bottom:12px; }
+  .familiar-card { display:flex; align-items:center; justify-content:space-between;
+                   padding:10px 0; border-bottom:1px solid #f0f0f0; }
+  .familiar-card:last-child { border-bottom:none; }
+  .familiar-info { display:flex; align-items:center; gap:10px; }
+  .avatar { width:40px; height:40px; border-radius:50%; background:#e8f5e9;
+            display:flex; align-items:center; justify-content:center; font-size:1.2em; }
+  .familiar-nome { font-weight:bold; font-size:0.95em; }
+  .familiar-horas { font-size:0.8em; color:#888; }
+  .barra-container { width:80px; background:#eee; border-radius:20px; height:8px; }
+  .barra { height:8px; border-radius:20px; background:#2e7d32; }
+  .barra.alerta { background:#ff9800; }
+  .barra.sobrecarregado { background:#f44336; }
+  .tarefa-card { padding:10px 0; border-bottom:1px solid #f0f0f0; }
+  .tarefa-card:last-child { border-bottom:none; }
+  .tarefa-header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .tarefa-nome { font-size:0.95em; font-weight:bold; }
+  .tarefa-responsavel { font-size:0.82em; color:#2e7d32; background:#e8f5e9;
+                        padding:3px 10px; border-radius:20px; white-space:nowrap; }
+  .tarefa-dia { font-size:0.8em; color:#888; margin-top:3px; }
+  .btn-excluir-small { background:#ffebee; border:none; border-radius:8px;
+                       padding:6px 10px; color:#f44336; font-size:0.8em; cursor:pointer; flex-shrink:0; }
+  .btn-add { position:fixed; bottom:24px; right:24px; background:#2e7d32; color:white;
+             border:none; border-radius:50px; padding:16px 24px; font-size:1em;
+             cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:100; }
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:90vh; overflow-y:auto; }
+  .modal h2 { color:#2e7d32; margin-bottom:16px; }
+  .modal input, .modal select { width:100%; padding:12px; margin-bottom:12px;
+                                 border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  .modal-btns { display:flex; gap:10px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#2e7d32; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .tab { flex:1; padding:10px; border:none; border-radius:10px; font-size:0.9em;
+         cursor:pointer; background:#eee; color:#555; }
+  .tab.ativo { background:#2e7d32; color:white; font-weight:bold; }
+  .alerta-sobrecarga { background:#fff3e0; border-left:4px solid #ff9800;
+                       padding:12px 16px; border-radius:0 12px 12px 0;
+                       margin-bottom:16px; font-size:0.88em; color:#e65100; }
+  .ranking { display:flex; flex-direction:column; gap:8px; }
+  .rank-item { display:flex; align-items:center; gap:10px; }
+  .rank-num { width:24px; height:24px; border-radius:50%; background:#2e7d32;
+              color:white; display:flex; align-items:center; justify-content:center;
+              font-size:0.8em; font-weight:bold; flex-shrink:0; }
+  .rank-barra-container { flex:1; background:#eee; border-radius:20px; height:10px; }
+  .rank-barra { height:10px; border-radius:20px; background:#2e7d32; }
+  .rank-horas { font-size:0.82em; color:#555; white-space:nowrap; }
+  .sem-dados { text-align:center; color:#aaa; padding:20px; font-size:0.9em; }
+  .familiar-acoes { display:flex; align-items:center; gap:8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>🔄 Escala de Cuidado</h1>
+</header>
+
+<div class="conteudo">
+  <div class="tabs">
+    <button class="tab ativo" onclick="mostrarAba('tarefas',this)">📋 Tarefas</button>
+    <button class="tab" onclick="mostrarAba('familiares',this)">👥 Familiares</button>
+    <button class="tab" onclick="mostrarAba('ranking',this)">🏆 Ranking</button>
+  </div>
+
+  <div id="aba-tarefas">
+    <div id="alertaSobrecarga"></div>
+    <div class="secao">
+      <h2>📋 Tarefas desta semana</h2>
+      <div id="listaTarefas"></div>
+    </div>
+  </div>
+
+  <div id="aba-familiares" style="display:none">
+    <div class="secao">
+      <h2>👥 Familiares cadastrados</h2>
+      <div id="listaFamiliares"></div>
+    </div>
+  </div>
+
+  <div id="aba-ranking" style="display:none">
+    <div class="secao">
+      <h2>🏆 Horas cuidadas esta semana</h2>
+      <div class="ranking" id="listaRanking"></div>
+    </div>
+  </div>
+</div>
+
+<button class="btn-add" id="btnAdd" onclick="abrirModal()">+ Adicionar</button>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modalConteudo"></div>
+</div>
+
+<script>
+  var familiares = JSON.parse(localStorage.getItem('familiares') || '[]');
+  var tarefas = JSON.parse(localStorage.getItem('tarefas') || '[]');
+  var abaAtual = 'tarefas';
+  var dias = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+
+  function mostrarAba(aba, btn) {
+    abaAtual = aba;
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    document.getElementById('aba-tarefas').style.display = aba === 'tarefas' ? '' : 'none';
+    document.getElementById('aba-familiares').style.display = aba === 'familiares' ? '' : 'none';
+    document.getElementById('aba-ranking').style.display = aba === 'ranking' ? '' : 'none';
+    renderizar();
+  }
+
+  function calcularHoras() {
+    var horas = {};
+    familiares.forEach(function(f) { horas[f.nome] = 0; });
+    tarefas.forEach(function(t) {
+      if (t.responsavel && horas[t.responsavel] !== undefined) {
+        horas[t.responsavel] += parseFloat(t.horas) || 0;
+      }
+    });
+    return horas;
+  }
+
+  function renderizar() {
+    if (abaAtual === 'tarefas') renderTarefas();
+    if (abaAtual === 'familiares') renderFamiliares();
+    if (abaAtual === 'ranking') renderRanking();
+  }
+
+  function renderTarefas() {
+    var lista = document.getElementById('listaTarefas');
+    var alerta = document.getElementById('alertaSobrecarga');
+    var horas = calcularHoras();
+    var sobrecarregados = Object.entries(horas).filter(function(e) { return e[1] > 20; }).map(function(e) { return e[0]; });
+    alerta.innerHTML = sobrecarregados.length > 0
+      ? '<div class="alerta-sobrecarga">⚠️ ' + sobrecarregados.join(', ') + ' com mais de 20h esta semana — considere redistribuir.</div>'
+      : '';
+    if (tarefas.length === 0) {
+      lista.innerHTML = '<div class="sem-dados">Nenhuma tarefa ainda. Toque em + para adicionar.</div>';
+      return;
+    }
+    lista.innerHTML = '';
+    tarefas.forEach(function(t, i) {
+      var div = document.createElement('div');
+      div.className = 'tarefa-card';
+      div.innerHTML =
+        '<div class="tarefa-header">' +
+          '<span class="tarefa-nome">' + t.nome + '</span>' +
+          '<span class="tarefa-responsavel">' + (t.responsavel || 'Sem responsável') + '</span>' +
+          '<button class="btn-excluir-small" onclick="excluirTarefa(' + i + ')">🗑️</button>' +
+        '</div>' +
+        '<div class="tarefa-dia">📅 ' + t.dia + ' · ⏱️ ' + t.horas + 'h</div>';
+      lista.appendChild(div);
+    });
+  }
+
+  function renderFamiliares() {
+    var lista = document.getElementById('listaFamiliares');
+    var horas = calcularHoras();
+    if (familiares.length === 0) {
+      lista.innerHTML = '<div class="sem-dados">Nenhum familiar cadastrado. Toque em + para adicionar.</div>';
+      return;
+    }
+    var maxH = Math.max.apply(null, Object.values(horas).concat([1]));
+    lista.innerHTML = '';
+    familiares.forEach(function(f, i) {
+      var h = horas[f.nome] || 0;
+      var pct = Math.min((h / maxH) * 100, 100);
+      var classe = h > 20 ? 'sobrecarregado' : h > 12 ? 'alerta' : '';
+      var div = document.createElement('div');
+      div.className = 'familiar-card';
+      div.innerHTML =
+        '<div class="familiar-info">' +
+          '<div class="avatar">' + (f.emoji || '👤') + '</div>' +
+          '<div>' +
+            '<div class="familiar-nome">' + f.nome + '</div>' +
+            '<div class="familiar-horas">' + f.relacao + ' · ' + h + 'h esta semana</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="familiar-acoes">' +
+          '<div class="barra-container"><div class="barra ' + classe + '" style="width:' + pct + '%"></div></div>' +
+          '<button class="btn-excluir-small" onclick="excluirFamiliar(' + i + ')">🗑️</button>' +
+        '</div>';
+      lista.appendChild(div);
+    });
+  }
+
+  function renderRanking() {
+    var lista = document.getElementById('listaRanking');
+    var horas = calcularHoras();
+    var ordenado = Object.entries(horas).sort(function(a,b) { return b[1]-a[1]; });
+    if (ordenado.length === 0) {
+      lista.innerHTML = '<div class="sem-dados">Nenhum dado ainda.</div>';
+      return;
+    }
+    var maxH = Math.max.apply(null, ordenado.map(function(e) { return e[1]; }).concat([1]));
+    lista.innerHTML = '';
+    ordenado.forEach(function(entry, i) {
+      var nome = entry[0], h = entry[1];
+      var pct = Math.min((h / maxH) * 100, 100);
+      var div = document.createElement('div');
+      div.className = 'rank-item';
+      div.innerHTML =
+        '<div class="rank-num">' + (i+1) + '</div>' +
+        '<div style="flex:1">' +
+          '<div style="font-size:0.9em;font-weight:bold;margin-bottom:3px">' + nome + '</div>' +
+          '<div class="rank-barra-container"><div class="rank-barra" style="width:' + pct + '%"></div></div>' +
+        '</div>' +
+        '<div class="rank-horas">' + h + 'h</div>';
+      lista.appendChild(div);
+    });
+  }
+
+  function excluirTarefa(i) {
+    if (!confirm('Excluir tarefa "' + tarefas[i].nome + '"?')) return;
+    tarefas.splice(i, 1);
+    localStorage.setItem('tarefas', JSON.stringify(tarefas));
+    renderizar();
+  }
+
+  function excluirFamiliar(i) {
+    if (!confirm('Excluir ' + familiares[i].nome + '?')) return;
+    familiares.splice(i, 1);
+    localStorage.setItem('familiares', JSON.stringify(familiares));
+    renderizar();
+  }
+
+  function abrirModal() {
+    var modal = document.getElementById('modalConteudo');
+    document.getElementById('modalBg').classList.add('ativo');
+    if (abaAtual === 'familiares') {
+      modal.innerHTML =
+        '<h2>Novo Familiar</h2>' +
+        '<input type="text" id="mNome" placeholder="Nome do familiar" />' +
+        '<input type="text" id="mRelacao" placeholder="Relação (ex: filho, filha, neto)" />' +
+        '<select id="mEmoji">' +
+          '<option value="👨">👨 Homem</option>' +
+          '<option value="👩">👩 Mulher</option>' +
+          '<option value="👦">👦 Jovem homem</option>' +
+          '<option value="👧">👧 Jovem mulher</option>' +
+          '<option value="👴">👴 Avô</option>' +
+          '<option value="👵">👵 Avó</option>' +
+        '</select>' +
+        '<div class="modal-btns">' +
+          '<button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>' +
+          '<button class="btn-salvar" onclick="salvarFamiliar()">Salvar</button>' +
+        '</div>';
+    } else {
+      var opts = familiares.map(function(f) { return '<option value="' + f.nome + '">' + f.nome + '</option>'; }).join('');
+      modal.innerHTML =
+        '<h2>Nova Tarefa</h2>' +
+        '<input type="text" id="tNome" placeholder="Descrição da tarefa" />' +
+        '<select id="tDia">' + dias.map(function(d) { return '<option value="' + d + '">' + d + '</option>'; }).join('') + '</select>' +
+        '<input type="number" id="tHoras" placeholder="Horas dedicadas" min="0.5" step="0.5" />' +
+        '<select id="tResp"><option value="">Responsável</option>' + opts + '</select>' +
+        '<div class="modal-btns">' +
+          '<button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>' +
+          '<button class="btn-salvar" onclick="salvarTarefa()">Salvar</button>' +
+        '</div>';
+    }
+  }
+
+  function fecharModal() { document.getElementById('modalBg').classList.remove('ativo'); }
+
+  function salvarFamiliar() {
+    var nome = document.getElementById('mNome').value.trim();
+    var relacao = document.getElementById('mRelacao').value.trim();
+    var emoji = document.getElementById('mEmoji').value;
+    if (!nome) { alert('Digite o nome.'); return; }
+    familiares.push({ nome:nome, relacao:relacao, emoji:emoji });
+    localStorage.setItem('familiares', JSON.stringify(familiares));
+    fecharModal();
+    renderizar();
+  }
+
+  function salvarTarefa() {
+    var nome = document.getElementById('tNome').value.trim();
+    var dia = document.getElementById('tDia').value;
+    var horas = document.getElementById('tHoras').value;
+    var responsavel = document.getElementById('tResp').value;
+    if (!nome || !horas) { alert('Preencha nome e horas.'); return; }
+    tarefas.push({ nome:nome, dia:dia, horas:horas, responsavel:responsavel });
+    localStorage.setItem('tarefas', JSON.stringify(tarefas));
+    fecharModal();
+    renderizar();
+  }
+
+  renderizar();
+</script>
+</body>
+</html>

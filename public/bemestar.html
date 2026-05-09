@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bem-estar do Cuidador - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#1a237e; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+
+  .card-frase { background:linear-gradient(135deg,#1a237e,#283593);
+                color:white; border-radius:20px; padding:24px; margin-bottom:16px;
+                text-align:center; box-shadow:0 4px 12px rgba(26,35,126,0.3); }
+  .card-frase .emoji { font-size:2.5em; margin-bottom:12px; }
+  .card-frase .frase { font-size:1.1em; line-height:1.6; font-style:italic; margin-bottom:12px; }
+  .card-frase .autor { font-size:0.82em; opacity:0.75; }
+  .btn-nova-frase { background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.3);
+                    color:white; border-radius:20px; padding:8px 20px; font-size:0.88em;
+                    cursor:pointer; margin-top:8px; }
+
+  .tabs { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { padding:10px 16px; border:none; border-radius:20px; font-size:0.85em;
+         cursor:pointer; background:#eee; color:#555; white-space:nowrap; }
+  .tab.ativo { background:#1a237e; color:white; font-weight:bold; }
+
+  .secao { background:white; border-radius:16px; padding:16px;
+           margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .secao h2 { color:#1a237e; font-size:0.95em; margin-bottom:12px; }
+
+  /* RESPIRAÇÃO */
+  .respiracao-container { text-align:center; padding:20px 0; }
+  .circulo { width:160px; height:160px; border-radius:50%; margin:0 auto 20px;
+             background:linear-gradient(135deg,#1a237e,#3949ab);
+             display:flex; align-items:center; justify-content:center;
+             color:white; font-size:1.1em; font-weight:bold;
+             transition:transform 4s ease-in-out, opacity 1s;
+             box-shadow:0 0 0 0 rgba(57,73,171,0.4); }
+  .circulo.inspirar { transform:scale(1.4); box-shadow:0 0 0 20px rgba(57,73,171,0.1); }
+  .circulo.segurar { transform:scale(1.4); }
+  .circulo.expirar { transform:scale(1); }
+  .resp-instrucao { font-size:1.3em; font-weight:bold; color:#1a237e; margin-bottom:8px; }
+  .resp-tempo { font-size:2em; font-weight:bold; color:#3949ab; }
+  .resp-ciclo { font-size:0.85em; color:#888; margin-top:8px; }
+  .btn-resp { padding:14px 32px; background:#1a237e; color:white; border:none;
+              border-radius:20px; font-size:1em; cursor:pointer; margin-top:16px; }
+
+  /* AUTOCUIDADO */
+  .autocuidado-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .ac-card { background:white; border-radius:14px; padding:16px; text-align:center;
+             border:2px solid #eee; cursor:pointer; transition:all 0.2s; }
+  .ac-card.feito { border-color:#1a237e; background:#e8eaf6; }
+  .ac-card .ac-icon { font-size:2em; margin-bottom:6px; }
+  .ac-card .ac-nome { font-size:0.85em; font-weight:bold; color:#333; }
+  .ac-card .ac-desc { font-size:0.75em; color:#888; margin-top:2px; }
+  .ac-progresso { background:#eee; border-radius:20px; height:10px; margin:12px 0 6px; overflow:hidden; }
+  .ac-barra { height:10px; border-radius:20px; background:#1a237e; transition:width 0.5s; }
+  .ac-texto { font-size:0.82em; color:#888; text-align:center; }
+
+  /* DIÁRIO DO CUIDADOR */
+  .humor-grid { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .humor-btn { font-size:1.8em; padding:10px; border:2px solid #eee; border-radius:12px;
+               background:white; cursor:pointer; flex:1; min-width:50px; text-align:center; }
+  .humor-btn.sel { border-color:#1a237e; background:#e8eaf6; }
+  .diario-texto { width:100%; padding:12px; border:1px solid #ddd; border-radius:10px;
+                  font-size:0.95em; height:100px; resize:none; margin-bottom:12px; }
+  .btn-salvar-diario { width:100%; padding:14px; background:#1a237e; color:white;
+                       border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .historico-cuidador { margin-top:12px; }
+  .hist-cuidador-item { background:#f8f9fa; border-radius:10px; padding:10px 12px;
+                        margin-bottom:8px; font-size:0.85em; }
+  .hist-cuidador-data { font-size:0.75em; color:#888; margin-bottom:4px; }
+
+  /* DICAS */
+  .dica-card { background:white; border-radius:14px; padding:16px; margin-bottom:10px;
+               box-shadow:0 2px 6px rgba(0,0,0,0.07); border-left:4px solid #1a237e; }
+  .dica-card .dica-titulo { font-weight:bold; color:#1a237e; font-size:0.95em; margin-bottom:6px; }
+  .dica-card .dica-texto { font-size:0.85em; color:#555; line-height:1.6; }
+  .dica-card .dica-tag { font-size:0.72em; background:#e8eaf6; color:#1a237e;
+                          padding:2px 8px; border-radius:20px; display:inline-block; margin-top:8px; }
+
+  /* ALERTA BURNOUT */
+  .alerta-burnout { background:#ffebee; border-left:4px solid #c62828;
+                    padding:14px 16px; border-radius:0 12px 12px 0;
+                    margin-bottom:16px; font-size:0.88em; color:#c62828; }
+
+  .sem-dados { text-align:center; color:#bbb; padding:20px; font-size:0.9em; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>🧘 Bem-estar do Cuidador</h1>
+</header>
+
+<div class="conteudo">
+
+  <div class="card-frase" id="cardFrase">
+    <div class="emoji" id="fraseEmoji">💚</div>
+    <div class="frase" id="fraseTexto">Cuidar de alguém é um dos maiores atos de amor. Mas lembre-se: você não pode servir de um copo vazio.</div>
+    <div class="autor" id="fraseAutor">— Provérbio do cuidador</div>
+    <button class="btn-nova-frase" onclick="novaFrase()">✨ Nova frase</button>
+  </div>
+
+  <div id="alertaBurnout"></div>
+
+  <div class="tabs">
+    <button class="tab ativo" onclick="setAba('respiracao',this)">🫁 Respiração</button>
+    <button class="tab" onclick="setAba('autocuidado',this)">⭐ Autocuidado</button>
+    <button class="tab" onclick="setAba('diario',this)">📓 Meu Diário</button>
+    <button class="tab" onclick="setAba('dicas',this)">💡 Dicas</button>
+  </div>
+
+  <!-- RESPIRAÇÃO -->
+  <div id="aba-respiracao">
+    <div class="secao">
+      <h2>🫁 Respiração 4-7-8 — Anti-ansiedade</h2>
+      <div class="respiracao-container">
+        <div class="circulo" id="circulo">Toque em<br>Iniciar</div>
+        <div class="resp-instrucao" id="respInstrucao">Pronto para começar?</div>
+        <div class="resp-tempo" id="respTempo"></div>
+        <div class="resp-ciclo" id="respCiclo"></div>
+        <button class="btn-resp" id="btnResp" onclick="toggleRespiracao()">▶ Iniciar</button>
+      </div>
+    </div>
+    <div class="secao">
+      <h2>ℹ️ Como funciona</h2>
+      <div style="font-size:0.85em;color:#555;line-height:1.8">
+        <p>A técnica 4-7-8 foi desenvolvida pelo Dr. Andrew Weil e é cientificamente comprovada para reduzir ansiedade e estresse em minutos.</p>
+        <br>
+        <p>🫁 <b>Inspire</b> pelo nariz por 4 segundos</p>
+        <p>⏸️ <b>Segure</b> a respiração por 7 segundos</p>
+        <p>💨 <b>Expire</b> pela boca por 8 segundos</p>
+        <br>
+        <p>Repita 3-4 vezes. Use sempre que sentir ansiedade, raiva ou exaustão.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTOCUIDADO -->
+  <div id="aba-autocuidado" style="display:none">
+    <div class="secao">
+      <h2>⭐ Check-in de hoje</h2>
+      <div class="ac-progresso">
+        <div class="ac-barra" id="acBarra" style="width:0%"></div>
+      </div>
+      <div class="ac-texto" id="acTexto">0 de 8 práticas realizadas hoje</div>
+    </div>
+    <div class="autocuidado-grid" id="autocuidadoGrid"></div>
+  </div>
+
+  <!-- DIÁRIO -->
+  <div id="aba-diario" style="display:none">
+    <div class="secao">
+      <h2>📓 Como você está hoje?</h2>
+      <div class="humor-grid">
+        <button class="humor-btn" onclick="selHumor(this,'😄')">😄</button>
+        <button class="humor-btn" onclick="selHumor(this,'🙂')">🙂</button>
+        <button class="humor-btn" onclick="selHumor(this,'😐')">😐</button>
+        <button class="humor-btn" onclick="selHumor(this,'😔')">😔</button>
+        <button class="humor-btn" onclick="selHumor(this,'😰')">😰</button>
+        <button class="humor-btn" onclick="selHumor(this,'😤')">😤</button>
+      </div>
+      <textarea class="diario-texto" id="diarioTexto"
+        placeholder="Como foi o dia? O que sentiu? O que foi difícil? O que foi bonito?&#10;&#10;Este é o seu espaço seguro. Ninguém mais vê isso."></textarea>
+      <button class="btn-salvar-diario" onclick="salvarDiario()">💾 Salvar registro</button>
+    </div>
+    <div class="historico-cuidador" id="historicoCuidador"></div>
+  </div>
+
+  <!-- DICAS -->
+  <div id="aba-dicas" style="display:none">
+    <div id="listaDicas"></div>
+  </div>
+
+</div>
+
+<script>
+  var humorSel = '';
+  var respAtivo = false;
+  var respTimer = null;
+  var cicloAtual = 0;
+  var totalCiclos = 4;
+  var diarioCuidador = JSON.parse(localStorage.getItem('diarioCuidador') || '[]');
+  var autocuidadoHoje = JSON.parse(localStorage.getItem('autocuidadoHoje') || '{}');
+  var hojeISO = new Date().toISOString().split('T')[0];
+
+  // Reset autocuidado diário
+  if (autocuidadoHoje.data !== hojeISO) {
+    autocuidadoHoje = { data: hojeISO, feitos: [] };
+    localStorage.setItem('autocuidadoHoje', JSON.stringify(autocuidadoHoje));
+  }
+
+  var frases = [
+    { emoji:'💚', texto:'Cuidar de alguém é um dos maiores atos de amor. Mas lembre-se: você não pode servir de um copo vazio.', autor:'— Provérbio do cuidador' },
+    { emoji:'🌟', texto:'Você não precisa ser perfeito para ser um cuidador incrível. Você só precisa estar presente e fazer o seu melhor.', autor:'— Anônimo' },
+    { emoji:'🦋', texto:'Descansar não é abandono. Descansar é garantir que você terá forças para continuar amando.', autor:'— Pensamento do cuidador' },
+    { emoji:'🌸', texto:'O cuidado que você dá ao outro reflete o amor que carrega dentro de si. Honre esse amor também se cuidando.', autor:'— Anônimo' },
+    { emoji:'☀️', texto:'Pedir ajuda não é fraqueza. É sabedoria. Os melhores cuidadores sabem quando precisam de apoio.', autor:'— Anônimo' },
+    { emoji:'🌊', texto:'Como a lua controla as marés, sua presença e calma controlam o ambiente ao redor do idoso. Cuide da sua paz.', autor:'— Anônimo' },
+    { emoji:'💪', texto:'Cada dia que você se dedica ao cuidado é um ato de heroísmo silencioso. Seja orgulhoso disso.', autor:'— Anônimo' },
+    { emoji:'🌿', texto:'A natureza nos ensina: até as árvores mais fortes precisam de chuva para se renovar. Permita-se receber cuidado.', autor:'— Anônimo' },
+    { emoji:'❤️', texto:'Você não pode controlar tudo. Mas pode controlar como cuida de si mesmo enquanto cuida do outro.', autor:'— Anônimo' },
+    { emoji:'🕊️', texto:'A paz que você cultiva dentro de si é o maior presente que pode dar para quem você cuida.', autor:'— Anônimo' },
+  ];
+
+  var fraseAtual = Math.floor(Math.random() * frases.length);
+
+  function novaFrase() {
+    fraseAtual = (fraseAtual + 1) % frases.length;
+    var f = frases[fraseAtual];
+    document.getElementById('fraseEmoji').textContent = f.emoji;
+    document.getElementById('fraseTexto').textContent = f.texto;
+    document.getElementById('fraseAutor').textContent = f.autor;
+  }
+
+  var itensAutocuidado = [
+    { id:'agua', icon:'💧', nome:'Beber água', desc:'Pelo menos 2L hoje' },
+    { id:'alimentacao', icon:'🍎', nome:'Comer bem', desc:'Refeição nutritiva' },
+    { id:'descanso', icon:'😴', nome:'Descansar', desc:'Pelo menos 7h de sono' },
+    { id:'ar', icon:'🚶', nome:'Ar fresco', desc:'Sair um pouco de casa' },
+    { id:'respiracao', icon:'🫁', nome:'Respiração', desc:'Exercício de respiração' },
+    { id:'conexao', icon:'📞', nome:'Conectar', desc:'Falar com alguém querido' },
+    { id:'pausa', icon:'⏸️', nome:'Fazer pausa', desc:'15 min só para você' },
+    { id:'gratidao', icon:'🙏', nome:'Gratidão', desc:'Pensar em 3 coisas boas' },
+  ];
+
+  function renderAutocuidado() {
+    var grid = document.getElementById('autocuidadoGrid');
+    var feitos = autocuidadoHoje.feitos || [];
+    grid.innerHTML = '';
+    itensAutocuidado.forEach(function(item) {
+      var feito = feitos.indexOf(item.id) !== -1;
+      var div = document.createElement('div');
+      div.className = 'ac-card' + (feito ? ' feito' : '');
+      div.innerHTML = '<div class="ac-icon">' + item.icon + '</div>' +
+        '<div class="ac-nome">' + item.nome + '</div>' +
+        '<div class="ac-desc">' + item.desc + '</div>' +
+        (feito ? '<div style="color:#1a237e;font-size:0.8em;margin-top:6px">✓ Feito!</div>' : '');
+      div.onclick = function() { toggleAutocuidado(item.id); };
+      grid.appendChild(div);
+    });
+    var pct = Math.round((feitos.length / itensAutocuidado.length) * 100);
+    document.getElementById('acBarra').style.width = pct + '%';
+    document.getElementById('acTexto').textContent = feitos.length + ' de ' + itensAutocuidado.length + ' práticas realizadas hoje (' + pct + '%)';
+  }
+
+  function toggleAutocuidado(id) {
+    var feitos = autocuidadoHoje.feitos || [];
+    var idx = feitos.indexOf(id);
+    if (idx === -1) feitos.push(id);
+    else feitos.splice(idx, 1);
+    autocuidadoHoje.feitos = feitos;
+    localStorage.setItem('autocuidadoHoje', JSON.stringify(autocuidadoHoje));
+    renderAutocuidado();
+  }
+
+  function verificarBurnout() {
+    var ultimos = diarioCuidador.slice(-7);
+    var humorRuim = ultimos.filter(function(d) {
+      return d.humor === '😰' || d.humor === '😤' || d.humor === '😔';
+    }).length;
+    var el = document.getElementById('alertaBurnout');
+    if (humorRuim >= 4) {
+      el.innerHTML = '<div class="alerta-burnout">⚠️ Você registrou humor difícil ' + humorRuim + ' vezes esta semana. ' +
+        'Isso é sinal de esgotamento. Considere pedir ajuda à família ou conversar com alguém de confiança. ' +
+        'Você merece suporte! 💙</div>';
+    } else { el.innerHTML = ''; }
+  }
+
+  function selHumor(btn, emoji) {
+    document.querySelectorAll('.humor-btn').forEach(function(b) { b.classList.remove('sel'); });
+    btn.classList.add('sel');
+    humorSel = emoji;
+  }
+
+  function salvarDiario() {
+    var texto = document.getElementById('diarioTexto').value.trim();
+    if (!humorSel && !texto) { alert('Selecione seu humor ou escreva algo.'); return; }
+    var agora = new Date();
+    diarioCuidador.push({
+      humor: humorSel || '😐',
+      texto: texto,
+      data: agora.toLocaleDateString('pt-BR'),
+      hora: agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+    });
+    localStorage.setItem('diarioCuidador', JSON.stringify(diarioCuidador));
+    document.getElementById('diarioTexto').value = '';
+    document.querySelectorAll('.humor-btn').forEach(function(b) { b.classList.remove('sel'); });
+    humorSel = '';
+    renderDiario();
+    verificarBurnout();
+    alert('✅ Registro salvo! Cuide-se sempre. 💙');
+  }
+
+  function renderDiario() {
+    var el = document.getElementById('historicoCuidador');
+    if (diarioCuidador.length === 0) {
+      el.innerHTML = '<div class="sem-dados">Nenhum registro ainda.<br>Compartilhe como você está se sentindo.</div>';
+      return;
+    }
+    el.innerHTML = '<div style="font-size:0.82em;font-weight:bold;color:#888;margin-bottom:8px;text-transform:uppercase">Registros anteriores</div>';
+    diarioCuidador.slice().reverse().slice(0, 5).forEach(function(d) {
+      el.innerHTML += '<div class="hist-cuidador-item">' +
+        '<div class="hist-cuidador-data">' + d.data + ' às ' + d.hora + '</div>' +
+        '<div style="font-size:1.2em">' + d.humor + ' ' + (d.texto ? '<span style="font-size:0.7em;color:#555">' + d.texto.substring(0,80) + (d.texto.length > 80 ? '...' : '') + '</span>' : '') + '</div>' +
+      '</div>';
+    });
+  }
+
+  var dicas = [
+    { titulo:'🛌 Durma quando puder', texto:'A privação de sono é um dos maiores fatores de esgotamento do cuidador. Se o idoso dorme de dia, use esse tempo para descansar também. Não é preguiça — é necessidade.', tag:'Descanso' },
+    { titulo:'🗣️ Fale sobre como está se sentindo', texto:'Guardar tudo para si aumenta o estresse. Converse com um amigo, familiar ou profissional sobre suas dificuldades. Você não precisa carregar esse peso sozinho.', tag:'Saúde mental' },
+    { titulo:'📅 Agende tempo para você', texto:'Coloque no calendário pelo menos 1 hora por dia que é exclusivamente sua. Pode ser um banho longo, uma caminhada, uma série. Esse tempo é sagrado.', tag:'Autocuidado' },
+    { titulo:'🤝 Aceite ajuda', texto:'Quando alguém oferecer ajuda, aceite. Seja específico: "Pode ficar com ela na sexta à tarde?" é melhor do que "me avisa se precisar de algo".', tag:'Rede de apoio' },
+    { titulo:'🍎 Coma direito', texto:'Cuidadores frequentemente pulam refeições. Prepare marmitas simples com antecedência. Um cuidador mal alimentado não consegue cuidar bem.', tag:'Alimentação' },
+    { titulo:'🧠 Reconheça os sinais de burnout', texto:'Irritabilidade constante, choro fácil, sensação de que nada melhora, distância emocional — são sinais sérios. Procure ajuda profissional se isso acontecer.', tag:'Alerta' },
+    { titulo:'💬 Entre em grupos de cuidadores', texto:'Conversar com quem vive a mesma situação é terapêutico. Procure grupos de WhatsApp, Facebook ou presenciais de cuidadores na sua cidade.', tag:'Comunidade' },
+    { titulo:'🎯 Estabeleça limites', texto:'Você não precisa fazer tudo. Defina claramente o que é sua responsabilidade e o que pode ser delegado. Limites saudáveis preservam o relacionamento.', tag:'Limites' },
+    { titulo:'🙏 Pratique gratidão', texto:'Todo dia, antes de dormir, pense em 3 coisas pequenas que foram boas. Isso reprograma o cérebro para enxergar o positivo mesmo nos dias difíceis.', tag:'Mentalidade' },
+    { titulo:'💆 Cuide do seu corpo', texto:'Dores nas costas, tensão no pescoço e dores de cabeça são comuns em cuidadores. Faça alongamento diário, mesmo que por 5 minutos.', tag:'Corpo' },
+  ];
+
+  function renderDicas() {
+    var el = document.getElementById('listaDicas');
+    el.innerHTML = dicas.map(function(d) {
+      return '<div class="dica-card">' +
+        '<div class="dica-titulo">' + d.titulo + '</div>' +
+        '<div class="dica-texto">' + d.texto + '</div>' +
+        '<span class="dica-tag">' + d.tag + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  // RESPIRAÇÃO 4-7-8
+  var fases = [
+    { nome:'Inspire', duracao:4, instrucao:'Inspire pelo nariz...', classe:'inspirar' },
+    { nome:'Segure', duracao:7, instrucao:'Segure a respiração...', classe:'segurar' },
+    { nome:'Expire', duracao:8, instrucao:'Expire pela boca...', classe:'expirar' },
+  ];
+  var faseAtual = 0; var tempoRestante = 0;
+
+  function toggleRespiracao() {
+    if (respAtivo) {
+      pararRespiracao();
+    } else {
+      iniciarRespiracao();
+    }
+  }
+
+  function iniciarRespiracao() {
+    respAtivo = true;
+    cicloAtual = 0;
+    faseAtual = 0;
+    document.getElementById('btnResp').textContent = '⏹ Parar';
+    proximaFase();
+  }
+
+  function proximaFase() {
+    if (!respAtivo) return;
+    if (faseAtual >= fases.length) {
+      faseAtual = 0;
+      cicloAtual++;
+      if (cicloAtual >= totalCiclos) {
+        pararRespiracao();
+        document.getElementById('respInstrucao').textContent = '✅ Exercício concluído!';
+        document.getElementById('respCiclo').textContent = 'Parabéns! Você completou ' + totalCiclos + ' ciclos.';
+        return;
+      }
+    }
+    var fase = fases[faseAtual];
+    tempoRestante = fase.duracao;
+    var circulo = document.getElementById('circulo');
+    circulo.className = 'circulo ' + fase.classe;
+    circulo.textContent = fase.nome;
+    document.getElementById('respInstrucao').textContent = fase.instrucao;
+    document.getElementById('respCiclo').textContent = 'Ciclo ' + (cicloAtual + 1) + ' de ' + totalCiclos;
+    atualizarTempo();
+    respTimer = setInterval(function() {
+      tempoRestante--;
+      atualizarTempo();
+      if (tempoRestante <= 0) {
+        clearInterval(respTimer);
+        faseAtual++;
+        setTimeout(proximaFase, 500);
+      }
+    }, 1000);
+  }
+
+  function atualizarTempo() {
+    document.getElementById('respTempo').textContent = tempoRestante + 's';
+  }
+
+  function pararRespiracao() {
+    respAtivo = false;
+    clearInterval(respTimer);
+    var circulo = document.getElementById('circulo');
+    circulo.className = 'circulo';
+    circulo.textContent = 'Toque em\nIniciar';
+    document.getElementById('btnResp').textContent = '▶ Iniciar';
+    document.getElementById('respTempo').textContent = '';
+    document.getElementById('respInstrucao').textContent = 'Pronto para começar?';
+    document.getElementById('respCiclo').textContent = '';
+  }
+
+  function setAba(aba, btn) {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    ['respiracao','autocuidado','diario','dicas'].forEach(function(a) {
+      document.getElementById('aba-' + a).style.display = a === aba ? '' : 'none';
+    });
+    if (aba === 'autocuidado') renderAutocuidado();
+    if (aba === 'diario') renderDiario();
+    if (aba === 'dicas') renderDicas();
+  }
+
+  verificarBurnout();
+</script>
+</body>
+</html>

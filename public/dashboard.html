@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de Saúde - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+  .cards-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .metric-card { background:white; border-radius:16px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .metric-card .icone { font-size:1.6em; }
+  .metric-card .label { font-size:0.75em; color:#888; text-transform:uppercase; letter-spacing:0.05em; }
+  .metric-card .valor { font-size:1.5em; font-weight:bold; color:#2e7d32; }
+  .metric-card .data { font-size:0.72em; color:#bbb; margin-top:2px; }
+  .metric-card.alerta .valor { color:#f44336; }
+  .metric-card.aviso .valor { color:#ff9800; }
+  .secao-titulo { font-size:0.9em; font-weight:bold; color:#555; margin:20px 0 10px;
+                  text-transform:uppercase; letter-spacing:0.05em; }
+  .grafico-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px;
+                  box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .grafico-card h3 { font-size:0.95em; color:#333; margin-bottom:12px; }
+  .grafico-barras { display:flex; align-items:flex-end; gap:6px; height:80px; }
+  .barra-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .barra { width:100%; border-radius:4px 4px 0 0; background:#2e7d32; min-height:4px; }
+  .barra.alerta { background:#f44336; }
+  .barra.aviso { background:#ff9800; }
+  .barra-label { font-size:0.62em; color:#aaa; text-align:center; }
+  .barra-val { font-size:0.65em; color:#555; font-weight:bold; }
+  .historico-item { display:flex; justify-content:space-between; align-items:center;
+                    padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:0.88em; }
+  .historico-item:last-child { border-bottom:none; }
+  .hist-data { color:#888; font-size:0.8em; }
+  .hist-valor { font-weight:bold; color:#2e7d32; }
+  .hist-valor.alerta { color:#f44336; }
+  .hist-valor.aviso { color:#ff9800; }
+  .btn-excluir-hist { background:#ffebee; border:none; border-radius:8px;
+                      padding:6px 10px; color:#f44336; font-size:0.8em; cursor:pointer; flex-shrink:0; }
+  .btn-add { position:fixed; bottom:24px; right:24px; background:#2e7d32; color:white;
+             border:none; border-radius:50px; padding:16px 24px; font-size:1em;
+             cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:100; }
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:92vh; overflow-y:auto; }
+  .modal h2 { color:#2e7d32; margin-bottom:16px; }
+  .modal input, .modal select { width:100%; padding:12px; margin-bottom:12px;
+                                 border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  .modal label { font-size:0.85em; color:#666; margin-bottom:4px; display:block; }
+  .modal-btns { display:flex; gap:10px; margin-top:4px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#2e7d32; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .tab { flex:1; padding:10px; border:none; border-radius:10px; font-size:0.85em;
+         cursor:pointer; background:#eee; color:#555; }
+  .tab.ativo { background:#2e7d32; color:white; font-weight:bold; }
+  .alerta-box { background:#ffebee; border-left:4px solid #f44336;
+                padding:12px 16px; border-radius:0 12px 12px 0;
+                margin-bottom:12px; font-size:0.88em; color:#c62828; }
+  .aviso-box { background:#fff3e0; border-left:4px solid #ff9800;
+               padding:12px 16px; border-radius:0 12px 12px 0;
+               margin-bottom:12px; font-size:0.88em; color:#e65100; }
+  .linha-referencia { font-size:0.75em; color:#aaa; margin-top:6px; }
+  .sem-dados { text-align:center; color:#bbb; padding:20px; font-size:0.9em; }
+  .hist-esquerda { display:flex; flex-direction:column; gap:2px; flex:1; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>📊 Dashboard de Saúde</h1>
+</header>
+
+<div class="conteudo">
+  <div class="tabs">
+    <button class="tab ativo" onclick="setAba('resumo',this)">📊 Resumo</button>
+    <button class="tab" onclick="setAba('pressao',this)">❤️ Pressão</button>
+    <button class="tab" onclick="setAba('glicemia',this)">🩸 Glicemia</button>
+    <button class="tab" onclick="setAba('peso',this)">⚖️ Peso</button>
+  </div>
+
+  <div id="aba-resumo">
+    <div id="alertas"></div>
+    <div class="cards-grid" id="cardsResumo"></div>
+    <div class="secao-titulo">📈 Últimas medições</div>
+    <div class="grafico-card">
+      <h3>❤️ Pressão sistólica (últimas 7)</h3>
+      <div class="grafico-barras" id="graficoPressao"></div>
+      <div class="linha-referencia">Referência normal: abaixo de 130 mmHg</div>
+    </div>
+    <div class="grafico-card">
+      <h3>🩸 Glicemia (últimas 7)</h3>
+      <div class="grafico-barras" id="graficoGlicemia"></div>
+      <div class="linha-referencia">Referência normal: 70–99 mg/dL em jejum</div>
+    </div>
+  </div>
+
+  <div id="aba-pressao" style="display:none">
+    <div class="grafico-card">
+      <h3>❤️ Histórico de Pressão</h3>
+      <div id="histPressao"></div>
+    </div>
+  </div>
+
+  <div id="aba-glicemia" style="display:none">
+    <div class="grafico-card">
+      <h3>🩸 Histórico de Glicemia</h3>
+      <div id="histGlicemia"></div>
+    </div>
+  </div>
+
+  <div id="aba-peso" style="display:none">
+    <div class="grafico-card">
+      <h3>⚖️ Histórico de Peso</h3>
+      <div id="histPeso"></div>
+    </div>
+    <div class="grafico-card" style="margin-top:12px">
+      <h3>⚖️ Gráfico de Peso</h3>
+      <div class="grafico-barras" id="graficoPeso"></div>
+    </div>
+  </div>
+</div>
+
+<button class="btn-add" onclick="abrirModal()">+ Registrar</button>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Nova Medição</h2>
+    <label>Tipo de medição</label>
+    <select id="mTipo" onchange="mostrarCampos()">
+      <option value="pressao">❤️ Pressão Arterial</option>
+      <option value="glicemia">🩸 Glicemia</option>
+      <option value="peso">⚖️ Peso</option>
+      <option value="oxigenio">💨 Oxigenação (SpO2)</option>
+      <option value="temperatura">🌡️ Temperatura</option>
+      <option value="frequencia">💓 Frequência Cardíaca</option>
+    </select>
+    <div id="campoPressao">
+      <label>Sistólica (número maior) — mmHg</label>
+      <input type="number" id="mSistolica" placeholder="Ex: 120" />
+      <label>Diastólica (número menor) — mmHg</label>
+      <input type="number" id="mDiastolica" placeholder="Ex: 80" />
+    </div>
+    <div id="campoUnico" style="display:none">
+      <label id="labelUnico">Valor</label>
+      <input type="number" id="mValor" placeholder="0" step="0.1" />
+    </div>
+    <label>Observação (opcional)</label>
+    <input type="text" id="mObs" placeholder="Ex: em jejum, após caminhada..." />
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var dados = JSON.parse(localStorage.getItem('dashboard') || '{"pressao":[],"glicemia":[],"peso":[],"oxigenio":[],"temperatura":[],"frequencia":[]}');
+  var abaAtual = 'resumo';
+
+  var referencias = {
+    pressao:    { label:'Pressão',          unidade:'mmHg', normal:[90,130], alerta:160 },
+    glicemia:   { label:'Glicemia',         unidade:'mg/dL', normal:[70,99], alerta:200 },
+    peso:       { label:'Peso',             unidade:'kg',   normal:[0,999], alerta:0 },
+    oxigenio:   { label:'SpO2',             unidade:'%',    normal:[95,100], alerta:90 },
+    temperatura:{ label:'Temperatura',      unidade:'°C',   normal:[36,37.5], alerta:39 },
+    frequencia: { label:'Freq. Cardíaca',   unidade:'bpm',  normal:[60,100], alerta:120 }
+  };
+
+  var icones = { pressao:'❤️', glicemia:'🩸', peso:'⚖️', oxigenio:'💨', temperatura:'🌡️', frequencia:'💓' };
+
+  function salvarDados() { localStorage.setItem('dashboard', JSON.stringify(dados)); }
+
+  function setAba(aba, btn) {
+    abaAtual = aba;
+    document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    ['resumo','pressao','glicemia','peso'].forEach(function(a) {
+      document.getElementById('aba-' + a).style.display = a === aba ? '' : 'none';
+    });
+    renderizar();
+  }
+
+  function classeValor(tipo, val) {
+    var ref = referencias[tipo];
+    if (!ref || tipo === 'peso') return '';
+    if (tipo === 'oxigenio' && val < ref.alerta) return 'alerta';
+    if (tipo !== 'oxigenio' && val >= ref.alerta) return 'alerta';
+    if (val < ref.normal[0] || val > ref.normal[1]) return 'aviso';
+    return '';
+  }
+
+  function renderizar() {
+    if (abaAtual === 'resumo') renderResumo();
+    if (abaAtual === 'pressao') renderHist('pressao', 'histPressao');
+    if (abaAtual === 'glicemia') renderHist('glicemia', 'histGlicemia');
+    if (abaAtual === 'peso') { renderHist('peso', 'histPeso'); renderGrafico('peso', 'graficoPeso', 999, null); }
+  }
+
+  function renderResumo() {
+    var alertasEl = document.getElementById('alertas');
+    var cards = document.getElementById('cardsResumo');
+    alertasEl.innerHTML = '';
+    cards.innerHTML = '';
+    var tipos = ['pressao','glicemia','peso','oxigenio','temperatura','frequencia'];
+    tipos.forEach(function(tipo) {
+      var lista = dados[tipo];
+      if (!lista || lista.length === 0) return;
+      var ult = lista[lista.length - 1];
+      var val = tipo === 'pressao' ? ult.sistolica : ult.valor;
+      var classe = classeValor(tipo, parseFloat(val));
+      var ref = referencias[tipo];
+      if (classe === 'alerta') alertasEl.innerHTML += '<div class="alerta-box">⚠️ <b>' + ref.label + '</b> em nível de alerta: ' + val + ' ' + ref.unidade + ' — consulte o médico.</div>';
+      else if (classe === 'aviso') alertasEl.innerHTML += '<div class="aviso-box">⚠️ <b>' + ref.label + '</b> fora do normal: ' + val + ' ' + ref.unidade + '</div>';
+      var exibir = tipo === 'pressao' ? ult.sistolica + '/' + ult.diastolica : val;
+      cards.innerHTML += '<div class="metric-card ' + classe + '">' +
+        '<div class="icone">' + icones[tipo] + '</div>' +
+        '<div class="label">' + ref.label + '</div>' +
+        '<div class="valor">' + exibir + ' <span style="font-size:0.5em;color:#aaa">' + ref.unidade + '</span></div>' +
+        '<div class="data">' + ult.data + '</div>' +
+        '</div>';
+    });
+    if (cards.innerHTML === '') cards.innerHTML = '<div class="sem-dados" style="grid-column:1/-1">Nenhuma medição ainda.<br>Toque em + para registrar.</div>';
+    renderGrafico('pressao', 'graficoPressao', 200, function(item) { return item.sistolica; });
+    renderGrafico('glicemia', 'graficoGlicemia', 300, null);
+  }
+
+  function renderGrafico(tipo, elId, maxRef, getVal) {
+    var el = document.getElementById(elId);
+    if (!el) return;
+    var lista = dados[tipo] || [];
+    var ultimos = lista.slice(-7);
+    if (ultimos.length === 0) { el.innerHTML = '<div class="sem-dados">Sem dados</div>'; return; }
+    var vals = ultimos.map(function(i) { return parseFloat(getVal ? getVal(i) : i.valor); });
+    var max = Math.max.apply(null, vals.concat([maxRef]));
+    el.innerHTML = '';
+    ultimos.forEach(function(item) {
+      var v = parseFloat(getVal ? getVal(item) : item.valor);
+      var pct = Math.max((v / max) * 76, 4);
+      var cl = classeValor(tipo, v);
+      var dataLabel = item.data ? item.data.substring(0,5) : '';
+      el.innerHTML += '<div class="barra-wrap">' +
+        '<div class="barra-val">' + v + '</div>' +
+        '<div class="barra ' + cl + '" style="height:' + pct + 'px"></div>' +
+        '<div class="barra-label">' + dataLabel + '</div>' +
+        '</div>';
+    });
+  }
+
+  function renderHist(tipo, elId) {
+    var el = document.getElementById(elId);
+    var lista = (dados[tipo] || []).slice().reverse();
+    var ref = referencias[tipo];
+    if (lista.length === 0) { el.innerHTML = '<div class="sem-dados">Nenhuma medição registrada ainda.</div>'; return; }
+    el.innerHTML = '';
+    lista.forEach(function(item, iRev) {
+      var i = (dados[tipo].length - 1) - iRev;
+      var val = tipo === 'pressao' ? item.sistolica : item.valor;
+      var exibir = tipo === 'pressao' ? item.sistolica + '/' + item.diastolica : val;
+      var cl = classeValor(tipo, parseFloat(val));
+      var div = document.createElement('div');
+      div.className = 'historico-item';
+      div.innerHTML =
+        '<div class="hist-esquerda">' +
+          '<div>' + (item.obs || ref.label) + '</div>' +
+          '<div class="hist-data">' + item.data + '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<div class="hist-valor ' + cl + '">' + exibir + ' ' + ref.unidade + '</div>' +
+          '<button class="btn-excluir-hist" onclick="excluirMedicao(\'' + tipo + '\',' + i + ')">🗑️</button>' +
+        '</div>';
+      el.appendChild(div);
+    });
+  }
+
+  function excluirMedicao(tipo, i) {
+    if (!confirm('Excluir esta medição?')) return;
+    dados[tipo].splice(i, 1);
+    salvarDados();
+    renderizar();
+  }
+
+  function mostrarCampos() {
+    var tipo = document.getElementById('mTipo').value;
+    var labels = { glicemia:'Glicemia — mg/dL', peso:'Peso — kg', oxigenio:'Saturação — %', temperatura:'Temperatura — °C', frequencia:'Freq. Cardíaca — bpm' };
+    if (tipo === 'pressao') {
+      document.getElementById('campoPressao').style.display = '';
+      document.getElementById('campoUnico').style.display = 'none';
+    } else {
+      document.getElementById('campoPressao').style.display = 'none';
+      document.getElementById('campoUnico').style.display = '';
+      document.getElementById('labelUnico').textContent = labels[tipo] || 'Valor';
+    }
+  }
+
+  function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
+  function fecharModal() {
+    document.getElementById('modalBg').classList.remove('ativo');
+    document.getElementById('mSistolica').value = '';
+    document.getElementById('mDiastolica').value = '';
+    document.getElementById('mValor').value = '';
+    document.getElementById('mObs').value = '';
+    document.getElementById('mTipo').value = 'pressao';
+    mostrarCampos();
+  }
+
+  function salvar() {
+    var tipo = document.getElementById('mTipo').value;
+    var obs = document.getElementById('mObs').value.trim();
+    var agora = new Date();
+    var data = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    var registro = { data:data, obs:obs };
+    if (tipo === 'pressao') {
+      var s = document.getElementById('mSistolica').value;
+      var d = document.getElementById('mDiastolica').value;
+      if (!s || !d) { alert('Preencha sistólica e diastólica.'); return; }
+      registro.sistolica = parseFloat(s);
+      registro.diastolica = parseFloat(d);
+    } else {
+      var v = document.getElementById('mValor').value;
+      if (!v) { alert('Preencha o valor.'); return; }
+      registro.valor = parseFloat(v);
+    }
+    if (!dados[tipo]) dados[tipo] = [];
+    dados[tipo].push(registro);
+    salvarDados();
+    fecharModal();
+    renderizar();
+  }
+
+  renderizar();
+</script>
+</body>
+</html>

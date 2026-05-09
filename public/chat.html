@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat Familiar - Cuidar</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; display:flex; flex-direction:column; height:100vh; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; flex-shrink:0; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .status-dot { width:10px; height:10px; border-radius:50%; background:#ccc; flex-shrink:0; }
+  .status-dot.online { background:#69f0ae; }
+
+  .categorias { display:flex; gap:8px; padding:12px 16px; overflow-x:auto; flex-shrink:0;
+                background:white; border-bottom:1px solid #eee; }
+  .categorias::-webkit-scrollbar { display:none; }
+  .cat-btn { padding:6px 14px; border:2px solid #e0e0e0; border-radius:20px; background:white;
+             font-size:0.82em; cursor:pointer; white-space:nowrap; color:#555; flex-shrink:0; }
+  .cat-btn.ativo { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; font-weight:bold; }
+
+  .mensagens { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
+
+  .msg { max-width:80%; display:flex; flex-direction:column; gap:3px; }
+  .msg.minha { align-self:flex-end; align-items:flex-end; }
+  .msg.outra { align-self:flex-start; align-items:flex-start; }
+  .msg-autor { font-size:0.75em; color:#888; padding:0 4px; }
+  .msg-balao { padding:10px 14px; border-radius:18px; font-size:0.92em; line-height:1.4; word-break:break-word; }
+  .msg.minha .msg-balao { background:#2e7d32; color:white; border-bottom-right-radius:4px; }
+  .msg.outra .msg-balao { background:white; color:#333; border-bottom-left-radius:4px;
+                           box-shadow:0 1px 4px rgba(0,0,0,0.1); }
+  .msg-hora { font-size:0.7em; color:#aaa; padding:0 4px; }
+  .msg-cat { font-size:0.7em; padding:2px 8px; border-radius:20px; background:#f0f0f0; color:#888; margin-top:2px; }
+
+  .msg-sistema { text-align:center; font-size:0.78em; color:#aaa; padding:4px 0; }
+
+  .digitando { font-size:0.8em; color:#888; padding:0 16px 8px; font-style:italic; min-height:24px; flex-shrink:0; }
+
+  .input-area { background:white; border-top:1px solid #eee; padding:10px 12px;
+                display:flex; gap:8px; align-items:flex-end; flex-shrink:0; }
+  .input-area textarea { flex:1; border:1px solid #ddd; border-radius:20px; padding:10px 14px;
+                          font-size:0.95em; resize:none; max-height:100px; outline:none;
+                          font-family:sans-serif; line-height:1.4; }
+  .btn-enviar { background:#2e7d32; color:white; border:none; border-radius:50%;
+                width:44px; height:44px; font-size:1.3em; cursor:pointer; flex-shrink:0;
+                display:flex; align-items:center; justify-content:center; }
+
+  .nome-topo { background:white; padding:12px 16px; border-bottom:1px solid #eee; flex-shrink:0; }
+  .nome-topo input { width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:10px; font-size:0.9em; }
+
+  .vazio { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+           color:#bbb; gap:8px; }
+  .vazio .icon { font-size:3em; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>💬 Chat Familiar</h1>
+  <div class="status-dot" id="statusDot"></div>
+</header>
+
+<div class="nome-topo">
+  <input type="text" id="meuNome" placeholder="Seu nome no chat (ex: Ana, João filho...)"
+         oninput="salvarNome(this.value)" />
+</div>
+
+<div class="categorias">
+  <button class="cat-btn ativo" onclick="setCategoria('Geral', this)">💬 Geral</button>
+  <button class="cat-btn" onclick="setCategoria('Medicamentos', this)">💊 Medicamentos</button>
+  <button class="cat-btn" onclick="setCategoria('Consultas', this)">🏥 Consultas</button>
+  <button class="cat-btn" onclick="setCategoria('Humor', this)">😊 Humor</button>
+  <button class="cat-btn" onclick="setCategoria('Urgente', this)">⚠️ Urgente</button>
+  <button class="cat-btn" onclick="setCategoria('Financeiro', this)">💰 Financeiro</button>
+</div>
+
+<div class="mensagens" id="mensagens">
+  <div class="vazio" id="vazio">
+    <div class="icon">💬</div>
+    <p>Nenhuma mensagem ainda.</p>
+    <p style="font-size:0.85em">Seja o primeiro a escrever!</p>
+  </div>
+</div>
+
+<div class="digitando" id="digitando"></div>
+
+<div class="input-area">
+  <textarea id="inputMsg" placeholder="Digite uma mensagem..." rows="1"
+            oninput="ajustarAltura(this); notificarDigitando()"
+            onkeydown="teclaEnter(event)"></textarea>
+  <button class="btn-enviar" onclick="enviarMensagem()">➤</button>
+</div>
+
+<script>
+  const socket = io();
+  let meuNome = localStorage.getItem('nomeUsuario') || '';
+  let categoriaAtual = 'Geral';
+  let digitandoTimer = null;
+  let euEstouDigitando = false;
+
+  document.getElementById('meuNome').value = meuNome;
+
+  function salvarNome(v) {
+    meuNome = v.trim();
+    localStorage.setItem('nomeUsuario', v.trim());
+  }
+
+  // CONEXÃO
+  socket.on('connect', () => {
+    document.getElementById('statusDot').classList.add('online');
+    socket.emit('entrou', { nome: meuNome || 'Alguém' });
+  });
+  socket.on('disconnect', () => {
+    document.getElementById('statusDot').classList.remove('online');
+  });
+
+  // RECEBER MENSAGEM
+  socket.on('mensagem', (dados) => {
+    adicionarMensagem(dados, false);
+  });
+
+  // ALGUÉM ENTROU
+  socket.on('entrou', (dados) => {
+    if (dados.nome && dados.nome !== (meuNome || 'Alguém')) {
+      adicionarSistema(`${dados.nome} entrou no chat`);
+    }
+  });
+
+  // DIGITANDO
+  socket.on('digitando', (dados) => {
+    if (dados.nome === (meuNome || 'Alguém')) return;
+    document.getElementById('digitando').textContent = `${dados.nome} está digitando...`;
+    clearTimeout(digitandoTimer);
+    digitandoTimer = setTimeout(() => {
+      document.getElementById('digitando').textContent = '';
+    }, 2500);
+  });
+
+  function setCategoria(cat, btn) {
+    categoriaAtual = cat;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+  }
+
+  function notificarDigitando() {
+    if (!euEstouDigitando) {
+      euEstouDigitando = true;
+      socket.emit('digitando', { nome: meuNome || 'Alguém' });
+      setTimeout(() => { euEstouDigitando = false; }, 2000);
+    }
+  }
+
+  function ajustarAltura(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  }
+
+  function teclaEnter(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      enviarMensagem();
+    }
+  }
+
+  function enviarMensagem() {
+    const input = document.getElementById('inputMsg');
+    const texto = input.value.trim();
+    if (!texto) return;
+    if (!meuNome) {
+      alert('Digite seu nome no campo acima antes de enviar.');
+      document.getElementById('meuNome').focus();
+      return;
+    }
+    const dados = {
+      nome: meuNome,
+      texto,
+      categoria: categoriaAtual,
+      hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+    };
+    socket.emit('mensagem', dados);
+    adicionarMensagem(dados, true);
+    input.value = '';
+    input.style.height = 'auto';
+  }
+
+  function adicionarMensagem(dados, minha) {
+    const vazio = document.getElementById('vazio');
+    if (vazio) vazio.remove();
+
+    const cont = document.getElementById('mensagens');
+    const div = document.createElement('div');
+    div.className = 'msg ' + (minha ? 'minha' : 'outra');
+
+    const catEmojis = {
+      Geral:'💬', Medicamentos:'💊', Consultas:'🏥',
+      Humor:'😊', Urgente:'⚠️', Financeiro:'💰'
+    };
+
+    div.innerHTML = `
+      ${!minha ? `<div class="msg-autor">${dados.nome}</div>` : ''}
+      <div class="msg-balao">${dados.texto}</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="msg-hora">${dados.hora}</span>
+        ${dados.categoria !== 'Geral' ? `<span class="msg-cat">${catEmojis[dados.categoria]||''} ${dados.categoria}</span>` : ''}
+      </div>
+    `;
+    cont.appendChild(div);
+    cont.scrollTop = cont.scrollHeight;
+  }
+
+  function adicionarSistema(texto) {
+    const cont = document.getElementById('mensagens');
+    const div = document.createElement('div');
+    div.className = 'msg-sistema';
+    div.textContent = texto;
+    cont.appendChild(div);
+    cont.scrollTop = cont.scrollHeight;
+  }
+
+  // REGISTRAR EVENTO NO SERVER
+  socket.on('connect', () => {
+    socket.emit('entrou', { nome: meuNome || 'Alguém' });
+  });
+</script>
+</body>
+</html>

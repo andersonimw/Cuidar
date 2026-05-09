@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emergência - Cuidar</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#c62828; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; }
+  .conteudo { padding:20px; padding-bottom:40px; }
+
+  .btn-panico-container { display:flex; flex-direction:column; align-items:center; padding:32px 0 24px; }
+  .btn-panico {
+    width:200px; height:200px; border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, #ff5252, #c62828);
+    border:6px solid #b71c1c;
+    color:white; font-size:1.1em; font-weight:bold;
+    cursor:pointer; box-shadow:0 6px 24px rgba(198,40,40,0.5);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    -webkit-tap-highlight-color: transparent;
+    transition:transform 0.1s;
+  }
+  .btn-panico:active { transform:scale(0.94); }
+  .btn-panico .icone { font-size:3.2em; }
+  .legenda-panico { margin-top:12px; font-size:0.85em; color:#888; text-align:center; }
+
+  .status-box { background:white; border-radius:16px; padding:16px; margin-bottom:16px;
+                box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .status-box h2 { font-size:0.95em; color:#c62828; margin-bottom:10px; }
+  .status-item { display:flex; justify-content:space-between; align-items:center;
+                 padding:8px 0; border-bottom:1px solid #f0f0f0; font-size:0.88em; }
+  .status-item:last-child { border-bottom:none; }
+  .badge { padding:3px 10px; border-radius:20px; font-size:0.8em; font-weight:bold; }
+  .badge-verde { background:#e8f5e9; color:#2e7d32; }
+  .badge-cinza { background:#f5f5f5; color:#888; }
+  .badge-vermelho { background:#ffebee; color:#c62828; }
+
+  .secao-titulo { font-size:0.9em; font-weight:bold; color:#555; margin:20px 0 10px;
+                  text-transform:uppercase; letter-spacing:0.05em; }
+  .contato-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px;
+                  box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; align-items:center; gap:14px; }
+  .avatar-cont { width:44px; height:44px; border-radius:50%; background:#ffebee;
+                 display:flex; align-items:center; justify-content:center; font-size:1.3em; flex-shrink:0; }
+  .cont-info { flex:1; }
+  .cont-nome { font-weight:bold; font-size:0.95em; }
+  .cont-tel { font-size:0.82em; color:#888; }
+  .cont-tipo { font-size:0.75em; color:#c62828; background:#ffebee; padding:2px 8px; border-radius:20px; }
+  .btn-ligar { background:#2e7d32; color:white; border:none; border-radius:10px;
+               padding:10px 14px; font-size:0.85em; cursor:pointer; }
+  .btn-add-cont { width:100%; padding:14px; border:2px dashed #ccc; border-radius:16px;
+                  background:white; color:#888; font-size:0.95em; cursor:pointer; margin-top:4px; }
+
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:90vh; overflow-y:auto; }
+  .modal h2 { color:#c62828; margin-bottom:16px; }
+  .modal input, .modal select { width:100%; padding:12px; margin-bottom:12px;
+                                 border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  .modal-btns { display:flex; gap:10px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#c62828; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+
+  /* TELA ALARME RECEBIDO (familiares) */
+  .alarme-recebido { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                     background:rgba(198,40,40,0.96); z-index:400; flex-direction:column;
+                     align-items:center; justify-content:center; color:white; text-align:center; padding:30px; }
+  .alarme-recebido.visivel { display:flex; }
+  .alarme-recebido .pulso { font-size:5em; animation: pulsar 0.5s infinite alternate; }
+  @keyframes pulsar { from { transform:scale(1); } to { transform:scale(1.25); } }
+  .alarme-recebido h2 { font-size:1.9em; margin:16px 0 8px; }
+  .alarme-recebido p { font-size:1em; opacity:0.9; margin-bottom:28px; }
+  .btn-ok-alarme { background:white; color:#c62828; border:none; border-radius:50px;
+                   padding:18px 40px; font-size:1.1em; font-weight:bold; cursor:pointer; }
+
+  /* TELA EMERGÊNCIA ATIVADA (idoso) */
+  .alerta-ativo { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                  background:rgba(183,28,28,0.97); z-index:300; flex-direction:column;
+                  align-items:center; justify-content:center; color:white; text-align:center; padding:30px; }
+  .alerta-ativo.visivel { display:flex; }
+  .alerta-ativo .pulso { font-size:5em; animation: pulsar 0.5s infinite alternate; }
+  .alerta-ativo h2 { font-size:1.6em; margin:16px 0 8px; }
+  .alerta-ativo p { font-size:0.95em; opacity:0.85; margin-bottom:20px; }
+  .whats-lista { width:100%; display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+  .btn-whats { background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.5);
+               color:white; border-radius:14px; padding:14px 16px; font-size:1em;
+               cursor:pointer; text-align:left; display:flex; align-items:center; gap:10px; }
+  .btn-whats.enviado { background:rgba(255,255,255,0.28); border-color:white; }
+  .btn-cancelar-alerta { background:white; color:#c62828; border:none; border-radius:50px;
+                          padding:16px 32px; font-size:1em; font-weight:bold; cursor:pointer; margin-top:8px; }
+
+  .nome-input { background:white; border-radius:16px; padding:16px; margin-bottom:16px;
+                box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .nome-input label { font-size:0.85em; color:#888; display:block; margin-bottom:6px; }
+  .nome-input input { width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:1em; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>🆘 Emergência</h1>
+</header>
+
+<div class="conteudo">
+
+  <div class="nome-input">
+    <label>Seu nome no app (para identificação)</label>
+    <input type="text" id="meuNome" placeholder="Ex: Vovó Maria, João (filho)..."
+           value="" oninput="salvarNome(this.value)" />
+  </div>
+
+  <div class="btn-panico-container">
+    <button class="btn-panico" onclick="ativarEmergencia()">
+      <span class="icone">🆘</span>
+      <span>EMERGÊNCIA</span>
+    </button>
+    <div class="legenda-panico">Pressione para alertar todos</div>
+  </div>
+
+  <div class="status-box">
+    <h2>📋 Status</h2>
+    <div class="status-item">
+      <span>Conexão com servidor</span>
+      <span class="badge badge-cinza" id="statusConexao">Conectando...</span>
+    </div>
+    <div class="status-item">
+      <span>Alarme sonoro em tempo real</span>
+      <span class="badge badge-verde">✓ Ativo</span>
+    </div>
+    <div class="status-item">
+      <span>Alertas WhatsApp</span>
+      <span class="badge badge-verde">✓ Configurado</span>
+    </div>
+    <div class="status-item">
+      <span>Contatos cadastrados</span>
+      <span class="badge badge-cinza" id="numContatos">0</span>
+    </div>
+  </div>
+
+  <div class="secao-titulo">📞 Contatos de emergência</div>
+  <div id="listaContatos"></div>
+  <button class="btn-add-cont" onclick="abrirModal()">+ Adicionar contato</button>
+
+</div>
+
+<!-- TELA: EMERGÊNCIA ATIVADA (quem apertou) -->
+<div class="alerta-ativo" id="alertaAtivo">
+  <div class="pulso">🆘</div>
+  <h2>EMERGÊNCIA ENVIADA</h2>
+  <p>Todos os dispositivos conectados foram alertados com som.<br>Abra o WhatsApp para cada contato:</p>
+  <div class="whats-lista" id="whatsLista"></div>
+  <button class="btn-cancelar-alerta" onclick="cancelarEmergencia()">✓ Estou bem — Cancelar</button>
+</div>
+
+<!-- TELA: ALARME RECEBIDO (familiares) -->
+<div class="alarme-recebido" id="alarmeRecebido">
+  <div class="pulso">🆘</div>
+  <h2>EMERGÊNCIA!</h2>
+  <p id="alarmeTexto">Um familiar precisa de ajuda urgente!</p>
+  <button class="btn-ok-alarme" onclick="fecharAlarme()">✓ Estou indo ajudar</button>
+</div>
+
+<!-- MODAL CONTATO -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Novo Contato de Emergência</h2>
+    <input type="text" id="cNome" placeholder="Nome completo" />
+    <input type="tel" id="cTel" placeholder="WhatsApp com DDD (ex: 21999990000)" />
+    <select id="cTipo">
+      <option value="Familiar">👨‍👩‍👧 Familiar</option>
+      <option value="Cuidador">🧑‍⚕️ Cuidador / Enfermeiro</option>
+      <option value="Médico">👨‍⚕️ Médico</option>
+      <option value="Vizinho">🏠 Vizinho de confiança</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarContato()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const socket = io();
+  let contatos = JSON.parse(localStorage.getItem('contatosEmergencia') || '[]');
+  let meuNome = localStorage.getItem('nomeUsuario') || '';
+  let audioCtx = null;
+  let alarmeAtivo = false;
+
+  document.getElementById('meuNome').value = meuNome;
+
+  function salvarNome(v) {
+    meuNome = v;
+    localStorage.setItem('nomeUsuario', v);
+  }
+
+  // STATUS CONEXÃO
+  socket.on('connect', () => {
+    const el = document.getElementById('statusConexao');
+    el.textContent = '✓ Conectado';
+    el.className = 'badge badge-verde';
+  });
+  socket.on('disconnect', () => {
+    const el = document.getElementById('statusConexao');
+    el.textContent = '✗ Sem conexão';
+    el.className = 'badge badge-vermelho';
+  });
+
+  // RECEBER ALARME (familiares)
+  socket.on('alarme', (dados) => {
+    tocarAlarmeContinuo();
+    document.getElementById('alarmeTexto').textContent =
+      `🆘 ${dados.de} precisa de ajuda urgente! — ${dados.hora}`;
+    document.getElementById('alarmeRecebido').classList.add('visivel');
+
+    if (Notification.permission === 'granted') {
+      new Notification('🆘 EMERGÊNCIA - CUIDAR', {
+        body: `${dados.de} precisa de ajuda! — ${dados.hora}`,
+        tag: 'emergencia',
+        requireInteraction: true
+      });
+    }
+  });
+
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  let intervalAlarme = null;
+
+  function tocarAlarmeContinuo() {
+    alarmeAtivo = true;
+    tocarBipe();
+    intervalAlarme = setInterval(() => {
+      if (alarmeAtivo) tocarBipe();
+    }, 2500);
+  }
+
+  function tocarBipe() {
+    const ctx = getAudioCtx();
+    const frequencias = [880, 660, 880, 660];
+    frequencias.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.22;
+      gain.gain.setValueAtTime(0.5, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      osc.start(t);
+      osc.stop(t + 0.22);
+    });
+  }
+
+  function pararAlarme() {
+    alarmeAtivo = false;
+    if (intervalAlarme) { clearInterval(intervalAlarme); intervalAlarme = null; }
+  }
+
+  function gerarLinkWhats(contato) {
+    const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    const nome = meuNome || 'Um familiar';
+    const msg = encodeURIComponent(
+      `🆘 *EMERGÊNCIA - CUIDAR APP*\n\n` +
+      `⏰ Horário: ${hora}\n` +
+      `👤 Quem precisa de ajuda: ${nome}\n\n` +
+      `⚠️ Por favor entre em contato ou acesse o local imediatamente!\n\n` +
+      `_Alerta automático — app Cuidar_`
+    );
+    const tel = contato.tel.replace(/\D/g, '');
+    return `https://wa.me/55${tel}?text=${msg}`;
+  }
+
+  function ativarEmergencia() {
+    // Dispara alarme sonoro local
+    tocarAlarmeContinuo();
+
+    // Envia sinal para todos via WebSocket
+    socket.emit('emergencia', { nome: meuNome || 'Idoso' });
+
+    // Notificação local
+    if (Notification.permission === 'granted') {
+      new Notification('🆘 Emergência ativada', { body: 'Alertando todos os contatos...' });
+    }
+
+    // Monta botões WhatsApp
+    const lista = document.getElementById('whatsLista');
+    lista.innerHTML = '';
+    if (contatos.length === 0) {
+      lista.innerHTML = '<p style="color:rgba(255,255,255,0.75);font-size:0.9em">Nenhum contato cadastrado.<br>Cadastre contatos para enviar no WhatsApp.</p>';
+    } else {
+      contatos.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-whats';
+        btn.innerHTML = `📲 Avisar ${c.nome} (${c.tipo})`;
+        btn.onclick = () => {
+          window.open(gerarLinkWhats(c), '_blank');
+          btn.innerHTML = `✅ ${c.nome} — WhatsApp aberto`;
+          btn.classList.add('enviado');
+          btn.onclick = null;
+        };
+        lista.appendChild(btn);
+      });
+    }
+
+    document.getElementById('alertaAtivo').classList.add('visivel');
+  }
+
+  function cancelarEmergencia() {
+    pararAlarme();
+    document.getElementById('alertaAtivo').classList.remove('visivel');
+  }
+
+  function fecharAlarme() {
+    pararAlarme();
+    document.getElementById('alarmeRecebido').classList.remove('visivel');
+  }
+
+  function renderizar() {
+    const lista = document.getElementById('listaContatos');
+    const num = document.getElementById('numContatos');
+    num.textContent = contatos.length;
+    num.className = 'badge ' + (contatos.length > 0 ? 'badge-verde' : 'badge-cinza');
+    lista.innerHTML = '';
+    contatos.forEach(c => {
+      const emojis = { Familiar:'👨‍👩‍👧', Cuidador:'🧑‍⚕️', Médico:'👨‍⚕️', Vizinho:'🏠' };
+      const div = document.createElement('div');
+      div.className = 'contato-card';
+      div.innerHTML = `
+        <div class="avatar-cont">${emojis[c.tipo] || '👤'}</div>
+        <div class="cont-info">
+          <div class="cont-nome">${c.nome}</div>
+          <div class="cont-tel">${c.tel}</div>
+          <span class="cont-tipo">${c.tipo}</span>
+        </div>
+        <button class="btn-ligar" onclick="window.open('tel:${c.tel}')">📞 Ligar</button>
+      `;
+      lista.appendChild(div);
+    });
+  }
+
+  function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
+  function fecharModal() {
+    document.getElementById('modalBg').classList.remove('ativo');
+    document.getElementById('cNome').value = '';
+    document.getElementById('cTel').value = '';
+  }
+
+  function salvarContato() {
+    const nome = document.getElementById('cNome').value.trim();
+    const tel = document.getElementById('cTel').value.trim();
+    const tipo = document.getElementById('cTipo').value;
+    if (!nome || !tel) { alert('Preencha nome e telefone.'); return; }
+    contatos.push({ nome, tel, tipo });
+    localStorage.setItem('contatosEmergencia', JSON.stringify(contatos));
+    fecharModal();
+    renderizar();
+  }
+
+  if (Notification.permission === 'default') Notification.requestPermission();
+
+  renderizar();
+</script>
+</body>
+</html>

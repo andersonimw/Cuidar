@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diário de Saúde - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; }
+  .btn-add { position:fixed; bottom:24px; right:24px; background:#2e7d32; color:white;
+             border:none; border-radius:50px; padding:16px 24px; font-size:1em;
+             cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:100; }
+  .lista { padding:16px; display:flex; flex-direction:column; gap:12px; padding-bottom:80px; }
+  .card { background:white; border-radius:16px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .card-data { font-size:0.8em; color:#aaa; margin-bottom:8px; }
+  .card-humor { font-size:2em; margin-bottom:8px; }
+  .card-info { font-size:0.88em; color:#666; display:flex; flex-direction:column; gap:4px; }
+  .card-obs { margin-top:8px; font-size:0.85em; color:#888; font-style:italic; border-top:1px solid #eee; padding-top:8px; }
+  .card-acoes { margin-top:10px; }
+  .btn-excluir { width:100%; padding:10px; border:none; border-radius:10px;
+                 background:#ffebee; color:#f44336; font-size:0.9em; cursor:pointer; }
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:92vh; overflow-y:auto; }
+  .modal h2 { color:#2e7d32; margin-bottom:16px; }
+  .label { font-size:0.9em; color:#555; margin-bottom:6px; font-weight:bold; }
+  .humor-grid { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .humor-btn { font-size:1.8em; padding:8px; border:2px solid #eee; border-radius:12px;
+               background:white; cursor:pointer; }
+  .humor-btn.selecionado { border-color:#2e7d32; background:#e8f5e9; }
+  .escala-grid { display:flex; gap:8px; margin-bottom:16px; }
+  .escala-btn { flex:1; padding:10px 4px; border:2px solid #eee; border-radius:10px;
+                background:white; cursor:pointer; font-size:0.85em; text-align:center; }
+  .escala-btn.selecionado { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; font-weight:bold; }
+  .modal textarea { width:100%; padding:12px; margin-bottom:12px;
+                    border:1px solid #ddd; border-radius:10px; font-size:1em; height:80px; resize:none; }
+  .modal-btns { display:flex; gap:10px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#2e7d32; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+  .vazio { text-align:center; padding:60px 20px; color:#aaa; }
+  .vazio .icon { font-size:3em; margin-bottom:12px; }
+  .alerta-saude { background:#fff3e0; border-left:4px solid #ff9800;
+                  padding:12px 16px; border-radius:0 12px 12px 0; margin:16px; font-size:0.88em; color:#e65100; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>📓 Diário de Saúde</h1>
+</header>
+
+<div id="alertaSaude"></div>
+<div class="lista" id="lista"></div>
+<button class="btn-add" onclick="abrirModal()">+ Registrar</button>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Novo Registro</h2>
+    <div class="label">😊 Como está o humor hoje?</div>
+    <div class="humor-grid">
+      <button class="humor-btn" onclick="selecionarHumor(this,'😄')">😄</button>
+      <button class="humor-btn" onclick="selecionarHumor(this,'🙂')">🙂</button>
+      <button class="humor-btn" onclick="selecionarHumor(this,'😐')">😐</button>
+      <button class="humor-btn" onclick="selecionarHumor(this,'😔')">😔</button>
+      <button class="humor-btn" onclick="selecionarHumor(this,'😢')">😢</button>
+      <button class="humor-btn" onclick="selecionarHumor(this,'😠')">😠</button>
+      <button class="humor-btn" onclick="selecionarHumor(this,'😴')">😴</button>
+      <button class="humor-btn" onclick="selecionarHumor(this,'🤒')">🤒</button>
+    </div>
+    <div class="label">🍽️ Apetite</div>
+    <div class="escala-grid">
+      <button class="escala-btn" onclick="selEscala(this,'apetite','Bom')">Bom</button>
+      <button class="escala-btn" onclick="selEscala(this,'apetite','Regular')">Regular</button>
+      <button class="escala-btn" onclick="selEscala(this,'apetite','Ruim')">Ruim</button>
+    </div>
+    <div class="label">😴 Sono</div>
+    <div class="escala-grid">
+      <button class="escala-btn" onclick="selEscala(this,'sono','Bom')">Bom</button>
+      <button class="escala-btn" onclick="selEscala(this,'sono','Regular')">Regular</button>
+      <button class="escala-btn" onclick="selEscala(this,'sono','Ruim')">Ruim</button>
+    </div>
+    <div class="label">🤕 Dor</div>
+    <div class="escala-grid">
+      <button class="escala-btn" onclick="selEscala(this,'dor','Sem dor')">Sem dor</button>
+      <button class="escala-btn" onclick="selEscala(this,'dor','Leve')">Leve</button>
+      <button class="escala-btn" onclick="selEscala(this,'dor','Moderada')">Moderada</button>
+      <button class="escala-btn" onclick="selEscala(this,'dor','Forte')">Forte</button>
+    </div>
+    <div class="label">🚶 Mobilidade</div>
+    <div class="escala-grid">
+      <button class="escala-btn" onclick="selEscala(this,'mobilidade','Normal')">Normal</button>
+      <button class="escala-btn" onclick="selEscala(this,'mobilidade','Reduzida')">Reduzida</button>
+      <button class="escala-btn" onclick="selEscala(this,'mobilidade','Acamado')">Acamado</button>
+    </div>
+    <div class="label">📝 Observações</div>
+    <textarea id="obs" placeholder="Ex: caiu mas não se machucou, ficou confusa à tarde..."></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var registros = JSON.parse(localStorage.getItem('diario') || '[]');
+  var humorSelecionado = '';
+  var escalas = { apetite:'', sono:'', dor:'', mobilidade:'' };
+
+  function selecionarHumor(btn, emoji) {
+    document.querySelectorAll('.humor-btn').forEach(function(b) { b.classList.remove('selecionado'); });
+    btn.classList.add('selecionado');
+    humorSelecionado = emoji;
+  }
+
+  function selEscala(btn, tipo, valor) {
+    btn.parentElement.querySelectorAll('.escala-btn').forEach(function(b) { b.classList.remove('selecionado'); });
+    btn.classList.add('selecionado');
+    escalas[tipo] = valor;
+  }
+
+  function verificarAlertas() {
+    if (registros.length < 3) return;
+    var ultimos = registros.slice(-5);
+    var sonoRuim = ultimos.filter(function(r) { return r.sono === 'Ruim'; }).length;
+    var dorForte = ultimos.filter(function(r) { return r.dor === 'Forte' || r.dor === 'Moderada'; }).length;
+    var alertas = [];
+    if (sonoRuim >= 3) alertas.push('⚠️ Sono ruim nos últimos ' + sonoRuim + ' registros — considere mencionar ao médico.');
+    if (dorForte >= 3) alertas.push('⚠️ Dor moderada/forte registrada ' + dorForte + ' vezes recentemente.');
+    var div = document.getElementById('alertaSaude');
+    div.innerHTML = alertas.map(function(a) { return '<div class="alerta-saude">' + a + '</div>'; }).join('');
+  }
+
+  function renderizar() {
+    var lista = document.getElementById('lista');
+    if (registros.length === 0) {
+      lista.innerHTML = '<div class="vazio"><div class="icon">📓</div><p>Nenhum registro ainda.</p><p>Toque em + para registrar o dia de hoje.</p></div>';
+      return;
+    }
+    lista.innerHTML = '';
+    var ordenados = registros.slice().reverse();
+    ordenados.forEach(function(r, iRev) {
+      var i = registros.length - 1 - iRev;
+      var div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML =
+        '<div class="card-data">📅 ' + r.data + ' — por ' + (r.autor || 'Familiar') + '</div>' +
+        '<div class="card-humor">' + (r.humor || '—') + '</div>' +
+        '<div class="card-info">' +
+          (r.apetite ? '<span>🍽️ Apetite: <b>' + r.apetite + '</b></span>' : '') +
+          (r.sono ? '<span>😴 Sono: <b>' + r.sono + '</b></span>' : '') +
+          (r.dor ? '<span>🤕 Dor: <b>' + r.dor + '</b></span>' : '') +
+          (r.mobilidade ? '<span>🚶 Mobilidade: <b>' + r.mobilidade + '</b></span>' : '') +
+        '</div>' +
+        (r.obs ? '<div class="card-obs">📝 ' + r.obs + '</div>' : '') +
+        '<div class="card-acoes">' +
+          '<button class="btn-excluir" onclick="excluir(' + i + ')">🗑️ Excluir registro</button>' +
+        '</div>';
+      lista.appendChild(div);
+    });
+    verificarAlertas();
+  }
+
+  function excluir(i) {
+    if (!confirm('Excluir este registro?')) return;
+    registros.splice(i, 1);
+    localStorage.setItem('diario', JSON.stringify(registros));
+    renderizar();
+  }
+
+  function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
+  function fecharModal() {
+    document.getElementById('modalBg').classList.remove('ativo');
+    document.querySelectorAll('.humor-btn').forEach(function(b) { b.classList.remove('selecionado'); });
+    document.querySelectorAll('.escala-btn').forEach(function(b) { b.classList.remove('selecionado'); });
+    document.getElementById('obs').value = '';
+    humorSelecionado = '';
+    escalas = { apetite:'', sono:'', dor:'', mobilidade:'' };
+  }
+
+  function salvar() {
+    var hoje = new Date().toLocaleDateString('pt-BR');
+    var registro = {
+      data: hoje,
+      humor: humorSelecionado,
+      apetite: escalas.apetite,
+      sono: escalas.sono,
+      dor: escalas.dor,
+      mobilidade: escalas.mobilidade,
+      obs: document.getElementById('obs').value.trim(),
+      autor: 'Familiar'
+    };
+    registros.push(registro);
+    localStorage.setItem('diario', JSON.stringify(registros));
+    fecharModal();
+    renderizar();
+  }
+
+  renderizar();
+</script>
+</body>
+</html>

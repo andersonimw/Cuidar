@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hidratação - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#1565c0; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; }
+  .conteudo { padding:16px; padding-bottom:40px; }
+
+  .card-principal { background:white; border-radius:20px; padding:24px;
+                    box-shadow:0 2px 12px rgba(0,0,0,0.1); margin-bottom:16px; text-align:center; }
+  .copo-count { font-size:4em; font-weight:bold; color:#1565c0; }
+  .meta-texto { font-size:1em; color:#888; margin:4px 0 16px; }
+  .barra-agua-cont { background:#e3f2fd; border-radius:20px; height:20px; margin:12px 0; overflow:hidden; }
+  .barra-agua { height:20px; border-radius:20px; background:linear-gradient(90deg, #1565c0, #42a5f5);
+                transition:width 0.5s; display:flex; align-items:center; justify-content:flex-end;
+                padding-right:8px; }
+  .barra-agua span { color:white; font-size:0.75em; font-weight:bold; }
+  .status-texto { font-size:0.9em; margin-top:8px; font-weight:bold; }
+  .status-ok { color:#2e7d32; }
+  .status-alerta { color:#e65100; }
+  .status-critico { color:#c62828; }
+
+  .btns-copo { display:flex; gap:12px; margin-top:16px; justify-content:center; flex-wrap:wrap; }
+  .btn-copo { background:#1565c0; color:white; border:none; border-radius:16px;
+              padding:16px 20px; font-size:1em; cursor:pointer; flex:1; min-width:100px;
+              box-shadow:0 3px 8px rgba(21,101,192,0.3); }
+  .btn-copo:active { transform:scale(0.97); }
+  .btn-remover { background:#ffebee; color:#c62828; border:2px solid #ffcdd2; }
+
+  .secao { background:white; border-radius:16px; padding:16px;
+           margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .secao h2 { color:#1565c0; font-size:0.95em; margin-bottom:12px; }
+
+  .meta-btns { display:flex; gap:8px; flex-wrap:wrap; }
+  .meta-btn { padding:8px 16px; border:2px solid #e3f2fd; border-radius:20px;
+              background:white; font-size:0.85em; cursor:pointer; color:#555; }
+  .meta-btn.ativo { border-color:#1565c0; background:#e3f2fd; color:#1565c0; font-weight:bold; }
+
+  .historico-item { display:flex; justify-content:space-between; align-items:center;
+                    padding:8px 0; border-bottom:1px solid #f5f5f5; font-size:0.88em; }
+  .historico-item:last-child { border-bottom:none; }
+  .hist-data { color:#888; font-size:0.8em; }
+  .hist-copos { font-weight:bold; color:#1565c0; }
+  .hist-copos.meta-ok { color:#2e7d32; }
+  .hist-copos.meta-nao { color:#f44336; }
+
+  .copos-visuais { display:flex; flex-wrap:wrap; gap:6px; justify-content:center;
+                   margin:12px 0; }
+  .copo-visual { font-size:1.8em; transition:all 0.2s; }
+  .copo-visual.vazio { opacity:0.25; filter:grayscale(1); }
+
+  .alerta-box { background:#fff3e0; border-left:4px solid #ff9800;
+                padding:12px 16px; border-radius:0 12px 12px 0;
+                margin-bottom:12px; font-size:0.88em; color:#e65100; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>💧 Controle de Hidratação</h1>
+</header>
+
+<div class="conteudo">
+
+  <div id="alertaHidratacao"></div>
+
+  <div class="card-principal">
+    <div class="copo-count" id="copoCount">0</div>
+    <div class="meta-texto" id="metaTexto">copos de água hoje</div>
+    <div class="copos-visuais" id="coposVisuais"></div>
+    <div class="barra-agua-cont">
+      <div class="barra-agua" id="barraAgua" style="width:0%">
+        <span id="barraTexto"></span>
+      </div>
+    </div>
+    <div class="status-texto" id="statusTexto"></div>
+    <div class="btns-copo">
+      <button class="btn-copo" onclick="adicionarCopo(150)">+ 150ml<br><small>copo pequeno</small></button>
+      <button class="btn-copo" onclick="adicionarCopo(200)">+ 200ml<br><small>copo médio</small></button>
+      <button class="btn-copo" onclick="adicionarCopo(300)">+ 300ml<br><small>copo grande</small></button>
+      <button class="btn-copo btn-remover" onclick="removerCopo()">− Remover<br><small>último</small></button>
+    </div>
+  </div>
+
+  <div class="secao">
+    <h2>🎯 Meta diária</h2>
+    <div class="meta-btns">
+      <button class="meta-btn" onclick="setMeta(1000, this)">1L</button>
+      <button class="meta-btn" onclick="setMeta(1500, this)">1,5L</button>
+      <button class="meta-btn ativo" onclick="setMeta(2000, this)">2L</button>
+      <button class="meta-btn" onclick="setMeta(2500, this)">2,5L</button>
+      <button class="meta-btn" onclick="setMeta(3000, this)">3L</button>
+    </div>
+  </div>
+
+  <div class="secao">
+    <h2>📅 Histórico dos últimos dias</h2>
+    <div id="historico"></div>
+  </div>
+
+</div>
+
+<script>
+  var hojeISO = new Date().toISOString().split('T')[0];
+  var hoje = new Date().toLocaleDateString('pt-BR');
+  var dados = JSON.parse(localStorage.getItem('hidratacao') || '{}');
+  var meta = parseInt(localStorage.getItem('metaHidratacao') || '2000');
+
+  if (!dados[hojeISO]) dados[hojeISO] = { registros: [], total: 0 };
+
+  function salvar() { localStorage.setItem('hidratacao', JSON.stringify(dados)); }
+
+  function setMeta(valor, btn) {
+    meta = valor;
+    localStorage.setItem('metaHidratacao', valor);
+    document.querySelectorAll('.meta-btn').forEach(function(b) { b.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    renderizar();
+  }
+
+  function adicionarCopo(ml) {
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    dados[hojeISO].registros.push({ ml: ml, hora: hora });
+    dados[hojeISO].total += ml;
+    salvar();
+    renderizar();
+  }
+
+  function removerCopo() {
+    if (dados[hojeISO].registros.length === 0) return;
+    var ultimo = dados[hojeISO].registros.pop();
+    dados[hojeISO].total -= ultimo.ml;
+    if (dados[hojeISO].total < 0) dados[hojeISO].total = 0;
+    salvar();
+    renderizar();
+  }
+
+  function renderizar() {
+    var total = dados[hojeISO].total;
+    var registros = dados[hojeISO].registros;
+    var pct = Math.min((total / meta) * 100, 100);
+    var litros = (total / 1000).toFixed(2).replace('.', ',');
+    var metaLitros = (meta / 1000).toFixed(1).replace('.', ',');
+
+    document.getElementById('copoCount').textContent = registros.length;
+    document.getElementById('metaTexto').textContent =
+      litros + 'L de ' + metaLitros + 'L (meta diária)';
+    document.getElementById('barraAgua').style.width = pct + '%';
+    document.getElementById('barraTexto').textContent = pct >= 15 ? Math.round(pct) + '%' : '';
+
+    // Copos visuais
+    var visuais = document.getElementById('coposVisuais');
+    var max = Math.max(registros.length, Math.ceil(meta/200));
+    visuais.innerHTML = '';
+    for (var i = 0; i < Math.min(max, 12); i++) {
+      var div = document.createElement('span');
+      div.className = 'copo-visual' + (i >= registros.length ? ' vazio' : '');
+      div.textContent = '💧';
+      visuais.appendChild(div);
+    }
+
+    // Status
+    var statusEl = document.getElementById('statusTexto');
+    var alertaEl = document.getElementById('alertaHidratacao');
+    if (total >= meta) {
+      statusEl.textContent = '🎉 Meta atingida! Ótimo trabalho!';
+      statusEl.className = 'status-texto status-ok';
+      alertaEl.innerHTML = '';
+    } else {
+      var falta = meta - total;
+      var faltaLitros = (falta / 1000).toFixed(2).replace('.', ',');
+      var hora = new Date().getHours();
+      if (hora >= 18 && total < meta * 0.5) {
+        statusEl.textContent = '⚠️ Menos da metade da meta! Faltam ' + faltaLitros + 'L';
+        statusEl.className = 'status-texto status-critico';
+        alertaEl.innerHTML = '<div class="alerta-box">⚠️ Hidratação insuficiente hoje — considere oferecer água agora.</div>';
+      } else if (hora >= 12 && total < meta * 0.3) {
+        statusEl.textContent = '⚠️ Pouca água! Faltam ' + faltaLitros + 'L';
+        statusEl.className = 'status-texto status-alerta';
+        alertaEl.innerHTML = '<div class="alerta-box">💧 Atenção: pouca hidratação até agora. Ofereça água!</div>';
+      } else {
+        statusEl.textContent = 'Faltam ' + faltaLitros + 'L para a meta';
+        statusEl.className = 'status-texto status-alerta';
+        alertaEl.innerHTML = '';
+      }
+    }
+
+    // Histórico
+    var histEl = document.getElementById('historico');
+    var dias = Object.keys(dados).filter(function(d) { return d !== hojeISO; })
+      .sort().reverse().slice(0, 7);
+    if (dias.length === 0) {
+      histEl.innerHTML = '<p style="color:#aaa;text-align:center;padding:12px">Nenhum registro anterior.</p>';
+    } else {
+      histEl.innerHTML = dias.map(function(dia) {
+        var d = dados[dia];
+        var t = d.total || 0;
+        var l = (t/1000).toFixed(2).replace('.',',');
+        var ok = t >= meta;
+        var dataF = new Date(dia + 'T12:00:00').toLocaleDateString('pt-BR', {weekday:'short', day:'numeric', month:'short'});
+        return '<div class="historico-item">' +
+          '<div><div>' + dataF + '</div><div class="hist-data">' + (d.registros ? d.registros.length : 0) + ' registros</div></div>' +
+          '<div class="hist-copos ' + (ok ? 'meta-ok' : 'meta-nao') + '">' + l + 'L ' + (ok ? '✅' : '❌') + '</div>' +
+          '</div>';
+      }).join('');
+    }
+  }
+
+  // Ajusta botão de meta correto
+  document.querySelectorAll('.meta-btn').forEach(function(btn) {
+    if (parseInt(btn.textContent) * 1000 === meta ||
+        btn.textContent === (meta/1000).toFixed(1).replace('.',',') + 'L' ||
+        btn.onclick.toString().includes(meta.toString())) {
+      btn.classList.add('ativo');
+    }
+  });
+
+  renderizar();
+</script>
+</body>
+</html>

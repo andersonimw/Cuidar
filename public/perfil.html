@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perfil - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .btn-editar-header { background:rgba(255,255,255,0.2); border:none; color:white;
+                       padding:8px 16px; border-radius:20px; font-size:0.9em; cursor:pointer; }
+  .tabs { display:flex; background:white; border-bottom:1px solid #eee; }
+  .tab { flex:1; padding:12px 4px; border:none; background:none; font-size:0.85em;
+         cursor:pointer; color:#888; border-bottom:3px solid transparent; }
+  .tab.ativo { color:#2e7d32; border-bottom-color:#2e7d32; font-weight:bold; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+
+  /* ── DADOS ── */
+  .cartao-principal { background:white; border-radius:20px; padding:20px;
+                      box-shadow:0 2px 12px rgba(0,0,0,0.1); margin-bottom:16px;
+                      display:flex; align-items:center; gap:16px; }
+  .avatar-grande { width:72px; height:72px; border-radius:50%; background:#e8f5e9;
+                   display:flex; align-items:center; justify-content:center;
+                   font-size:2.5em; flex-shrink:0; border:3px solid #2e7d32; }
+  .info-principal h2 { font-size:1.3em; color:#2e7d32; }
+  .info-principal p { font-size:0.85em; color:#888; margin-top:2px; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .badge { padding:3px 10px; border-radius:20px; font-size:0.75em; font-weight:bold; }
+  .badge-sangue { background:#ffebee; color:#c62828; }
+  .badge-idade { background:#e8f5e9; color:#2e7d32; }
+  .badge-plano { background:#e3f2fd; color:#1565c0; }
+  .secao { background:white; border-radius:16px; padding:16px;
+           margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .secao-header { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .secao-header h3 { font-size:0.95em; color:#2e7d32; font-weight:bold; }
+  .item-info { display:flex; justify-content:space-between; align-items:flex-start;
+               padding:8px 0; border-bottom:1px solid #f5f5f5; }
+  .item-info:last-child { border-bottom:none; }
+  .item-label { font-size:0.8em; color:#aaa; margin-bottom:2px; }
+  .item-valor { font-size:0.92em; color:#333; font-weight:500; }
+  .item-valor.alerta { color:#c62828; font-weight:bold; }
+  .item-valor.vazio { color:#ccc; font-style:italic; }
+  .tag-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+  .tag { padding:4px 12px; border-radius:20px; font-size:0.78em; }
+  .tag-alergia { background:#ffebee; color:#c62828; }
+  .tag-doenca { background:#fff3e0; color:#e65100; }
+  .tag-vazio { background:#f5f5f5; color:#bbb; font-style:italic; }
+  .btn-emergencia-info { width:100%; padding:14px; background:#ffebee; color:#c62828;
+                          border:2px solid #ffcdd2; border-radius:12px; font-size:0.95em;
+                          font-weight:bold; cursor:pointer; margin-top:8px; }
+  .compartilhar { width:100%; padding:14px; background:#2e7d32; color:white;
+                  border:none; border-radius:12px; font-size:0.95em;
+                  font-weight:bold; cursor:pointer; margin-top:8px; }
+
+  /* ── MODO IDOSO ── */
+  .modo-idoso { display:flex; flex-direction:column; gap:16px; }
+  .card-relogio { background:linear-gradient(135deg,#2e7d32,#43a047); color:white;
+                  border-radius:20px; padding:24px; text-align:center; }
+  .card-relogio .hora { font-size:3.5em; font-weight:bold; }
+  .card-relogio .data { font-size:1em; opacity:0.85; margin-top:4px; }
+  .card-remedio-mi { background:white; border-radius:20px; padding:20px;
+                     box-shadow:0 2px 12px rgba(0,0,0,0.1); text-align:center; }
+  .card-remedio-mi .titulo { font-size:1em; color:#888; margin-bottom:8px; }
+  .card-remedio-mi .rem-nome { font-size:1.8em; font-weight:bold; color:#2e7d32; }
+  .card-remedio-mi .rem-hora { font-size:1.2em; color:#555; margin-top:4px; }
+  .card-remedio-mi .rem-dose { font-size:1em; color:#888; margin-top:4px; }
+  .btn-tomei { width:100%; padding:20px; background:#2e7d32; color:white;
+               border:none; border-radius:16px; font-size:1.3em; font-weight:bold; cursor:pointer; }
+  .btn-tomei.feito { background:#a5d6a7; color:#1b5e20; }
+  .btn-emergencia-mi { width:100%; padding:24px; background:#c62828; color:white;
+                       border:none; border-radius:20px; font-size:1.4em; font-weight:bold;
+                       cursor:pointer; box-shadow:0 4px 16px rgba(198,40,40,0.4); }
+  .contatos-mi { display:flex; flex-direction:column; gap:10px; }
+  .btn-ligar-mi { width:100%; padding:18px; background:white; color:#2e7d32;
+                  border:2px solid #2e7d32; border-radius:16px; font-size:1.1em;
+                  font-weight:bold; cursor:pointer; }
+  .alarme-mi { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+               background:rgba(198,40,40,0.96); z-index:999; flex-direction:column;
+               align-items:center; justify-content:center; color:white; text-align:center; padding:30px; }
+  .alarme-mi.visivel { display:flex; }
+  .alarme-mi .pulso { font-size:5em; animation:pulsar 0.5s infinite alternate; }
+  @keyframes pulsar { from{transform:scale(1)} to{transform:scale(1.2)} }
+  .alarme-mi h2 { font-size:2em; margin:16px 0 8px; }
+  .alarme-mi p { font-size:1em; opacity:0.9; margin-bottom:28px; }
+  .btn-ok-mi { background:white; color:#c62828; border:none; border-radius:50px;
+               padding:20px 48px; font-size:1.2em; font-weight:bold; cursor:pointer; }
+
+  /* ── DOCUMENTOS ── */
+  .doc-cats { display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; padding-bottom:4px; }
+  .doc-cats::-webkit-scrollbar { display:none; }
+  .doc-cat-btn { padding:7px 14px; border:2px solid #e0e0e0; border-radius:20px;
+                 background:white; font-size:0.82em; cursor:pointer; white-space:nowrap; color:#555; }
+  .doc-cat-btn.ativo { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; font-weight:bold; }
+  .doc-resumo { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+  .doc-resumo-card { background:white; border-radius:12px; padding:12px; text-align:center;
+                     box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+  .doc-resumo-card .num { font-size:1.4em; font-weight:bold; color:#2e7d32; }
+  .doc-resumo-card .leg { font-size:0.72em; color:#888; }
+  .doc-card { background:white; border-radius:14px; padding:14px; margin-bottom:10px;
+              box-shadow:0 2px 8px rgba(0,0,0,0.07); display:flex; gap:12px; align-items:flex-start; }
+  .doc-icone { width:52px; height:52px; border-radius:12px; background:#e8f5e9;
+               display:flex; align-items:center; justify-content:center; font-size:1.6em; flex-shrink:0; }
+  .doc-info { flex:1; }
+  .doc-nome { font-weight:bold; font-size:0.92em; margin-bottom:3px; }
+  .doc-meta { font-size:0.76em; color:#888; margin-bottom:5px; }
+  .doc-tag { font-size:0.72em; color:#2e7d32; background:#e8f5e9; padding:2px 8px; border-radius:20px; }
+  .doc-acoes { display:flex; gap:6px; margin-top:8px; }
+  .btn-ver-doc { background:#e8f5e9; border:none; border-radius:8px; padding:6px 12px;
+                 color:#2e7d32; font-size:0.82em; cursor:pointer; font-weight:bold; }
+  .btn-exc-doc { background:#ffebee; border:none; border-radius:8px; padding:6px 12px;
+                 color:#f44336; font-size:0.82em; cursor:pointer; }
+  .btn-add-doc { position:fixed; bottom:24px; right:24px; background:#2e7d32; color:white;
+                 border:none; border-radius:50px; padding:16px 24px; font-size:1em;
+                 cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:100; }
+  .upload-area { border:2px dashed #ccc; border-radius:12px; padding:20px; text-align:center;
+                 cursor:pointer; color:#888; font-size:0.9em; margin-bottom:12px; }
+  .upload-area.tem { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; }
+  .visualizador { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                  background:rgba(0,0,0,0.95); z-index:300; flex-direction:column;
+                  align-items:center; justify-content:center; }
+  .visualizador.ativo { display:flex; }
+  .visualizador img { max-width:95vw; max-height:85vh; border-radius:8px; object-fit:contain; }
+  .vis-nome { color:white; font-size:0.9em; margin-bottom:12px; opacity:0.8; }
+  .btn-fechar-vis { position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.2);
+                    border:none; color:white; border-radius:50%; width:40px; height:40px;
+                    font-size:1.2em; cursor:pointer; }
+  .vazio-doc { text-align:center; color:#bbb; padding:40px 20px; }
+  .vazio-doc .icon { font-size:2.5em; margin-bottom:8px; }
+
+  /* ── MODAL PERFIL ── */
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%;
+           max-height:92vh; overflow-y:auto; }
+  .modal h2 { color:#2e7d32; margin-bottom:16px; }
+  .modal label { font-size:0.85em; color:#666; margin-bottom:4px; display:block; margin-top:10px; }
+  .modal input, .modal select, .modal textarea {
+    width:100%; padding:12px; border:1px solid #ddd; border-radius:10px;
+    font-size:1em; margin-bottom:4px; }
+  .modal textarea { height:80px; resize:none; }
+  .modal-btns { display:flex; gap:10px; margin-top:16px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#2e7d32; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+  .sem-perfil { text-align:center; padding:60px 20px; color:#aaa; }
+  .sem-perfil .icon { font-size:4em; margin-bottom:16px; }
+  .btn-criar { background:#2e7d32; color:white; border:none; border-radius:12px;
+               padding:16px 32px; font-size:1em; cursor:pointer; margin-top:16px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>👤 Perfil</h1>
+  <button class="btn-editar-header" id="btnEditarHeader" onclick="abrirModalPerfil()" style="display:none">✏️ Editar</button>
+</header>
+
+<div class="tabs">
+  <button class="tab ativo" onclick="setAba('dados',this)">👤 Dados</button>
+  <button class="tab" onclick="setAba('idoso',this)">👴 Modo Idoso</button>
+  <button class="tab" onclick="setAba('documentos',this)">📁 Documentos</button>
+</div>
+
+<!-- ── ABA DADOS ── -->
+<div id="aba-dados" class="conteudo"></div>
+
+<!-- ── ABA MODO IDOSO ── -->
+<div id="aba-idoso" class="conteudo" style="display:none">
+  <div class="modo-idoso">
+    <div class="card-relogio">
+      <div class="hora" id="miHora">--:--</div>
+      <div class="data" id="miData">--</div>
+    </div>
+    <div class="card-remedio-mi" id="miRemedio"></div>
+    <button class="btn-tomei" id="miTomei" onclick="confirmarRemedio()">✔ Tomei o remédio</button>
+    <button class="btn-emergencia-mi" onclick="ativarEmergenciaMI()">🆘 EMERGÊNCIA</button>
+    <div class="contatos-mi" id="miContatos"></div>
+    <button style="background:#eee;color:#555;border:none;border-radius:12px;padding:14px;font-size:0.95em;cursor:pointer" onclick="setAba('dados',document.querySelector('.tab'))">← Voltar ao perfil</button>
+  </div>
+</div>
+
+<!-- ── ABA DOCUMENTOS ── -->
+<div id="aba-documentos" class="conteudo" style="display:none">
+  <div class="doc-resumo" id="docResumo"></div>
+  <div class="doc-cats">
+    <button class="doc-cat-btn ativo" onclick="setDocCat('Todos',this)">📂 Todos</button>
+    <button class="doc-cat-btn" onclick="setDocCat('Exame',this)">🔬 Exames</button>
+    <button class="doc-cat-btn" onclick="setDocCat('Receita',this)">📋 Receitas</button>
+    <button class="doc-cat-btn" onclick="setDocCat('Carteirinha',this)">💳 Carteirinha</button>
+    <button class="doc-cat-btn" onclick="setDocCat('Laudo',this)">📄 Laudos</button>
+    <button class="doc-cat-btn" onclick="setDocCat('Outro',this)">📦 Outros</button>
+  </div>
+  <div id="listaDocs"></div>
+  <button class="btn-add-doc" id="btnAddDoc" onclick="abrirModalDoc()">+ Documento</button>
+</div>
+
+<!-- MODAL PERFIL -->
+<div class="modal-bg" id="modalPerfilBg">
+  <div class="modal">
+    <h2>✏️ Perfil do Idoso</h2>
+    <label>Nome completo</label>
+    <input type="text" id="pNome" placeholder="Ex: Maria da Silva" />
+    <label>Data de nascimento</label>
+    <input type="date" id="pNascimento" />
+    <label>Tipo sanguíneo</label>
+    <select id="pSangue">
+      <option value="">Não sei</option>
+      <option value="A+">A+</option><option value="A-">A-</option>
+      <option value="B+">B+</option><option value="B-">B-</option>
+      <option value="AB+">AB+</option><option value="AB-">AB-</option>
+      <option value="O+">O+</option><option value="O-">O-</option>
+    </select>
+    <label>Alergias (separe por vírgula)</label>
+    <input type="text" id="pAlergias" placeholder="Ex: Dipirona, Penicilina" />
+    <label>Doenças crônicas (separe por vírgula)</label>
+    <input type="text" id="pDoencas" placeholder="Ex: Diabetes, Hipertensão" />
+    <label>Plano de saúde</label>
+    <input type="text" id="pPlano" placeholder="Ex: Unimed, SUS" />
+    <label>Número da carteirinha</label>
+    <input type="text" id="pCarteirinha" />
+    <label>Médico responsável</label>
+    <input type="text" id="pMedico" placeholder="Ex: Dr. Carlos — CRM 12345" />
+    <label>Telefone do médico</label>
+    <input type="tel" id="pTelMedico" />
+    <label>Endereço completo</label>
+    <input type="text" id="pEndereco" />
+    <label>Observações importantes</label>
+    <textarea id="pObs" placeholder="Ex: Usa marca-passo..."></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModalPerfil()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarPerfil()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DOCUMENTO -->
+<div class="modal-bg" id="modalDocBg">
+  <div class="modal">
+    <h2>📁 Novo Documento</h2>
+    <label>Nome do documento</label>
+    <input type="text" id="dNome" placeholder="Ex: Hemograma jan/2026" />
+    <label>Categoria</label>
+    <select id="dCat">
+      <option value="Exame">🔬 Exame</option>
+      <option value="Receita">📋 Receita médica</option>
+      <option value="Carteirinha">💳 Carteirinha</option>
+      <option value="Laudo">📄 Laudo médico</option>
+      <option value="Outro">📦 Outro</option>
+    </select>
+    <label>Médico / Laboratório</label>
+    <input type="text" id="dMedico" placeholder="Ex: Dr. Carlos / Lab. São Lucas" />
+    <label>Data do documento</label>
+    <input type="date" id="dData" />
+    <label>Foto do documento</label>
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('dArquivo').click()">
+      <input type="file" id="dArquivo" accept="image/*" style="display:none" onchange="selecionarArquivo(this)" />
+      <div id="uploadTexto">📷 Toque para fotografar ou escolher imagem</div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModalDoc()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarDoc()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- VISUALIZADOR -->
+<div class="visualizador" id="visualizador">
+  <button class="btn-fechar-vis" onclick="fecharVis()">✕</button>
+  <div class="vis-nome" id="visNome"></div>
+  <img id="visImg" src="" alt="Documento" />
+</div>
+
+<!-- ALARME EMERGÊNCIA MODO IDOSO -->
+<div class="alarme-mi" id="alarmeMI">
+  <div class="pulso">🆘</div>
+  <h2>AJUDA ENVIADA!</h2>
+  <p>Seus familiares foram alertados.<br>Fique onde está.</p>
+  <button class="btn-ok-mi" onclick="fecharAlarmeMI()">✓ Estou bem</button>
+</div>
+
+<script>
+  var perfil = JSON.parse(localStorage.getItem('perfilIdoso') || 'null');
+  var docs = JSON.parse(localStorage.getItem('documentos') || '[]');
+  var medicamentos = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+  var contatos = JSON.parse(localStorage.getItem('contatosEmergencia') || '[]');
+  var docCatAtual = 'Todos';
+  var arquivoBase64 = '';
+  var abaAtualGlobal = 'dados';
+
+  var catEmojis = { Exame:'🔬', Receita:'📋', Carteirinha:'💳', Laudo:'📄', Outro:'📦' };
+
+  // ── ABAS ──
+  function setAba(aba, btn) {
+    abaAtualGlobal = aba;
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('ativo'); });
+    if (btn) btn.classList.add('ativo');
+    document.getElementById('aba-dados').style.display = aba === 'dados' ? '' : 'none';
+    document.getElementById('aba-idoso').style.display = aba === 'idoso' ? '' : 'none';
+    document.getElementById('aba-documentos').style.display = aba === 'documentos' ? '' : 'none';
+    document.getElementById('btnAddDoc').style.display = aba === 'documentos' ? '' : 'none';
+    document.getElementById('btnEditarHeader').style.display = (aba === 'dados' && perfil && perfil.nome) ? '' : 'none';
+    if (aba === 'idoso') iniciarModoIdoso();
+    if (aba === 'documentos') renderDocs();
+  }
+
+  // ── DADOS ──
+  function calcularIdade(nasc) {
+    if (!nasc) return null;
+    var hoje = new Date(); var n = new Date(nasc);
+    var idade = hoje.getFullYear() - n.getFullYear();
+    if (hoje.getMonth() < n.getMonth() || (hoje.getMonth() === n.getMonth() && hoje.getDate() < n.getDate())) idade--;
+    return idade;
+  }
+
+  function tags(lista, classe, vazio) {
+    if (!lista || lista.trim() === '') return '<span class="tag tag-vazio">' + vazio + '</span>';
+    return lista.split(',').map(function(i) {
+      return '<span class="tag ' + classe + '">' + i.trim() + '</span>';
+    }).join('');
+  }
+
+  function renderDados() {
+    var el = document.getElementById('aba-dados');
+    if (!perfil || !perfil.nome) {
+      document.getElementById('btnEditarHeader').style.display = 'none';
+      el.innerHTML = '<div class="sem-perfil"><div class="icon">👤</div>' +
+        '<h2 style="color:#2e7d32">Perfil não cadastrado</h2>' +
+        '<p>Cadastre as informações do idoso.<br>Essencial para emergências e consultas.</p>' +
+        '<button class="btn-criar" onclick="abrirModalPerfil()">+ Criar Perfil</button></div>';
+      return;
+    }
+    document.getElementById('btnEditarHeader').style.display = '';
+    var idade = calcularIdade(perfil.nascimento);
+    var nascF = perfil.nascimento ? new Date(perfil.nascimento).toLocaleDateString('pt-BR',{timeZone:'UTC'}) : '—';
+    el.innerHTML =
+      '<div class="cartao-principal">' +
+        '<div class="avatar-grande">👴</div>' +
+        '<div class="info-principal">' +
+          '<h2>' + perfil.nome + '</h2>' +
+          '<p>' + nascF + (idade ? ' · ' + idade + ' anos' : '') + '</p>' +
+          '<div class="badges">' +
+            (perfil.sangue ? '<span class="badge badge-sangue">🩸 ' + perfil.sangue + '</span>' : '') +
+            (idade ? '<span class="badge badge-idade">' + idade + ' anos</span>' : '') +
+            (perfil.plano ? '<span class="badge badge-plano">💳 ' + perfil.plano + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="secao">' +
+        '<div class="secao-header"><span>🚨</span><h3>Informações de Emergência</h3></div>' +
+        '<div class="item-info"><div><div class="item-label">Tipo sanguíneo</div>' +
+          '<div class="item-valor alerta">' + (perfil.sangue || '—') + '</div></div></div>' +
+        '<div class="item-info"><div><div class="item-label">Alergias</div>' +
+          '<div class="tag-list">' + tags(perfil.alergias,'tag-alergia','Nenhuma cadastrada') + '</div></div></div>' +
+        '<div class="item-info"><div><div class="item-label">Doenças crônicas</div>' +
+          '<div class="tag-list">' + tags(perfil.doencas,'tag-doenca','Nenhuma cadastrada') + '</div></div></div>' +
+        (perfil.obs ? '<div class="item-info"><div><div class="item-label">⚠️ Observações</div>' +
+          '<div class="item-valor alerta">' + perfil.obs + '</div></div></div>' : '') +
+        '<button class="btn-emergencia-info" onclick="copiarEmergencia()">📋 Copiar info p/ emergência</button>' +
+      '</div>' +
+      '<div class="secao">' +
+        '<div class="secao-header"><span>👨‍⚕️</span><h3>Médico Responsável</h3></div>' +
+        '<div class="item-info"><div><div class="item-label">Nome</div>' +
+          '<div class="item-valor">' + (perfil.medico || '<span class="item-valor vazio">Não cadastrado</span>') + '</div></div></div>' +
+        '<div class="item-info"><div><div class="item-label">Telefone</div>' +
+          '<div class="item-valor">' + (perfil.telMedico || '<span class="item-valor vazio">—</span>') + '</div></div>' +
+          (perfil.telMedico ? '<button onclick="window.open(\'tel:' + perfil.telMedico + '\')" style="background:#e8f5e9;border:none;border-radius:8px;padding:8px 12px;color:#2e7d32;cursor:pointer;">📞</button>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="secao">' +
+        '<div class="secao-header"><span>💳</span><h3>Plano de Saúde</h3></div>' +
+        '<div class="item-info"><div><div class="item-label">Plano</div>' +
+          '<div class="item-valor">' + (perfil.plano || '<span class="item-valor vazio">Não cadastrado</span>') + '</div></div></div>' +
+        '<div class="item-info"><div><div class="item-label">Carteirinha</div>' +
+          '<div class="item-valor">' + (perfil.carteirinha || '<span class="item-valor vazio">—</span>') + '</div></div></div>' +
+      '</div>' +
+      '<div class="secao">' +
+        '<div class="secao-header"><span>🏠</span><h3>Endereço</h3></div>' +
+        '<div class="item-info"><div>' +
+          '<div class="item-valor">' + (perfil.endereco || '<span class="item-valor vazio">Não cadastrado</span>') + '</div></div></div>' +
+      '</div>' +
+      '<button class="compartilhar" onclick="compartilharPerfil()">📤 Compartilhar perfil completo</button>';
+  }
+
+  function copiarEmergencia() {
+    if (!perfil) return;
+    var t = '🆘 EMERGÊNCIA\n\n👤 ' + perfil.nome + '\n🩸 ' + (perfil.sangue||'—') +
+      '\n⚠️ Alergias: ' + (perfil.alergias||'Nenhuma') + '\n🏥 Doenças: ' + (perfil.doencas||'—') +
+      '\n💳 Plano: ' + (perfil.plano||'—') + '\n👨‍⚕️ ' + (perfil.medico||'—') +
+      '\n📞 ' + (perfil.telMedico||'—') + '\n🏠 ' + (perfil.endereco||'—');
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(function() { alert('✅ Copiado!'); });
+    else alert(t);
+  }
+
+  function compartilharPerfil() {
+    if (!perfil) return;
+    var t = '💚 PERFIL - CUIDAR\n\n👤 ' + perfil.nome + '\n🩸 ' + (perfil.sangue||'—') +
+      '\n⚠️ ' + (perfil.alergias||'—') + '\n🏥 ' + (perfil.doencas||'—') +
+      '\n💳 ' + (perfil.plano||'—') + ' | ' + (perfil.carteirinha||'—') +
+      '\n👨‍⚕️ ' + (perfil.medico||'—') + '\n🏠 ' + (perfil.endereco||'—');
+    if (navigator.share) navigator.share({title:'Perfil Cuidar', text:t});
+    else if (navigator.clipboard) navigator.clipboard.writeText(t).then(function() { alert('✅ Copiado!'); });
+  }
+
+  function abrirModalPerfil() {
+    if (perfil) {
+      document.getElementById('pNome').value = perfil.nome||'';
+      document.getElementById('pNascimento').value = perfil.nascimento||'';
+      document.getElementById('pSangue').value = perfil.sangue||'';
+      document.getElementById('pAlergias').value = perfil.alergias||'';
+      document.getElementById('pDoencas').value = perfil.doencas||'';
+      document.getElementById('pPlano').value = perfil.plano||'';
+      document.getElementById('pCarteirinha').value = perfil.carteirinha||'';
+      document.getElementById('pMedico').value = perfil.medico||'';
+      document.getElementById('pTelMedico').value = perfil.telMedico||'';
+      document.getElementById('pEndereco').value = perfil.endereco||'';
+      document.getElementById('pObs').value = perfil.obs||'';
+    }
+    document.getElementById('modalPerfilBg').classList.add('ativo');
+  }
+
+  function fecharModalPerfil() { document.getElementById('modalPerfilBg').classList.remove('ativo'); }
+
+  function salvarPerfil() {
+    var nome = document.getElementById('pNome').value.trim();
+    if (!nome) { alert('Digite o nome.'); return; }
+    perfil = {
+      nome:nome, nascimento:document.getElementById('pNascimento').value,
+      sangue:document.getElementById('pSangue').value,
+      alergias:document.getElementById('pAlergias').value.trim(),
+      doencas:document.getElementById('pDoencas').value.trim(),
+      plano:document.getElementById('pPlano').value.trim(),
+      carteirinha:document.getElementById('pCarteirinha').value.trim(),
+      medico:document.getElementById('pMedico').value.trim(),
+      telMedico:document.getElementById('pTelMedico').value.trim(),
+      endereco:document.getElementById('pEndereco').value.trim(),
+      obs:document.getElementById('pObs').value.trim()
+    };
+    localStorage.setItem('perfilIdoso', JSON.stringify(perfil));
+    fecharModalPerfil();
+    renderDados();
+  }
+
+  // ── MODO IDOSO ──
+  var relogioTimer = null;
+
+  function iniciarModoIdoso() {
+    var h = new Date().getHours();
+    var saud = h < 12 ? '☀️ Bom dia!' : h < 18 ? '🌤️ Boa tarde!' : '🌙 Boa noite!';
+    if (perfil && perfil.nome) saud += ' ' + perfil.nome.split(' ')[0];
+
+    function tick() {
+      var agora = new Date();
+      document.getElementById('miHora').textContent = agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      document.getElementById('miData').textContent = agora.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+    }
+    tick();
+    if (relogioTimer) clearInterval(relogioTimer);
+    relogioTimer = setInterval(tick, 1000);
+
+    renderProximoRemedio();
+    renderContatosMI();
+  }
+
+  function renderProximoRemedio() {
+    var el = document.getElementById('miRemedio');
+    var btn = document.getElementById('miTomei');
+    if (medicamentos.length === 0) {
+      el.innerHTML = '<div class="titulo">💊 Nenhum medicamento cadastrado</div>';
+      btn.style.display = 'none'; return;
+    }
+    btn.style.display = '';
+    var agora = new Date();
+    var horaAtual = agora.getHours()*60 + agora.getMinutes();
+    var proximo = null; var menorDiff = Infinity;
+    medicamentos.forEach(function(m) {
+      var horarios = m.horarios || (m.horario ? [m.horario] : []);
+      horarios.forEach(function(h) {
+        var p = h.split(':');
+        var min = parseInt(p[0])*60+parseInt(p[1]);
+        var diff = min - horaAtual;
+        if (diff < 0) diff += 1440;
+        if (diff < menorDiff) { menorDiff = diff; proximo = m; proximo._horaProx = h; }
+      });
+    });
+    if (!proximo) return;
+    var horas = Math.floor(menorDiff/60); var mins = menorDiff%60;
+    var tempo = menorDiff === 0 ? 'AGORA!' : horas > 0 ? 'em ' + horas + 'h ' + mins + 'min' : 'em ' + mins + ' min';
+    el.innerHTML = '<div class="titulo">💊 Próximo remédio — ' + tempo + '</div>' +
+      '<div class="rem-nome">' + proximo.nome + '</div>' +
+      '<div class="rem-hora">⏰ ' + proximo._horaProx + '</div>' +
+      '<div class="rem-dose">' + proximo.dose + '</div>';
+    btn.className = 'btn-tomei' + (proximo.confirmadoHoje ? ' feito' : '');
+    btn.textContent = proximo.confirmadoHoje ? '✅ Já tomei' : '✔ Tomei o remédio';
+  }
+
+  function confirmarRemedio() {
+    var nome = (perfil && perfil.nome) ? perfil.nome.split(' ')[0] : 'Idoso';
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    var data = agora.toLocaleDateString('pt-BR');
+    medicamentos.forEach(function(m) {
+      if (!m.confirmadoHoje) {
+        if (!m.historico) m.historico = [];
+        m.historico.push({quem:nome, hora:hora, data:data});
+        m.confirmadoHoje = true;
+      }
+    });
+    localStorage.setItem('medicamentos', JSON.stringify(medicamentos));
+    renderProximoRemedio();
+  }
+
+  function renderContatosMI() {
+    var el = document.getElementById('miContatos');
+    if (contatos.length === 0) {
+      el.innerHTML = '<div style="text-align:center;color:#aaa;font-size:0.95em">Cadastre contatos em Emergência</div>';
+      return;
+    }
+    el.innerHTML = contatos.slice(0,3).map(function(c) {
+      return '<button class="btn-ligar-mi" onclick="window.open(\'tel:' + c.tel + '\')">📞 Ligar para ' + c.nome + '</button>';
+    }).join('');
+  }
+
+  function ativarEmergenciaMI() {
+    tocarSomMI();
+    document.getElementById('alarmeMI').classList.add('visivel');
+    if (contatos.length > 0) {
+      var c = contatos[0];
+      var nome = (perfil&&perfil.nome) ? perfil.nome : 'Idoso';
+      var hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      var msg = encodeURIComponent('🆘 EMERGÊNCIA - CUIDAR APP\n\n' + nome + ' precisa de ajuda!\nHorário: ' + hora);
+      setTimeout(function() { window.open('https://wa.me/55' + c.tel.replace(/\D/g,'') + '?text=' + msg,'_blank'); }, 1000);
+    }
+  }
+
+  function fecharAlarmeMI() { document.getElementById('alarmeMI').classList.remove('visivel'); }
+
+  function tocarSomMI() {
+    try {
+      var ctx = new (window.AudioContext||window.webkitAudioContext)();
+      [880,660,880,660].forEach(function(freq,i) {
+        var osc = ctx.createOscillator(); var gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        var t = ctx.currentTime + i*0.25;
+        gain.gain.setValueAtTime(0.5,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+        osc.start(t); osc.stop(t+0.25);
+      });
+    } catch(e) {}
+  }
+
+  // ── DOCUMENTOS ──
+  function setDocCat(cat, btn) {
+    docCatAtual = cat;
+    document.querySelectorAll('.doc-cat-btn').forEach(function(b) { b.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    renderDocs();
+  }
+
+  function renderDocResumo() {
+    var grid = document.getElementById('docResumo');
+    var total = docs.length;
+    var exames = docs.filter(function(d) { return d.categoria==='Exame'; }).length;
+    var receitas = docs.filter(function(d) { return d.categoria==='Receita'; }).length;
+    grid.innerHTML =
+      '<div class="doc-resumo-card"><div class="num">' + total + '</div><div class="leg">Total</div></div>' +
+      '<div class="doc-resumo-card"><div class="num">' + exames + '</div><div class="leg">🔬 Exames</div></div>' +
+      '<div class="doc-resumo-card"><div class="num">' + receitas + '</div><div class="leg">📋 Receitas</div></div>';
+  }
+
+  function renderDocs() {
+    renderDocResumo();
+    var lista = document.getElementById('listaDocs');
+    var filtrados = docCatAtual === 'Todos' ? docs : docs.filter(function(d) { return d.categoria===docCatAtual; });
+    if (filtrados.length === 0) {
+      lista.innerHTML = '<div class="vazio-doc"><div class="icon">📁</div>' +
+        '<p>Nenhum documento' + (docCatAtual==='Todos' ? ' ainda.' : ' nesta categoria.') + '</p>' +
+        '<p style="font-size:0.85em">Toque em + para adicionar.</p></div>';
+      return;
+    }
+    lista.innerHTML = '';
+    filtrados.slice().reverse().forEach(function(d) {
+      var i = docs.indexOf(d);
+      var div = document.createElement('div');
+      div.className = 'doc-card';
+      div.innerHTML =
+        '<div class="doc-icone">' + (d.imagem ? '<img src="' + d.imagem + '" style="width:52px;height:52px;border-radius:12px;object-fit:cover">' : (catEmojis[d.categoria]||'📦')) + '</div>' +
+        '<div class="doc-info">' +
+          '<div class="doc-nome">' + d.nome + '</div>' +
+          '<div class="doc-meta">' + (d.medico?d.medico+' · ':'') + (d.data?d.data.split('-').reverse().join('/'):d.adicionado||'') + '</div>' +
+          '<span class="doc-tag">' + (catEmojis[d.categoria]||'📦') + ' ' + d.categoria + '</span>' +
+          '<div class="doc-acoes">' +
+            (d.imagem ? '<button class="btn-ver-doc" onclick="verDoc('+i+')">👁️ Ver</button>' : '') +
+            '<button class="btn-exc-doc" onclick="excluirDoc('+i+')">🗑️ Excluir</button>' +
+          '</div>' +
+        '</div>';
+      lista.appendChild(div);
+    });
+  }
+
+  function verDoc(i) {
+    document.getElementById('visImg').src = docs[i].imagem;
+    document.getElementById('visNome').textContent = docs[i].nome;
+    document.getElementById('visualizador').classList.add('ativo');
+  }
+
+  function fecharVis() { document.getElementById('visualizador').classList.remove('ativo'); }
+
+  function excluirDoc(i) {
+    if (!confirm('Excluir "' + docs[i].nome + '"?')) return;
+    docs.splice(i,1);
+    localStorage.setItem('documentos', JSON.stringify(docs));
+    renderDocs();
+  }
+
+  function selecionarArquivo(input) {
+    var file = input.files[0]; if (!file) return;
+    if (file.size > 3*1024*1024) { alert('Imagem muito grande. Use até 3MB.'); return; }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      arquivoBase64 = e.target.result;
+      document.getElementById('uploadArea').classList.add('tem');
+      document.getElementById('uploadTexto').textContent = '✅ ' + file.name;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function abrirModalDoc() { document.getElementById('modalDocBg').classList.add('ativo'); }
+  function fecharModalDoc() {
+    document.getElementById('modalDocBg').classList.remove('ativo');
+    ['dNome','dMedico','dData'].forEach(function(id) { document.getElementById(id).value=''; });
+    document.getElementById('dCat').value = 'Exame';
+    document.getElementById('dArquivo').value = '';
+    document.getElementById('uploadArea').classList.remove('tem');
+    document.getElementById('uploadTexto').textContent = '📷 Toque para fotografar ou escolher imagem';
+    arquivoBase64 = '';
+  }
+
+  function salvarDoc() {
+    var nome = document.getElementById('dNome').value.trim();
+    if (!nome) { alert('Digite o nome do documento.'); return; }
+    docs.push({
+      nome:nome, categoria:document.getElementById('dCat').value,
+      medico:document.getElementById('dMedico').value.trim(),
+      data:document.getElementById('dData').value,
+      imagem:arquivoBase64||'',
+      adicionado:new Date().toLocaleDateString('pt-BR')
+    });
+    try {
+      localStorage.setItem('documentos', JSON.stringify(docs));
+    } catch(e) {
+      alert('Armazenamento cheio. Tente uma imagem menor.');
+      docs.pop(); return;
+    }
+    fecharModalDoc(); renderDocs();
+  }
+
+  // Esconde btn add doc inicialmente
+  document.getElementById('btnAddDoc').style.display = 'none';
+
+  renderDados();
+</script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financeiro - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+
+  .resumo-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .resumo-card { background:white; border-radius:16px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .resumo-card .label { font-size:0.75em; color:#888; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+  .resumo-card .valor { font-size:1.4em; font-weight:bold; color:#2e7d32; }
+  .resumo-card.alerta .valor { color:#f44336; }
+  .resumo-card.destaque { grid-column:1/-1; background:#e8f5e9; }
+
+  .secao-titulo { font-size:0.9em; font-weight:bold; color:#555; margin:20px 0 10px;
+                  text-transform:uppercase; letter-spacing:0.05em; }
+
+  .gasto-card { background:white; border-radius:16px; padding:14px 16px; margin-bottom:10px;
+                box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; align-items:center; gap:12px; }
+  .gasto-icone { width:42px; height:42px; border-radius:50%; background:#e8f5e9;
+                 display:flex; align-items:center; justify-content:center; font-size:1.3em; flex-shrink:0; }
+  .gasto-info { flex:1; }
+  .gasto-desc { font-weight:bold; font-size:0.95em; }
+  .gasto-meta { font-size:0.78em; color:#888; margin-top:2px; }
+  .gasto-cat { font-size:0.72em; color:#2e7d32; background:#e8f5e9; padding:2px 8px; border-radius:20px; }
+  .gasto-valor { font-weight:bold; color:#2e7d32; font-size:1em; white-space:nowrap; }
+  .btn-excluir { background:#ffebee; border:none; border-radius:8px; padding:8px 10px;
+                 color:#f44336; font-size:0.85em; cursor:pointer; flex-shrink:0; }
+
+  .divisao-card { background:white; border-radius:16px; padding:16px; margin-bottom:10px;
+                  box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .divisao-nome { font-weight:bold; font-size:0.95em; margin-bottom:6px; }
+  .divisao-barra-cont { background:#eee; border-radius:20px; height:10px; margin-bottom:4px; }
+  .divisao-barra { height:10px; border-radius:20px; background:#2e7d32; }
+  .divisao-info { display:flex; justify-content:space-between; font-size:0.78em; color:#888; }
+
+  .tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .tab { flex:1; padding:10px; border:none; border-radius:10px; font-size:0.85em;
+         cursor:pointer; background:#eee; color:#555; }
+  .tab.ativo { background:#2e7d32; color:white; font-weight:bold; }
+
+  .btn-add { position:fixed; bottom:24px; right:24px; background:#2e7d32; color:white;
+             border:none; border-radius:50px; padding:16px 24px; font-size:1em;
+             cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:100; }
+
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:92vh; overflow-y:auto; }
+  .modal h2 { color:#2e7d32; margin-bottom:16px; }
+  .modal input, .modal select { width:100%; padding:12px; margin-bottom:12px;
+                                 border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  .modal label { font-size:0.85em; color:#666; margin-bottom:4px; display:block; }
+  .modal-btns { display:flex; gap:10px; margin-top:4px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#2e7d32; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+
+  .sem-dados { text-align:center; color:#bbb; padding:30px; font-size:0.9em; }
+
+  .relatorio-card { background:white; border-radius:16px; padding:16px; margin-bottom:10px;
+                    box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .relatorio-linha { display:flex; justify-content:space-between; padding:8px 0;
+                     border-bottom:1px solid #f0f0f0; font-size:0.88em; }
+  .relatorio-linha:last-child { border-bottom:none; font-weight:bold; color:#2e7d32; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>💰 Financeiro</h1>
+</header>
+
+<div class="conteudo">
+
+  <div class="tabs">
+    <button class="tab ativo" onclick="setAba('gastos',this)">💸 Gastos</button>
+    <button class="tab" onclick="setAba('divisao',this)">👥 Divisão</button>
+    <button class="tab" onclick="setAba('relatorio',this)">📋 Relatório</button>
+  </div>
+
+  <div id="aba-gastos">
+    <div class="resumo-grid" id="resumoCards"></div>
+    <div class="secao-titulo">💸 Lançamentos</div>
+    <div id="listaGastos"></div>
+  </div>
+
+  <div id="aba-divisao" style="display:none">
+    <div class="secao-titulo">👥 Quanto cada um pagou</div>
+    <div id="listaDivisao"></div>
+  </div>
+
+  <div id="aba-relatorio" style="display:none">
+    <div class="secao-titulo">📋 Relatório por categoria</div>
+    <div class="relatorio-card" id="relatorio"></div>
+  </div>
+
+</div>
+
+<button class="btn-add" onclick="abrirModal()">+ Lançamento</button>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Novo Lançamento</h2>
+
+    <label>Descrição</label>
+    <input type="text" id="mDesc" placeholder="Ex: Fraldas geriátricas, consulta cardiologista..." />
+
+    <label>Valor (R$)</label>
+    <input type="number" id="mValor" placeholder="0,00" step="0.01" min="0" />
+
+    <label>Categoria</label>
+    <select id="mCat">
+      <option value="Medicamento">💊 Medicamento</option>
+      <option value="Consulta">🏥 Consulta médica</option>
+      <option value="Exame">🔬 Exame</option>
+      <option value="Equipamento">🛒 Equipamento / Material</option>
+      <option value="Cuidador">🧑‍⚕️ Cuidador / Enfermeiro</option>
+      <option value="Farmácia">💉 Farmácia geral</option>
+      <option value="Transporte">🚗 Transporte</option>
+      <option value="Outro">📦 Outro</option>
+    </select>
+
+    <label>Pago por</label>
+    <input type="text" id="mPago" placeholder="Nome de quem pagou" />
+
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var gastos = JSON.parse(localStorage.getItem('financeiro') || '[]');
+  var abaAtual = 'gastos';
+
+  var catEmojis = {
+    Medicamento:'💊', Consulta:'🏥', Exame:'🔬', Equipamento:'🛒',
+    Cuidador:'🧑‍⚕️', Farmácia:'💉', Transporte:'🚗', Outro:'📦'
+  };
+
+  function setAba(aba, btn) {
+    abaAtual = aba;
+    document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    ['gastos','divisao','relatorio'].forEach(function(a) {
+      document.getElementById('aba-' + a).style.display = a === aba ? '' : 'none';
+    });
+    renderizar();
+  }
+
+  function totalGeral() {
+    return gastos.reduce(function(s, g) { return s + parseFloat(g.valor); }, 0);
+  }
+
+  function totalMes() {
+    var mes = new Date().getMonth();
+    var ano = new Date().getFullYear();
+    return gastos.filter(function(g) {
+      var d = new Date(g.timestamp);
+      return d.getMonth() === mes && d.getFullYear() === ano;
+    }).reduce(function(s, g) { return s + parseFloat(g.valor); }, 0);
+  }
+
+  function renderizar() {
+    if (abaAtual === 'gastos') renderGastos();
+    if (abaAtual === 'divisao') renderDivisao();
+    if (abaAtual === 'relatorio') renderRelatorio();
+  }
+
+  function renderGastos() {
+    var resumo = document.getElementById('resumoCards');
+    var lista = document.getElementById('listaGastos');
+    var tg = totalGeral();
+    var tm = totalMes();
+
+    resumo.innerHTML =
+      '<div class="resumo-card"><div class="label">Total geral</div><div class="valor">R$ ' + tg.toFixed(2) + '</div></div>' +
+      '<div class="resumo-card"><div class="label">Este mês</div><div class="valor">R$ ' + tm.toFixed(2) + '</div></div>';
+
+    if (gastos.length === 0) {
+      lista.innerHTML = '<div class="sem-dados">Nenhum lançamento ainda.<br>Toque em + para adicionar.</div>';
+      return;
+    }
+
+    lista.innerHTML = '';
+    var ordenados = gastos.slice().reverse();
+    ordenados.forEach(function(g, iRev) {
+      var i = gastos.length - 1 - iRev;
+      var div = document.createElement('div');
+      div.className = 'gasto-card';
+      div.innerHTML =
+        '<div class="gasto-icone">' + (catEmojis[g.categoria] || '📦') + '</div>' +
+        '<div class="gasto-info">' +
+          '<div class="gasto-desc">' + g.descricao + '</div>' +
+          '<div class="gasto-meta">' + g.data + ' · ' + g.pagoPor +
+            ' <span class="gasto-cat">' + g.categoria + '</span></div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">' +
+          '<div class="gasto-valor">R$ ' + parseFloat(g.valor).toFixed(2) + '</div>' +
+          '<button class="btn-excluir" onclick="excluir(' + i + ')">🗑️ Excluir</button>' +
+        '</div>';
+      lista.appendChild(div);
+    });
+  }
+
+  function renderDivisao() {
+    var lista = document.getElementById('listaDivisao');
+    if (gastos.length === 0) {
+      lista.innerHTML = '<div class="sem-dados">Nenhum lançamento ainda.</div>';
+      return;
+    }
+    var totais = {};
+    gastos.forEach(function(g) {
+      var p = g.pagoPor || 'Desconhecido';
+      totais[p] = (totais[p] || 0) + parseFloat(g.valor);
+    });
+    var total = totalGeral();
+    var ordenado = Object.entries(totais).sort(function(a,b) { return b[1]-a[1]; });
+    lista.innerHTML = '';
+    ordenado.forEach(function(entry) {
+      var nome = entry[0], val = entry[1];
+      var pct = total > 0 ? (val / total * 100) : 0;
+      var div = document.createElement('div');
+      div.className = 'divisao-card';
+      div.innerHTML =
+        '<div class="divisao-nome">' + nome + '</div>' +
+        '<div class="divisao-barra-cont"><div class="divisao-barra" style="width:' + pct.toFixed(0) + '%"></div></div>' +
+        '<div class="divisao-info"><span>' + pct.toFixed(1) + '% do total</span><span>R$ ' + val.toFixed(2) + '</span></div>';
+      lista.appendChild(div);
+    });
+  }
+
+  function renderRelatorio() {
+    var el = document.getElementById('relatorio');
+    if (gastos.length === 0) {
+      el.innerHTML = '<div class="sem-dados">Nenhum lançamento ainda.</div>';
+      return;
+    }
+    var cats = {};
+    gastos.forEach(function(g) {
+      cats[g.categoria] = (cats[g.categoria] || 0) + parseFloat(g.valor);
+    });
+    var total = totalGeral();
+    var ordenado = Object.entries(cats).sort(function(a,b) { return b[1]-a[1]; });
+    el.innerHTML = '';
+    ordenado.forEach(function(entry) {
+      var cat = entry[0], val = entry[1];
+      var pct = (val / total * 100).toFixed(1);
+      el.innerHTML += '<div class="relatorio-linha">' +
+        '<span>' + (catEmojis[cat]||'📦') + ' ' + cat + ' (' + pct + '%)</span>' +
+        '<span>R$ ' + val.toFixed(2) + '</span>' +
+        '</div>';
+    });
+    el.innerHTML += '<div class="relatorio-linha"><span>TOTAL GERAL</span><span>R$ ' + total.toFixed(2) + '</span></div>';
+  }
+
+  function excluir(i) {
+    if (!confirm('Excluir este lançamento?')) return;
+    gastos.splice(i, 1);
+    localStorage.setItem('financeiro', JSON.stringify(gastos));
+    renderizar();
+  }
+
+  function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
+  function fecharModal() {
+    document.getElementById('modalBg').classList.remove('ativo');
+    document.getElementById('mDesc').value = '';
+    document.getElementById('mValor').value = '';
+    document.getElementById('mPago').value = '';
+    document.getElementById('mCat').value = 'Medicamento';
+  }
+
+  function salvar() {
+    var desc = document.getElementById('mDesc').value.trim();
+    var valor = document.getElementById('mValor').value;
+    var cat = document.getElementById('mCat').value;
+    var pago = document.getElementById('mPago').value.trim();
+    if (!desc || !valor || !pago) { alert('Preencha descrição, valor e quem pagou.'); return; }
+    var agora = new Date();
+    gastos.push({
+      descricao: desc,
+      valor: parseFloat(valor),
+      categoria: cat,
+      pagoPor: pago,
+      data: agora.toLocaleDateString('pt-BR'),
+      timestamp: agora.getTime()
+    });
+    localStorage.setItem('financeiro', JSON.stringify(gastos));
+    fecharModal();
+    renderizar();
+  }
+
+  renderizar();
+</script>
+</body>
+</html>

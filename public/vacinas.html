@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vacinas - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#6a1b9a; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+
+  .cartao { background:linear-gradient(135deg,#6a1b9a,#8e24aa); color:white;
+            border-radius:20px; padding:20px; margin-bottom:16px;
+            box-shadow:0 4px 12px rgba(106,27,154,0.3); }
+  .cartao h2 { font-size:1.1em; margin-bottom:4px; }
+  .cartao p { font-size:0.85em; opacity:0.85; }
+  .cartao .stats { display:flex; gap:16px; margin-top:12px; }
+  .cartao .stat { text-align:center; }
+  .cartao .stat .num { font-size:1.8em; font-weight:bold; }
+  .cartao .stat .leg { font-size:0.75em; opacity:0.85; }
+
+  .tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .tab { flex:1; padding:10px; border:none; border-radius:10px; font-size:0.85em;
+         cursor:pointer; background:#eee; color:#555; }
+  .tab.ativo { background:#6a1b9a; color:white; font-weight:bold; }
+
+  .vacina-card { background:white; border-radius:16px; padding:16px;
+                 margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .vacina-header { display:flex; justify-content:space-between; align-items:flex-start; }
+  .vacina-nome { font-weight:bold; font-size:0.95em; color:#333; }
+  .vacina-desc { font-size:0.78em; color:#888; margin-top:2px; }
+  .badge-status { padding:4px 12px; border-radius:20px; font-size:0.75em; font-weight:bold; flex-shrink:0; }
+  .status-ok { background:#e8f5e9; color:#2e7d32; }
+  .status-atrasada { background:#ffebee; color:#c62828; }
+  .status-proxima { background:#fff3e0; color:#e65100; }
+  .status-pendente { background:#f3e5f5; color:#6a1b9a; }
+  .vacina-datas { margin-top:10px; display:flex; flex-direction:column; gap:4px; font-size:0.82em; color:#666; }
+  .vacina-doses { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .dose-badge { padding:4px 10px; border-radius:20px; font-size:0.75em; }
+  .dose-ok { background:#e8f5e9; color:#2e7d32; }
+  .dose-pendente { background:#f5f5f5; color:#aaa; border:1px dashed #ddd; }
+  .btn-registrar { margin-top:10px; width:100%; padding:10px; background:#f3e5f5;
+                   color:#6a1b9a; border:none; border-radius:10px; font-size:0.88em;
+                   font-weight:bold; cursor:pointer; }
+  .btn-excluir-dose { background:#ffebee; border:none; border-radius:8px;
+                      padding:4px 10px; color:#f44336; font-size:0.75em; cursor:pointer; margin-top:6px; }
+
+  .alerta-box { background:#fff3e0; border-left:4px solid #ff9800;
+                padding:12px 16px; border-radius:0 12px 12px 0;
+                margin-bottom:12px; font-size:0.88em; color:#e65100; }
+  .alerta-vermelho { background:#ffebee; border-left-color:#f44336; color:#c62828; }
+
+  .btn-add { position:fixed; bottom:24px; right:24px; background:#6a1b9a; color:white;
+             border:none; border-radius:50px; padding:16px 24px; font-size:1em;
+             cursor:pointer; box-shadow:0 4px 12px rgba(106,27,154,0.3); z-index:100; }
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%;
+           max-height:92vh; overflow-y:auto; }
+  .modal h2 { color:#6a1b9a; margin-bottom:16px; }
+  .modal input, .modal select, .modal textarea {
+    width:100%; padding:12px; margin-bottom:12px;
+    border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  .modal label { font-size:0.85em; color:#666; margin-bottom:4px; display:block; }
+  .modal-btns { display:flex; gap:10px; margin-top:4px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#6a1b9a; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+  .sugestoes-vacina { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .sug-btn { padding:6px 12px; background:#f3e5f5; color:#6a1b9a; border:none;
+             border-radius:20px; font-size:0.82em; cursor:pointer; }
+  .sem-dados { text-align:center; color:#bbb; padding:30px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>💉 Cartão de Vacinas</h1>
+</header>
+
+<div class="conteudo">
+  <div class="cartao" id="cartaoResumo">
+    <h2>💉 Cartão de Vacinas</h2>
+    <p id="nomeCartao">Carregando...</p>
+    <div class="stats">
+      <div class="stat"><div class="num" id="statOk">0</div><div class="leg">Em dia</div></div>
+      <div class="stat"><div class="num" id="statAtrasada">0</div><div class="leg">Atrasadas</div></div>
+      <div class="stat"><div class="num" id="statProxima">0</div><div class="leg">Próximas</div></div>
+    </div>
+  </div>
+
+  <div id="alertasVacinas"></div>
+
+  <div class="tabs">
+    <button class="tab ativo" onclick="setAba('todas',this)">💉 Todas</button>
+    <button class="tab" onclick="setAba('pendentes',this)">⚠️ Pendentes</button>
+    <button class="tab" onclick="setAba('emdia',this)">✅ Em dia</button>
+  </div>
+
+  <div id="listaVacinas"></div>
+</div>
+
+<button class="btn-add" onclick="abrirModal()">+ Vacina</button>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>💉 Registrar Vacina</h2>
+    <div class="label" style="font-size:0.85em;color:#666;margin-bottom:8px">Vacinas recomendadas para idosos:</div>
+    <div class="sugestoes-vacina">
+      <button class="sug-btn" onclick="usarSugestao('Gripe (Influenza)','Anual — protege contra influenza sazonal',1)">🤧 Gripe</button>
+      <button class="sug-btn" onclick="usarSugestao('Pneumocócica','Protege contra pneumonia — dose única ou reforço',1)">🫁 Pneumo</button>
+      <button class="sug-btn" onclick="usarSugestao('COVID-19','Doses + reforços anuais recomendados',4)">😷 COVID</button>
+      <button class="sug-btn" onclick="usarSugestao('dT (Tétano/Difteria)','Reforço a cada 10 anos',1)">💪 dT</button>
+      <button class="sug-btn" onclick="usarSugestao('Hepatite B','3 doses — 0, 1 e 6 meses',3)">🫀 Hep B</button>
+      <button class="sug-btn" onclick="usarSugestao('Febre Amarela','Dose única — viajantes',1)">🌿 F. Amarela</button>
+      <button class="sug-btn" onclick="usarSugestao('Herpes Zóster','Recomendada acima de 60 anos',1)">🔬 Zóster</button>
+      <button class="sug-btn" onclick="usarSugestao('Varicela','Para não vacinados',2)">🌸 Varicela</button>
+    </div>
+    <label>Nome da vacina</label>
+    <input type="text" id="vNome" placeholder="Ex: Gripe, COVID-19, Pneumocócica..." />
+    <label>Descrição / observação</label>
+    <input type="text" id="vDesc" placeholder="Ex: Anual, dose única, reforço..." />
+    <label>Total de doses necessárias</label>
+    <select id="vDoses">
+      <option value="1">1 dose</option>
+      <option value="2">2 doses</option>
+      <option value="3">3 doses</option>
+      <option value="4">4 doses (+ reforços)</option>
+    </select>
+    <label>Data da última dose / dose 1</label>
+    <input type="date" id="vData" />
+    <label>Próxima dose / reforço em</label>
+    <input type="date" id="vProxima" />
+    <label>Local de aplicação</label>
+    <input type="text" id="vLocal" placeholder="Ex: UBS, clínica particular..." />
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var vacinas = JSON.parse(localStorage.getItem('vacinas') || '[]');
+  var perfil = JSON.parse(localStorage.getItem('perfilIdoso') || 'null');
+  var abaAtual = 'todas';
+
+  document.getElementById('nomeCartao').textContent =
+    perfil && perfil.nome ? perfil.nome : 'Cadastre o perfil do idoso';
+
+  function diasPara(dataStr) {
+    if (!dataStr) return null;
+    var hoje = new Date(); hoje.setHours(0,0,0,0);
+    var data = new Date(dataStr); data.setHours(0,0,0,0);
+    return Math.ceil((data - hoje) / (1000*60*60*24));
+  }
+
+  function statusVacina(v) {
+    if (!v.dataUltima && !v.proxima) return { texto:'Não tomada', classe:'status-pendente' };
+    if (v.proxima) {
+      var dias = diasPara(v.proxima);
+      if (dias === null) return { texto:'Em dia', classe:'status-ok' };
+      if (dias < 0) return { texto:'Atrasada ' + Math.abs(dias) + 'd', classe:'status-atrasada' };
+      if (dias <= 30) return { texto:'Vence em ' + dias + 'd', classe:'status-proxima' };
+    }
+    return { texto:'Em dia', classe:'status-ok' };
+  }
+
+  function usarSugestao(nome, desc, doses) {
+    document.getElementById('vNome').value = nome;
+    document.getElementById('vDesc').value = desc;
+    document.getElementById('vDoses').value = doses > 4 ? 4 : doses;
+  }
+
+  function renderAlertas() {
+    var el = document.getElementById('alertasVacinas');
+    var alertas = [];
+    vacinas.forEach(function(v) {
+      var st = statusVacina(v);
+      if (st.classe === 'status-atrasada') {
+        alertas.push({ tipo:'vermelho', texto:'🚨 ' + v.nome + ' — ' + st.texto });
+      } else if (st.classe === 'status-proxima') {
+        alertas.push({ tipo:'laranja', texto:'⚠️ ' + v.nome + ' — próxima dose: ' + st.texto });
+      }
+    });
+    el.innerHTML = alertas.map(function(a) {
+      return '<div class="alerta-box ' + (a.tipo === 'vermelho' ? 'alerta-vermelho' : '') + '">' + a.texto + '</div>';
+    }).join('');
+  }
+
+  function renderStats() {
+    var ok = 0, atrasada = 0, proxima = 0;
+    vacinas.forEach(function(v) {
+      var st = statusVacina(v);
+      if (st.classe === 'status-ok') ok++;
+      else if (st.classe === 'status-atrasada') atrasada++;
+      else if (st.classe === 'status-proxima') proxima++;
+    });
+    document.getElementById('statOk').textContent = ok;
+    document.getElementById('statAtrasada').textContent = atrasada;
+    document.getElementById('statProxima').textContent = proxima;
+  }
+
+  function setAba(aba, btn) {
+    abaAtual = aba;
+    document.querySelectorAll('.tab').forEach(function(b) { b.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    renderLista();
+  }
+
+  function renderLista() {
+    var el = document.getElementById('listaVacinas');
+    var lista = vacinas;
+    if (abaAtual === 'pendentes') {
+      lista = vacinas.filter(function(v) {
+        var st = statusVacina(v);
+        return st.classe === 'status-atrasada' || st.classe === 'status-proxima' || st.classe === 'status-pendente';
+      });
+    } else if (abaAtual === 'emdia') {
+      lista = vacinas.filter(function(v) { return statusVacina(v).classe === 'status-ok'; });
+    }
+
+    if (lista.length === 0) {
+      el.innerHTML = '<div class="sem-dados">Nenhuma vacina ' +
+        (abaAtual === 'pendentes' ? 'pendente' : abaAtual === 'emdia' ? 'em dia' : 'cadastrada') +
+        '.<br>' + (abaAtual === 'todas' ? 'Toque em + para adicionar.' : '') + '</div>';
+      return;
+    }
+
+    el.innerHTML = '';
+    lista.forEach(function(v, i) {
+      var idxReal = vacinas.indexOf(v);
+      var st = statusVacina(v);
+      var doses = parseInt(v.totalDoses) || 1;
+      var dosesHtml = '';
+      for (var d = 0; d < doses; d++) {
+        var tomada = v.doses && v.doses[d];
+        dosesHtml += '<span class="dose-badge ' + (tomada ? 'dose-ok' : 'dose-pendente') + '">' +
+          (tomada ? '✓ ' : '') + 'Dose ' + (d+1) + (tomada ? ' — ' + new Date(tomada).toLocaleDateString('pt-BR',{timeZone:'UTC'}) : '') +
+        '</span>';
+      }
+
+      var card = document.createElement('div');
+      card.className = 'vacina-card';
+      card.innerHTML =
+        '<div class="vacina-header">' +
+          '<div><div class="vacina-nome">💉 ' + v.nome + '</div>' +
+          '<div class="vacina-desc">' + (v.desc || '') + '</div></div>' +
+          '<span class="badge-status ' + st.classe + '">' + st.texto + '</span>' +
+        '</div>' +
+        '<div class="vacina-doses">' + dosesHtml + '</div>' +
+        '<div class="vacina-datas">' +
+          (v.dataUltima ? '<span>📅 Última dose: ' + new Date(v.dataUltima).toLocaleDateString('pt-BR',{timeZone:'UTC'}) + '</span>' : '') +
+          (v.proxima ? '<span>🔔 Próxima: ' + new Date(v.proxima).toLocaleDateString('pt-BR',{timeZone:'UTC'}) + '</span>' : '') +
+          (v.local ? '<span>📍 ' + v.local + '</span>' : '') +
+        '</div>' +
+        '<button class="btn-registrar" onclick="registrarDose(' + idxReal + ')">+ Registrar nova dose</button>' +
+        '<button class="btn-excluir-dose" onclick="excluir(' + idxReal + ')">🗑️ Excluir</button>';
+      el.appendChild(card);
+    });
+  }
+
+  function registrarDose(i) {
+    var data = prompt('Data da dose (AAAA-MM-DD):');
+    if (!data) return;
+    if (!vacinas[i].doses) vacinas[i].doses = [];
+    vacinas[i].doses.push(data);
+    vacinas[i].dataUltima = data;
+    localStorage.setItem('vacinas', JSON.stringify(vacinas));
+    renderizar();
+  }
+
+  function excluir(i) {
+    if (!confirm('Excluir ' + vacinas[i].nome + '?')) return;
+    vacinas.splice(i, 1);
+    localStorage.setItem('vacinas', JSON.stringify(vacinas));
+    renderizar();
+  }
+
+  function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
+  function fecharModal() {
+    document.getElementById('modalBg').classList.remove('ativo');
+    ['vNome','vDesc','vData','vProxima','vLocal'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('vDoses').value = '1';
+  }
+
+  function salvar() {
+    var nome = document.getElementById('vNome').value.trim();
+    if (!nome) { alert('Digite o nome da vacina.'); return; }
+    var data = document.getElementById('vData').value;
+    var doses = [];
+    if (data) doses.push(data);
+    vacinas.push({
+      nome: nome,
+      desc: document.getElementById('vDesc').value.trim(),
+      totalDoses: document.getElementById('vDoses').value,
+      dataUltima: data,
+      proxima: document.getElementById('vProxima').value,
+      local: document.getElementById('vLocal').value.trim(),
+      doses: doses
+    });
+    localStorage.setItem('vacinas', JSON.stringify(vacinas));
+    fecharModal();
+    renderizar();
+  }
+
+  function renderizar() {
+    renderStats();
+    renderAlertas();
+    renderLista();
+  }
+
+  renderizar();
+</script>
+</body>
+</html>

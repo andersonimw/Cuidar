@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist do Cuidador - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+  .data-header { background:white; border-radius:16px; padding:14px 16px;
+                 margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08);
+                 display:flex; justify-content:space-between; align-items:center; }
+  .data-header .data { font-size:1em; font-weight:bold; color:#2e7d32; }
+  .data-header .progresso { font-size:0.85em; color:#888; }
+  .barra-prog-cont { background:#eee; border-radius:20px; height:8px; margin-top:8px; }
+  .barra-prog { height:8px; border-radius:20px; background:#2e7d32; transition:width 0.3s; }
+  .secao { background:white; border-radius:16px; padding:16px;
+           margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .secao h2 { color:#2e7d32; font-size:0.95em; margin-bottom:12px;
+              display:flex; align-items:center; gap:8px; }
+  .tarefa-item { display:flex; align-items:center; gap:12px; padding:12px 0;
+                 border-bottom:1px solid #f5f5f5; cursor:pointer; }
+  .tarefa-item:last-child { border-bottom:none; }
+  .checkbox { width:28px; height:28px; border-radius:8px; border:2px solid #ddd;
+              display:flex; align-items:center; justify-content:center;
+              font-size:1.2em; flex-shrink:0; transition:all 0.2s; }
+  .checkbox.feito { background:#2e7d32; border-color:#2e7d32; }
+  .tarefa-info { flex:1; }
+  .tarefa-nome { font-size:0.95em; }
+  .tarefa-nome.feito { text-decoration:line-through; color:#aaa; }
+  .tarefa-quem { font-size:0.75em; color:#2e7d32; margin-top:2px; }
+  .tarefa-hora { font-size:0.75em; color:#aaa; }
+  .btn-add { position:fixed; bottom:24px; right:24px; background:#2e7d32; color:white;
+             border:none; border-radius:50px; padding:16px 24px; font-size:1em;
+             cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:100; }
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%;
+           max-height:92vh; overflow-y:auto; }
+  .modal h2 { color:#2e7d32; margin-bottom:16px; }
+  .modal input, .modal select { width:100%; padding:12px; margin-bottom:12px;
+                                 border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  .modal label { font-size:0.85em; color:#666; margin-bottom:4px; display:block; }
+  .modal-btns { display:flex; gap:10px; }
+  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar { background:#2e7d32; color:white; }
+  .btn-cancelar { background:#eee; color:#333; }
+  .sugestoes { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .sugestao { padding:8px 14px; background:#e8f5e9; color:#2e7d32; border:none;
+              border-radius:20px; font-size:0.85em; cursor:pointer; }
+  .tudo-feito { text-align:center; padding:20px; color:#2e7d32; font-size:1em; font-weight:bold; }
+  .nome-input { background:white; border-radius:12px; padding:12px 16px; margin-bottom:16px;
+                box-shadow:0 2px 8px rgba(0,0,0,0.06); display:flex; align-items:center; gap:10px; }
+  .nome-input input { flex:1; border:none; outline:none; font-size:0.95em; }
+  .nome-input label { font-size:0.82em; color:#888; white-space:nowrap; }
+  .historico-dia { background:white; border-radius:16px; padding:16px;
+                   margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .historico-dia h3 { font-size:0.88em; color:#888; margin-bottom:8px; }
+  .hist-item-check { display:flex; align-items:center; gap:8px;
+                     font-size:0.85em; padding:4px 0; color:#666; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>✅ Checklist do Cuidador</h1>
+</header>
+
+<div class="conteudo">
+
+  <div class="nome-input">
+    <label>Quem sou eu:</label>
+    <input type="text" id="meuNome" placeholder="Seu nome..."
+           oninput="localStorage.setItem('nomeUsuario', this.value)" />
+  </div>
+
+  <div class="data-header">
+    <div>
+      <div class="data" id="dataHoje"></div>
+      <div class="progresso" id="progressoTexto"></div>
+      <div class="barra-prog-cont">
+        <div class="barra-prog" id="barraProg" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="secoes"></div>
+  <div id="historicoSecao"></div>
+
+</div>
+
+<button class="btn-add" onclick="abrirModal()">+ Tarefa</button>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Nova Tarefa</h2>
+    <div class="label" style="font-size:0.85em;color:#666;margin-bottom:8px">Sugestões rápidas:</div>
+    <div class="sugestoes">
+      <button class="sugestao" onclick="usarSugestao('🛁 Banho')">🛁 Banho</button>
+      <button class="sugestao" onclick="usarSugestao('💊 Medicamento')">💊 Medicamento</button>
+      <button class="sugestao" onclick="usarSugestao('🍽️ Café da manhã')">🍽️ Café</button>
+      <button class="sugestao" onclick="usarSugestao('🍽️ Almoço')">🍽️ Almoço</button>
+      <button class="sugestao" onclick="usarSugestao('🍽️ Jantar')">🍽️ Jantar</button>
+      <button class="sugestao" onclick="usarSugestao('💧 Hidratação')">💧 Água</button>
+      <button class="sugestao" onclick="usarSugestao('🚶 Fisioterapia')">🚶 Fisio</button>
+      <button class="sugestao" onclick="usarSugestao('🩹 Curativo')">🩹 Curativo</button>
+      <button class="sugestao" onclick="usarSugestao('🛏️ Mudança de posição')">🛏️ Posição</button>
+      <button class="sugestao" onclick="usarSugestao('🌡️ Verificar temperatura')">🌡️ Temp</button>
+      <button class="sugestao" onclick="usarSugestao('❤️ Verificar pressão')">❤️ Pressão</button>
+      <button class="sugestao" onclick="usarSugestao('😴 Hora do descanso')">😴 Descanso</button>
+    </div>
+    <label>Descrição da tarefa</label>
+    <input type="text" id="tDesc" placeholder="Ex: Banho, curativo, fisioterapia..." />
+    <label>Categoria</label>
+    <select id="tCat">
+      <option value="Higiene">🛁 Higiene</option>
+      <option value="Alimentação">🍽️ Alimentação</option>
+      <option value="Medicação">💊 Medicação</option>
+      <option value="Saúde">🏥 Saúde</option>
+      <option value="Movimento">🚶 Movimento</option>
+      <option value="Outro">📋 Outro</option>
+    </select>
+    <label>Horário previsto (opcional)</label>
+    <input type="time" id="tHora" />
+    <label>Recorrência</label>
+    <select id="tRecorr">
+      <option value="hoje">Só hoje</option>
+      <option value="diario">Todo dia</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var hoje = new Date().toLocaleDateString('pt-BR');
+  var hojeISO = new Date().toISOString().split('T')[0];
+  document.getElementById('dataHoje').textContent =
+    new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('meuNome').value = localStorage.getItem('nomeUsuario') || '';
+
+  var tarefasTemplate = JSON.parse(localStorage.getItem('checklistTemplate') || '[]');
+  var registros = JSON.parse(localStorage.getItem('checklistRegistros') || '{}');
+
+  // Garante registros de hoje
+  if (!registros[hojeISO]) {
+    registros[hojeISO] = tarefasTemplate
+      .filter(function(t) { return t.recorr === 'diario'; })
+      .map(function(t) { return Object.assign({}, t, { feito:false, quem:'', hora:'' }); });
+    localStorage.setItem('checklistRegistros', JSON.stringify(registros));
+  }
+
+  var tarefasHoje = registros[hojeISO];
+
+  var catIcons = { Higiene:'🛁', Alimentação:'🍽️', Medicação:'💊', Saúde:'🏥', Movimento:'🚶', Outro:'📋' };
+
+  function atualizarProgresso() {
+    var total = tarefasHoje.length;
+    var feitos = tarefasHoje.filter(function(t) { return t.feito; }).length;
+    var pct = total > 0 ? Math.round((feitos/total)*100) : 0;
+    document.getElementById('progressoTexto').textContent = feitos + ' de ' + total + ' tarefas concluídas (' + pct + '%)';
+    document.getElementById('barraProg').style.width = pct + '%';
+  }
+
+  function renderizar() {
+    var secoes = document.getElementById('secoes');
+    atualizarProgresso();
+
+    if (tarefasHoje.length === 0) {
+      secoes.innerHTML =
+        '<div class="secao"><p style="text-align:center;color:#aaa;padding:20px">' +
+        'Nenhuma tarefa para hoje.<br>Toque em + para adicionar.</p></div>';
+      renderHistorico();
+      return;
+    }
+
+    var cats = {};
+    tarefasHoje.forEach(function(t, i) {
+      if (!cats[t.categoria]) cats[t.categoria] = [];
+      cats[t.categoria].push({ tarefa: t, idx: i });
+    });
+
+    var todoFeito = tarefasHoje.every(function(t) { return t.feito; });
+    secoes.innerHTML = '';
+
+    if (todoFeito) {
+      secoes.innerHTML = '<div class="tudo-feito">🎉 Todas as tarefas do dia concluídas! Ótimo trabalho!</div>';
+    }
+
+    Object.keys(cats).forEach(function(cat) {
+      var div = document.createElement('div');
+      div.className = 'secao';
+      var itens = cats[cat].map(function(entry) {
+        var t = entry.tarefa; var i = entry.idx;
+        return '<div class="tarefa-item" onclick="toggleTarefa(' + i + ')">' +
+          '<div class="checkbox ' + (t.feito ? 'feito' : '') + '">' + (t.feito ? '✓' : '') + '</div>' +
+          '<div class="tarefa-info">' +
+            '<div class="tarefa-nome ' + (t.feito ? 'feito' : '') + '">' + t.desc + '</div>' +
+            (t.feito && t.quem ? '<div class="tarefa-quem">✅ ' + t.quem + ' às ' + t.hora + '</div>' : '') +
+            (t.horaP && !t.feito ? '<div class="tarefa-hora">⏰ Previsto: ' + t.horaP + '</div>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+      div.innerHTML = '<h2>' + (catIcons[cat]||'📋') + ' ' + cat + '</h2>' + itens;
+      secoes.appendChild(div);
+    });
+
+    renderHistorico();
+  }
+
+  function toggleTarefa(i) {
+    var nome = localStorage.getItem('nomeUsuario') || 'Cuidador';
+    var agora = new Date();
+    var hora = agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    tarefasHoje[i].feito = !tarefasHoje[i].feito;
+    if (tarefasHoje[i].feito) {
+      tarefasHoje[i].quem = nome;
+      tarefasHoje[i].hora = hora;
+    } else {
+      tarefasHoje[i].quem = '';
+      tarefasHoje[i].hora = '';
+    }
+    registros[hojeISO] = tarefasHoje;
+    localStorage.setItem('checklistRegistros', JSON.stringify(registros));
+    renderizar();
+  }
+
+  function renderHistorico() {
+    var el = document.getElementById('historicoSecao');
+    var dias = Object.keys(registros).filter(function(d) { return d !== hojeISO; })
+      .sort().reverse().slice(0, 3);
+    if (dias.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div style="font-size:0.85em;font-weight:bold;color:#888;margin:16px 0 8px;text-transform:uppercase">📅 Dias anteriores</div>';
+    dias.forEach(function(dia) {
+      var lista = registros[dia];
+      var feitos = lista.filter(function(t) { return t.feito; }).length;
+      var total = lista.length;
+      var dataFormatada = new Date(dia + 'T12:00:00').toLocaleDateString('pt-BR', {weekday:'short', day:'numeric', month:'short'});
+      var div = document.createElement('div');
+      div.className = 'historico-dia';
+      div.innerHTML = '<h3>' + dataFormatada + ' — ' + feitos + '/' + total + ' concluídas</h3>' +
+        lista.map(function(t) {
+          return '<div class="hist-item-check">' +
+            (t.feito ? '✅' : '⬜') + ' ' + t.desc +
+            (t.feito && t.quem ? ' <span style="color:#2e7d32;font-size:0.9em">(' + t.quem + ')</span>' : '') +
+            '</div>';
+        }).join('');
+      el.appendChild(div);
+    });
+  }
+
+  function usarSugestao(texto) {
+    document.getElementById('tDesc').value = texto;
+  }
+
+  function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
+  function fecharModal() {
+    document.getElementById('modalBg').classList.remove('ativo');
+    document.getElementById('tDesc').value = '';
+    document.getElementById('tHora').value = '';
+    document.getElementById('tCat').value = 'Higiene';
+    document.getElementById('tRecorr').value = 'hoje';
+  }
+
+  function salvar() {
+    var desc = document.getElementById('tDesc').value.trim();
+    if (!desc) { alert('Digite a descrição da tarefa.'); return; }
+    var tarefa = {
+      desc: desc,
+      categoria: document.getElementById('tCat').value,
+      horaP: document.getElementById('tHora').value,
+      recorr: document.getElementById('tRecorr').value,
+      feito: false, quem: '', hora: ''
+    };
+    if (tarefa.recorr === 'diario') {
+      tarefasTemplate.push(tarefa);
+      localStorage.setItem('checklistTemplate', JSON.stringify(tarefasTemplate));
+    }
+    tarefasHoje.push(tarefa);
+    registros[hojeISO] = tarefasHoje;
+    localStorage.setItem('checklistRegistros', JSON.stringify(registros));
+    fecharModal();
+    renderizar();
+  }
+
+  renderizar();
+</script>
+</body>
+</html>
