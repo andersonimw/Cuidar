@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Emergências - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#c62828; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+
+  .aviso { background:#ffebee; border-left:4px solid #c62828; padding:12px 16px;
+           border-radius:0 12px 12px 0; font-size:0.85em; color:#c62828;
+           margin-bottom:16px; line-height:1.6; }
+
+  .samu-btn { display:flex; align-items:center; justify-content:center; gap:12px;
+              background:#c62828; color:white; border:none; border-radius:16px;
+              padding:18px; font-size:1.2em; font-weight:bold; cursor:pointer;
+              width:100%; margin-bottom:16px; box-shadow:0 4px 12px rgba(198,40,40,0.3); }
+
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+  .emerg-card { background:white; border-radius:16px; padding:16px; text-align:center;
+                box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;
+                border:2px solid transparent; transition:all 0.2s; }
+  .emerg-card:active { transform:scale(0.97); }
+  .emerg-card .icon { font-size:2.2em; margin-bottom:8px; }
+  .emerg-card .nome { font-size:0.9em; font-weight:bold; color:#333; }
+  .emerg-card .desc { font-size:0.75em; color:#888; margin-top:4px; }
+
+  .detalhe { display:none; background:white; border-radius:16px; padding:20px;
+             margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .detalhe.ativo { display:block; }
+  .detalhe-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .detalhe-icon { font-size:2.5em; }
+  .detalhe-titulo { font-size:1.2em; font-weight:bold; color:#c62828; }
+  .detalhe-sub { font-size:0.85em; color:#888; }
+
+  .secao-titulo { font-size:0.8em; font-weight:bold; text-transform:uppercase;
+                  color:#888; letter-spacing:1px; margin:16px 0 8px; }
+
+  .sinais { background:#fff3e0; border-radius:12px; padding:12px; margin-bottom:12px; }
+  .sinais .s-titulo { font-size:0.85em; font-weight:bold; color:#e65100; margin-bottom:8px; }
+  .sinais ul { padding-left:16px; }
+  .sinais ul li { font-size:0.85em; color:#555; margin-bottom:4px; line-height:1.5; }
+
+  .passos { margin-bottom:12px; }
+  .passo { display:flex; gap:12px; margin-bottom:12px; align-items:flex-start; }
+  .passo-num { background:#c62828; color:white; border-radius:50%; width:28px; height:28px;
+               display:flex; align-items:center; justify-content:center; font-size:0.85em;
+               font-weight:bold; flex-shrink:0; margin-top:2px; }
+  .passo-texto { font-size:0.88em; color:#333; line-height:1.6; flex:1; }
+  .passo-texto strong { color:#c62828; }
+
+  .nao-fazer { background:#ffebee; border-radius:12px; padding:12px; margin-bottom:16px; }
+  .nao-fazer .nf-titulo { font-size:0.85em; font-weight:bold; color:#c62828; margin-bottom:8px; }
+  .nao-fazer ul { padding-left:16px; }
+  .nao-fazer ul li { font-size:0.85em; color:#c62828; margin-bottom:4px; line-height:1.5; }
+
+  .acoes-emerg { display:flex; gap:10px; margin-top:16px; }
+  .btn-samu { flex:1; padding:14px; background:#c62828; color:white; border:none;
+              border-radius:12px; font-size:0.95em; font-weight:bold; cursor:pointer; }
+  .btn-wpp { flex:1; padding:14px; background:#2e7d32; color:white; border:none;
+             border-radius:12px; font-size:0.95em; font-weight:bold; cursor:pointer; }
+  .btn-fechar { width:100%; padding:12px; background:#eee; color:#555; border:none;
+                border-radius:12px; font-size:0.9em; cursor:pointer; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>🚨 Guia de Emergências</h1>
+</header>
+
+<div class="conteudo">
+
+  <div class="aviso">⚠️ Em caso de risco de vida, ligue imediatamente para o SAMU. Este guia é um apoio enquanto o socorro não chega.</div>
+
+  <button class="samu-btn" onclick="window.open('tel:192')">
+    🚑 LIGAR PARA O SAMU — 192
+  </button>
+
+  <div class="grid">
+    <div class="emerg-card" onclick="mostrar('avc')">
+      <div class="icon">🧠</div>
+      <div class="nome">AVC</div>
+      <div class="desc">Derrame cerebral</div>
+    </div>
+    <div class="emerg-card" onclick="mostrar('queda')">
+      <div class="icon">🤕</div>
+      <div class="nome">Queda</div>
+      <div class="desc">Acidente doméstico</div>
+    </div>
+    <div class="emerg-card" onclick="mostrar('engasgo')">
+      <div class="icon">😮</div>
+      <div class="nome">Engasgo</div>
+      <div class="desc">Obstrução das vias</div>
+    </div>
+    <div class="emerg-card" onclick="mostrar('faltaar')">
+      <div class="icon">😤</div>
+      <div class="nome">Falta de ar</div>
+      <div class="desc">Dificuldade respirar</div>
+    </div>
+    <div class="emerg-card" onclick="mostrar('parada')">
+      <div class="icon">❤️</div>
+      <div class="nome">Parada cardíaca</div>
+      <div class="desc">Sem pulso ou respiração</div>
+    </div>
+    <div class="emerg-card" onclick="mostrar('pressao')">
+      <div class="icon">🩸</div>
+      <div class="nome">Crise de pressão</div>
+      <div class="desc">Pressão muito alta/baixa</div>
+    </div>
+    <div class="emerg-card" onclick="mostrar('glicemia')">
+      <div class="icon">🍬</div>
+      <div class="nome">Crise de glicemia</div>
+      <div class="desc">Hipo ou hiperglicemia</div>
+    </div>
+    <div class="emerg-card" onclick="mostrar('alzheimer')">
+      <div class="icon">🧩</div>
+      <div class="nome">Alzheimer</div>
+      <div class="desc">Crise e desorientação</div>
+    </div>
+  </div>
+
+  <!-- AVC -->
+  <div class="detalhe" id="d-avc">
+    <div class="detalhe-header">
+      <div class="detalhe-icon">🧠</div>
+      <div><div class="detalhe-titulo">AVC — Derrame Cerebral</div>
+      <div class="detalhe-sub">Cada minuto conta. Aja imediatamente.</div></div>
+    </div>
+    <div class="secao-titulo">🔍 Sinais — Use o teste SAMU</div>
+    <div class="sinais">
+      <div class="s-titulo">⚠️ Reconheça os sinais:</div>
+      <ul>
+        <li><strong>S</strong>orriso torto — um lado da boca caído</li>
+        <li><strong>A</strong>braço fraco — não consegue levantar os dois braços</li>
+        <li><strong>M</strong>ensagem confusa — fala embaralhada, sem sentido</li>
+        <li><strong>U</strong>rgência — se qualquer sinal aparecer, ligue 192</li>
+        <li>Dor de cabeça súbita e intensa</li>
+        <li>Visão turva em um ou ambos os olhos</li>
+        <li>Confusão mental repentina</li>
+      </ul>
+    </div>
+    <div class="secao-titulo">✅ O que fazer</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Ligue 192 (SAMU) imediatamente.</strong> Não espere para ver se melhora.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Mantenha o idoso <strong>deitado de lado</strong> (posição lateral de segurança) para evitar engasgo.</div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto"><strong>Não dê nada para beber ou comer.</strong> A deglutição pode estar comprometida.</div></div>
+      <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Anote o <strong>horário exato</strong> que os sintomas começaram. O médico vai precisar dessa informação.</div></div>
+      <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Fique ao lado, <strong>fale com calma</strong> e tranquilize o idoso enquanto o socorro não chega.</div></div>
+      <div class="passo"><div class="passo-num">6</div><div class="passo-texto">Se o idoso perder a consciência e parar de respirar, inicie a <strong>RCP</strong> (ver Parada Cardíaca).</div></div>
+    </div>
+    <div class="nao-fazer">
+      <div class="nf-titulo">🚫 NÃO faça:</div>
+      <ul>
+        <li>Não dê remédio sem orientação médica</li>
+        <li>Não deixe o idoso andar ou se levantar</li>
+        <li>Não espere os sintomas passarem sozinhos</li>
+        <li>Não dê água — pode engasgar</li>
+      </ul>
+    </div>
+    <div class="acoes-emerg">
+      <button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button>
+      <button class="btn-wpp" onclick="avisarFamiliar('AVC')">📱 Avisar familiar</button>
+    </div>
+    <button class="btn-fechar" onclick="fechar('avc')">✕ Fechar</button>
+  </div>
+
+  <!-- QUEDA -->
+  <div class="detalhe" id="d-queda">
+    <div class="detalhe-header">
+      <div class="detalhe-icon">🤕</div>
+      <div><div class="detalhe-titulo">Queda</div>
+      <div class="detalhe-sub">Avalie antes de mover o idoso.</div></div>
+    </div>
+    <div class="secao-titulo">🔍 Sinais de gravidade</div>
+    <div class="sinais">
+      <div class="s-titulo">⚠️ Chame o SAMU se houver:</div>
+      <ul>
+        <li>Dor intensa no quadril, perna ou costas</li>
+        <li>Incapacidade de mover algum membro</li>
+        <li>Perda de consciência, mesmo que breve</li>
+        <li>Corte profundo com sangramento intenso</li>
+        <li>Deformidade visível (osso fora do lugar)</li>
+        <li>Dor de cabeça após bater a cabeça</li>
+      </ul>
+    </div>
+    <div class="secao-titulo">✅ O que fazer</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Não mova o idoso</strong> imediatamente. Primeiro avalie se há dor intensa ou deformidade.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Pergunte: <strong>"Está com dor? Onde dói? Consegue mover as pernas?"</strong></div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Se suspeitar de fratura, <strong>ligue 192</strong> e não tente levantar sem orientação.</div></div>
+      <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Se não houver suspeita de fratura, ajude o idoso a se levantar <strong>devagar e com apoio</strong>.</div></div>
+      <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Em caso de sangramento, <strong>pressione o local</strong> com pano limpo até estancar.</div></div>
+      <div class="passo"><div class="passo-num">6</div><div class="passo-texto">Observe nas próximas horas: <strong>tontura, vômito, confusão</strong> — sinais de traumatismo.</div></div>
+    </div>
+    <div class="nao-fazer">
+      <div class="nf-titulo">🚫 NÃO faça:</div>
+      <ul>
+        <li>Não levante o idoso com pressa</li>
+        <li>Não ignore dor no quadril — pode ser fratura</li>
+        <li>Não deixe sozinho após queda com batida na cabeça</li>
+      </ul>
+    </div>
+    <div class="acoes-emerg">
+      <button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button>
+      <button class="btn-wpp" onclick="avisarFamiliar('Queda')">📱 Avisar familiar</button>
+    </div>
+    <button class="btn-fechar" onclick="fechar('queda')">✕ Fechar</button>
+  </div>
+
+  <!-- ENGASGO -->
+  <div class="detalhe" id="d-engasgo">
+    <div class="detalhe-header">
+      <div class="detalhe-icon">😮</div>
+      <div><div class="detalhe-titulo">Engasgo</div>
+      <div class="detalhe-sub">Aja nos primeiros segundos.</div></div>
+    </div>
+    <div class="sinais">
+      <div class="s-titulo">⚠️ Sinais de engasgo grave:</div>
+      <ul>
+        <li>Não consegue falar ou tossir</li>
+        <li>Lábios ou rosto ficando azulados</li>
+        <li>Mãos no pescoço (sinal universal)</li>
+        <li>Respiração com barulho ou ausente</li>
+      </ul>
+    </div>
+    <div class="secao-titulo">✅ O que fazer</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto">Se consegue tossir: <strong>incentive a tossir forte.</strong> Não interfira.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Se não consegue tossir: aplique <strong>5 tapas firmes nas costas</strong> entre as omoplatas com a mão espalmada.</div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Se não resolver: aplique a <strong>Manobra de Heimlich</strong> — abrace por trás, mãos na barriga acima do umbigo, faça 5 compressões para dentro e para cima.</div></div>
+      <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Alterne <strong>5 tapas nas costas + 5 compressões abdominais</strong> até desobstruir.</div></div>
+      <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Se o idoso perder a consciência: <strong>ligue 192</strong> e inicie RCP.</div></div>
+    </div>
+    <div class="nao-fazer">
+      <div class="nf-titulo">🚫 NÃO faça:</div>
+      <ul>
+        <li>Não coloque o dedo na boca às cegas</li>
+        <li>Não dê água durante o engasgo</li>
+        <li>Não aplique Heimlich se consegue tossir</li>
+      </ul>
+    </div>
+    <div class="acoes-emerg">
+      <button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button>
+      <button class="btn-wpp" onclick="avisarFamiliar('Engasgo')">📱 Avisar familiar</button>
+    </div>
+    <button class="btn-fechar" onclick="fechar('engasgo')">✕ Fechar</button>
+  </div>
+
+  <!-- FALTA DE AR -->
+  <div class="detalhe" id="d-faltaar">
+    <div class="detalhe-header">
+      <div class="detalhe-icon">😤</div>
+      <div><div class="detalhe-titulo">Falta de Ar</div>
+      <div class="detalhe-sub">Pode ser crise de asma, coração ou ansiedade.</div></div>
+    </div>
+    <div class="sinais">
+      <div class="s-titulo">⚠️ Sinais de gravidade:</div>
+      <ul>
+        <li>Lábios ou pontas dos dedos azulados</li>
+        <li>Respiração muito rápida ou muito lenta</li>
+        <li>Não consegue completar frases</li>
+        <li>Confusão mental junto com falta de ar</li>
+        <li>Dor no peito junto com falta de ar</li>
+      </ul>
+    </div>
+    <div class="secao-titulo">✅ O que fazer</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Sente o idoso ereto</strong> ou semi-sentado — nunca deitado de barriga para cima.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto"><strong>Afrouxe roupas</strong> apertadas no pescoço e peito. Abra janelas para ventilar.</div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Se tiver <strong>broncodilatador</strong> prescrito (bombinha), use agora conforme orientação médica.</div></div>
+      <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Fale com calma: <strong>"Respira devagar comigo."</strong> Inspire 4s, expire 6s.</div></div>
+      <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Se não melhorar em 5 minutos ou piorar: <strong>ligue 192 imediatamente.</strong></div></div>
+    </div>
+    <div class="nao-fazer">
+      <div class="nf-titulo">🚫 NÃO faça:</div>
+      <ul>
+        <li>Não deite o idoso de costas</li>
+        <li>Não dê remédio sem prescrição</li>
+        <li>Não deixe sozinho</li>
+      </ul>
+    </div>
+    <div class="acoes-emerg">
+      <button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button>
+      <button class="btn-wpp" onclick="avisarFamiliar('Falta de ar')">📱 Avisar familiar</button>
+    </div>
+    <button class="btn-fechar" onclick="fechar('faltaar')">✕ Fechar</button>
+  </div>
+
+  <!-- PARADA CARDÍACA -->
+  <div class="detalhe" id="d-parada">
+    <div class="detalhe-header">
+      <div class="detalhe-icon">❤️</div>
+      <div><div class="detalhe-titulo">Parada Cardíaca</div>
+      <div class="detalhe-sub">RCP pode salvar a vida. Aja agora.</div></div>
+    </div>
+    <div class="sinais">
+      <div class="s-titulo">⚠️ Sinais:</div>
+      <ul>
+        <li>Inconsciente — não responde a chamados</li>
+        <li>Não respira ou respira de forma anormal</li>
+        <li>Sem pulso (verifique no pescoço)</li>
+        <li>Lábios e rosto azulados</li>
+      </ul>
+    </div>
+    <div class="secao-titulo">✅ RCP — Ressuscitação Cardiopulmonar</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Ligue 192 agora.</strong> Peça para alguém ligar enquanto você inicia a RCP.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Coloque o idoso <strong>deitado de costas</strong> em superfície firme.</div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Entrelace as mãos e posicione <strong>no centro do peito</strong> (metade inferior do esterno).</div></div>
+      <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Faça <strong>30 compressões fortes e rápidas</strong> — afunde o peito 5cm, ritmo de 100-120 por minuto (pense na música "Stayin' Alive").</div></div>
+      <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Após 30 compressões: <strong>2 respirações boca a boca</strong> se souber fazer. Se não, continue só as compressões.</div></div>
+      <div class="passo"><div class="passo-num">6</div><div class="passo-texto"><strong>Não pare</strong> até o SAMU chegar ou o idoso reagir.</div></div>
+    </div>
+    <div class="nao-fazer">
+      <div class="nf-titulo">🚫 NÃO faça:</div>
+      <ul>
+        <li>Não perca tempo procurando pulso por muito tempo</li>
+        <li>Não interrompa a RCP sem motivo</li>
+        <li>Não faça RCP em pessoa consciente</li>
+      </ul>
+    </div>
+    <div class="acoes-emerg">
+      <button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button>
+      <button class="btn-wpp" onclick="avisarFamiliar('Parada cardíaca')">📱 Avisar familiar</button>
+    </div>
+    <button class="btn-fechar" onclick="fechar('parada')">✕ Fechar</button>
+  </div>
+
+  <!-- PRESSÃO -->
+  <div class="detalhe" id="d-pressao">
+    <div class="detalhe-header">
+      <div class="detalhe-icon">🩸</div>
+      <div><div class="detalhe-titulo">Crise de Pressão</div>
+      <div class="detalhe-sub">Alta ou baixa — cada uma pede ação diferente.</div></div>
+    </div>
+    <div class="sinais">
+      <div class="s-titulo">⚠️ Pressão ALTA (acima de 180/110):</div>
+      <ul>
+        <li>Dor de cabeça intensa na nuca</li>
+        <li>Visão turva ou embaçada</li>
+        <li>Enjoo ou vômito</li>
+        <li>Dor no peito ou falta de ar</li>
+      </ul>
+    </div>
+    <div class="sinais" style="background:#e3f2fd">
+      <div class="s-titulo" style="color:#1565c0">⚠️ Pressão BAIXA (abaixo de 90/60):</div>
+      <ul>
+        <li>Tontura ao levantar</li>
+        <li>Fraqueza intensa, palidez</li>
+        <li>Desmaio ou quase desmaio</li>
+        <li>Pele fria e úmida</li>
+      </ul>
+    </div>
+    <div class="secao-titulo">✅ Pressão ALTA — O que fazer</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Sente o idoso</strong> confortavelmente, sem esforço.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Se tiver remédio prescrito para crise hipertensiva, <strong>administre conforme orientação médica.</strong></div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Meça a pressão a cada <strong>15 minutos.</strong> Se não baixar ou aparecer dor no peito: <strong>ligue 192.</strong></div></div>
+    </div>
+    <div class="secao-titulo">✅ Pressão BAIXA — O que fazer</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Deite o idoso</strong> e eleve as pernas acima do nível do coração.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Ofereça <strong>água ou soro caseiro</strong> se estiver consciente.</div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Se desmaiar ou não melhorar em 10 minutos: <strong>ligue 192.</strong></div></div>
+    </div>
+    <div class="acoes-emerg">
+      <button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button>
+      <button class="btn-wpp" onclick="avisarFamiliar('Crise de pressão')">📱 Avisar familiar</button>
+    </div>
+    <button class="btn-fechar" onclick="fechar('pressao')">✕ Fechar</button>
+  </div>
+
+  <!-- GLICEMIA -->
+  <div class="detalhe" id="d-glicemia">
+    <div class="detalhe-header">
+      <div class="detalhe-icon">🍬</div>
+      <div><div class="detalhe-titulo">Crise de Glicemia</div>
+      <div class="detalhe-sub">Hipo ou hiperglicemia — age diferente.</div></div>
+    </div>
+    <div class="sinais">
+      <div class="s-titulo">⚠️ HIPOGLICEMIA (açúcar baixo — abaixo de 70):</div>
+      <ul>
+        <li>Tremores, suor frio</li>
+        <li>Confusão, irritabilidade</li>
+        <li>Tontura, fraqueza intensa</li>
+        <li>Pode desmaiar se não tratado</li>
+      </ul>
+    </div>
+    <div class="sinais" style="background:#fff8e1">
+      <div class="s-titulo" style="color:#f57f17">⚠️ HIPERGLICEMIA (açúcar alto — acima de 250):</div>
+      <ul>
+        <li>Sede intensa, boca seca</li>
+        <li>Urina frequente</li>
+        <li>Visão turva, fraqueza</li>
+        <li>Hálito com cheiro de fruta</li>
+      </ul>
+    </div>
+    <div class="secao-titulo">✅ HIPOGLICEMIA — O que fazer</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto">Se consciente: dê <strong>1 copo de suco de laranja, refrigerante ou água com açúcar</strong> imediatamente.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Aguarde <strong>15 minutos</strong> e meça a glicemia novamente.</div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Se inconsciente: <strong>não dê nada pela boca. Ligue 192.</strong></div></div>
+    </div>
+    <div class="secao-titulo">✅ HIPERGLICEMIA — O que fazer</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto">Ofereça <strong>bastante água</strong> se estiver consciente.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Siga o <strong>plano de insulina prescrito</strong> pelo médico se houver.</div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Se acima de 300 ou com vômito: <strong>ligue 192.</strong></div></div>
+    </div>
+    <div class="acoes-emerg">
+      <button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button>
+      <button class="btn-wpp" onclick="avisarFamiliar('Crise de glicemia')">📱 Avisar familiar</button>
+    </div>
+    <button class="btn-fechar" onclick="fechar('glicemia')">✕ Fechar</button>
+  </div>
+
+  <!-- ALZHEIMER -->
+  <div class="detalhe" id="d-alzheimer">
+    <div class="detalhe-header">
+      <div class="detalhe-icon">🧩</div>
+      <div><div class="detalhe-titulo">Alzheimer — Crise e Desorientação</div>
+      <div class="detalhe-sub">Calma e paciência são os melhores remédios.</div></div>
+    </div>
+    <div class="sinais">
+      <div class="s-titulo">⚠️ Situações comuns:</div>
+      <ul>
+        <li>Agitação intensa ou agressividade</li>
+        <li>Desorientação — não sabe onde está</li>
+        <li>Fuga ou tentativa de sair de casa</li>
+        <li>Não reconhece familiares</li>
+        <li>Alucinações — vê ou ouve coisas</li>
+      </ul>
+    </div>
+    <div class="secao-titulo">✅ O que fazer</div>
+    <div class="passos">
+      <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Mantenha a calma.</strong> Sua ansiedade aumenta a agitação do idoso.</div></div>
+      <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Fale em <strong>voz suave e devagar.</strong> Use o nome do idoso. Não discuta nem corrija.</div></div>
+      <div class="passo"><div class="passo-num">3</div><div class="passo-texto"><strong>Redirecione a atenção</strong> — ofereça algo que ele gosta: música, foto, objeto familiar.</div></div>
+      <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Se tentou fugir: <strong>não force de volta.</strong> Caminhe junto e vá redirecionando.</div></div>
+      <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Em caso de agressividade física: <strong>afaste objetos perigosos</strong> e mantenha distância segura.</div></div>
+      <div class="passo"><div class="passo-num">6</div><div class="passo-texto">Se não conseguir controlar a situação: <strong>ligue para o médico</strong> ou vá a uma UPA.</div></div>
+    </div>
+    <div class="nao-fazer">
+      <div class="nf-titulo">🚫 NÃO faça:</div>
+      <ul>
+        <li>Não discuta ou tente convencer pela lógica</li>
+        <li>Não deixe sozinho em crise de agitação</li>
+        <li>Não use contenção física sem orientação</li>
+        <li>Não grite ou demonstre desespero</li>
+      </ul>
+    </div>
+    <div class="acoes-emerg">
+      <button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button>
+      <button class="btn-wpp" onclick="avisarFamiliar('Crise de Alzheimer')">📱 Avisar familiar</button>
+    </div>
+    <button class="btn-fechar" onclick="fechar('alzheimer')">✕ Fechar</button>
+  </div>
+
+</div>
+
+<script>
+  var familiar = JSON.parse(localStorage.getItem('familiarMeds') || 'null');
+  var contatos = JSON.parse(localStorage.getItem('contatosEmergencia') || '[]');
+
+  function mostrar(id) {
+    document.querySelectorAll('.detalhe').forEach(function(d){ d.classList.remove('ativo'); });
+    var el = document.getElementById('d-'+id);
+    if(el){ el.classList.add('ativo'); el.scrollIntoView({behavior:'smooth', block:'start'}); }
+  }
+
+  function fechar(id) {
+    var el = document.getElementById('d-'+id);
+    if(el) el.classList.remove('ativo');
+  }
+
+  function avisarFamiliar(tipo) {
+    var tel = null;
+    if(familiar && familiar.tel) tel = familiar.tel;
+    else if(contatos.length > 0) tel = contatos[0].tel.replace(/\D/g,'');
+    if(!tel){ alert('Nenhum familiar cadastrado. Cadastre em Medicamentos ou Emergência.'); return; }
+    var hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    var msg = '🚨 *EMERGÊNCIA — CUIDAR APP*\n\n⚠️ Situação: *' + tipo + '*\n🕐 Horário: ' + hora + '\n\nPreciso de ajuda agora!\n\n_Mensagem automática do app Cuidar_';
+    window.open('https://wa.me/55'+tel.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
+  }
+</script>
+</body>
+</html>
