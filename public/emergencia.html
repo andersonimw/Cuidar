@@ -7,27 +7,25 @@
 <script src="/socket.io/socket.io.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  body { font-family:sans-serif; background:#f0f4f8; color:#333; }
   header { background:#c62828; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
   header a { color:white; text-decoration:none; font-size:1.4em; }
-  header h1 { font-size:1.2em; }
-  .conteudo { padding:20px; padding-bottom:40px; }
+  header h1 { font-size:1.2em; flex:1; }
+  .conteudo { padding:16px; padding-bottom:80px; }
 
-  .btn-panico-container { display:flex; flex-direction:column; align-items:center; padding:32px 0 24px; }
-  .btn-panico {
-    width:200px; height:200px; border-radius:50%;
-    background:radial-gradient(circle at 40% 35%, #ff5252, #c62828);
-    border:6px solid #b71c1c;
-    color:white; font-size:1.1em; font-weight:bold;
-    cursor:pointer; box-shadow:0 6px 24px rgba(198,40,40,0.5);
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
-    -webkit-tap-highlight-color: transparent;
-    transition:transform 0.1s;
-  }
-  .btn-panico:active { transform:scale(0.94); }
-  .btn-panico .icone { font-size:3.2em; }
-  .legenda-panico { margin-top:12px; font-size:0.85em; color:#888; text-align:center; }
+  /* SOS */
+  .sos-container { display:flex; flex-direction:column; align-items:center; padding:24px 0 16px; }
+  .btn-sos { width:200px; height:200px; border-radius:50%;
+             background:radial-gradient(circle at 40% 35%, #ff5252, #c62828);
+             border:6px solid #b71c1c; color:white; font-size:1.1em; font-weight:bold;
+             cursor:pointer; box-shadow:0 6px 32px rgba(198,40,40,0.5);
+             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+             transition:transform 0.1s; -webkit-tap-highlight-color:transparent; }
+  .btn-sos:active { transform:scale(0.94); }
+  .btn-sos .icone { font-size:3.2em; }
+  .sos-legenda { margin-top:10px; font-size:0.85em; color:#888; text-align:center; }
 
+  /* STATUS */
   .status-box { background:white; border-radius:16px; padding:16px; margin-bottom:16px;
                 box-shadow:0 2px 8px rgba(0,0,0,0.08); }
   .status-box h2 { font-size:0.95em; color:#c62828; margin-bottom:10px; }
@@ -39,7 +37,8 @@
   .badge-cinza { background:#f5f5f5; color:#888; }
   .badge-vermelho { background:#ffebee; color:#c62828; }
 
-  .secao-titulo { font-size:0.9em; font-weight:bold; color:#555; margin:20px 0 10px;
+  /* CONTATOS */
+  .secao-titulo { font-size:0.9em; font-weight:bold; color:#555; margin:16px 0 10px;
                   text-transform:uppercase; letter-spacing:0.05em; }
   .contato-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px;
                   box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; align-items:center; gap:14px; }
@@ -54,50 +53,113 @@
   .btn-add-cont { width:100%; padding:14px; border:2px dashed #ccc; border-radius:16px;
                   background:white; color:#888; font-size:0.95em; cursor:pointer; margin-top:4px; }
 
-  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
-  .modal-bg.ativo { display:flex; }
-  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:90vh; overflow-y:auto; }
-  .modal h2 { color:#c62828; margin-bottom:16px; }
-  .modal input, .modal select { width:100%; padding:12px; margin-bottom:12px;
-                                 border:1px solid #ddd; border-radius:10px; font-size:1em; }
-  .modal-btns { display:flex; gap:10px; }
-  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
-  .btn-salvar { background:#c62828; color:white; }
-  .btn-cancelar { background:#eee; color:#333; }
+  /* GUIA DE EMERGÊNCIAS */
+  .guia-titulo { background:#c62828; color:white; border-radius:16px 16px 0 0;
+                 padding:14px 16px; font-size:1em; font-weight:bold; margin-top:24px; }
+  .grid-guia { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .emerg-card { background:white; border-radius:14px; padding:14px; text-align:center;
+                box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer; border:2px solid transparent; }
+  .emerg-card:active { transform:scale(0.97); }
+  .emerg-card .icon { font-size:2em; margin-bottom:6px; }
+  .emerg-card .nome { font-size:0.88em; font-weight:bold; color:#333; }
+  .emerg-card .desc { font-size:0.72em; color:#888; margin-top:2px; }
 
-  /* TELA ALARME RECEBIDO (familiares) */
-  .alarme-recebido { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-                     background:rgba(198,40,40,0.96); z-index:400; flex-direction:column;
-                     align-items:center; justify-content:center; color:white; text-align:center; padding:30px; }
-  .alarme-recebido.visivel { display:flex; }
-  .alarme-recebido .pulso { font-size:5em; animation: pulsar 0.5s infinite alternate; }
-  @keyframes pulsar { from { transform:scale(1); } to { transform:scale(1.25); } }
-  .alarme-recebido h2 { font-size:1.9em; margin:16px 0 8px; }
-  .alarme-recebido p { font-size:1em; opacity:0.9; margin-bottom:28px; }
-  .btn-ok-alarme { background:white; color:#c62828; border:none; border-radius:50px;
-                   padding:18px 40px; font-size:1.1em; font-weight:bold; cursor:pointer; }
+  .detalhe { display:none; background:white; border-radius:16px; padding:20px;
+             margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .detalhe.ativo { display:block; }
+  .detalhe-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .detalhe-icon { font-size:2.2em; }
+  .detalhe-titulo { font-size:1.1em; font-weight:bold; color:#c62828; }
+  .detalhe-sub { font-size:0.82em; color:#888; }
+  .sec-titulo { font-size:0.78em; font-weight:bold; text-transform:uppercase;
+                color:#888; letter-spacing:1px; margin:14px 0 6px; }
+  .sinais { background:#fff3e0; border-radius:10px; padding:10px 12px; margin-bottom:10px; }
+  .sinais .s-titulo { font-size:0.82em; font-weight:bold; color:#e65100; margin-bottom:6px; }
+  .sinais ul { padding-left:14px; }
+  .sinais ul li { font-size:0.82em; color:#555; margin-bottom:3px; line-height:1.5; }
+  .passo { display:flex; gap:10px; margin-bottom:10px; align-items:flex-start; }
+  .passo-num { background:#c62828; color:white; border-radius:50%; width:26px; height:26px;
+               display:flex; align-items:center; justify-content:center; font-size:0.8em;
+               font-weight:bold; flex-shrink:0; margin-top:2px; }
+  .passo-texto { font-size:0.85em; color:#333; line-height:1.6; flex:1; }
+  .passo-texto strong { color:#c62828; }
+  .nao-fazer { background:#ffebee; border-radius:10px; padding:10px 12px; margin-bottom:14px; }
+  .nao-fazer .nf-titulo { font-size:0.82em; font-weight:bold; color:#c62828; margin-bottom:6px; }
+  .nao-fazer ul { padding-left:14px; }
+  .nao-fazer ul li { font-size:0.82em; color:#c62828; margin-bottom:3px; }
+  .acoes-emerg { display:flex; gap:10px; margin-top:12px; }
+  .btn-samu { flex:1; padding:12px; background:#c62828; color:white; border:none;
+              border-radius:10px; font-size:0.9em; font-weight:bold; cursor:pointer; }
+  .btn-wpp-emerg { flex:1; padding:12px; background:#2e7d32; color:white; border:none;
+                   border-radius:10px; font-size:0.9em; font-weight:bold; cursor:pointer; }
+  .btn-fechar-det { width:100%; padding:10px; background:#eee; color:#555; border:none;
+                    border-radius:10px; font-size:0.88em; cursor:pointer; margin-top:8px; }
 
-  /* TELA EMERGÊNCIA ATIVADA (idoso) */
+  /* MODAL TIPO EMERGÊNCIA */
+  .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0;
+                   background:rgba(0,0,0,0.7); z-index:500;
+                   display:none; align-items:flex-end; justify-content:center; }
+  .modal-overlay.ativo { display:flex; }
+  .modal-box { background:white; border-radius:20px 20px 0 0; padding:24px;
+               width:100%; max-height:85vh; overflow-y:auto; }
+  .modal-titulo { font-size:1.1em; font-weight:bold; color:#c62828; text-align:center; margin-bottom:6px; }
+  .modal-sub { font-size:0.82em; color:#888; text-align:center; margin-bottom:16px; }
+  .tipos-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .tipo-btn { padding:14px 8px; border:2px solid #eee; border-radius:12px; background:white;
+              font-size:0.85em; cursor:pointer; text-align:center; transition:all 0.2s; }
+  .tipo-btn.sel { border-color:#c62828; background:#ffebee; color:#c62828; font-weight:bold; }
+  .tipo-btn .tipo-icon { font-size:1.8em; display:block; margin-bottom:4px; }
+  .btn-disparar { width:100%; padding:16px; background:#c62828; color:white; border:none;
+                  border-radius:12px; font-size:1.05em; font-weight:bold; cursor:pointer; }
+  .btn-cancelar-modal { width:100%; padding:12px; background:#eee; color:#555; border:none;
+                        border-radius:12px; font-size:0.95em; cursor:pointer; margin-top:8px; }
+
+  /* TELA EMERGÊNCIA ATIVADA */
   .alerta-ativo { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-                  background:rgba(183,28,28,0.97); z-index:300; flex-direction:column;
-                  align-items:center; justify-content:center; color:white; text-align:center; padding:30px; }
+                  background:rgba(183,28,28,0.97); z-index:600; flex-direction:column;
+                  align-items:center; justify-content:center; color:white;
+                  text-align:center; padding:30px; }
   .alerta-ativo.visivel { display:flex; }
-  .alerta-ativo .pulso { font-size:5em; animation: pulsar 0.5s infinite alternate; }
-  .alerta-ativo h2 { font-size:1.6em; margin:16px 0 8px; }
-  .alerta-ativo p { font-size:0.95em; opacity:0.85; margin-bottom:20px; }
-  .whats-lista { width:100%; display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+  .pulso { font-size:5em; animation:pulsar 0.5s infinite alternate; }
+  @keyframes pulsar { from{transform:scale(1);}to{transform:scale(1.25);} }
+  .alerta-tipo { font-size:1em; background:rgba(255,255,255,0.2); padding:8px 20px;
+                 border-radius:20px; margin:12px 0; }
+  .whats-lista { width:100%; display:flex; flex-direction:column; gap:10px; margin:16px 0; }
   .btn-whats { background:rgba(255,255,255,0.15); border:2px solid rgba(255,255,255,0.5);
-               color:white; border-radius:14px; padding:14px 16px; font-size:1em;
+               color:white; border-radius:14px; padding:14px 16px; font-size:0.95em;
                cursor:pointer; text-align:left; display:flex; align-items:center; gap:10px; }
   .btn-whats.enviado { background:rgba(255,255,255,0.28); border-color:white; }
   .btn-cancelar-alerta { background:white; color:#c62828; border:none; border-radius:50px;
                           padding:16px 32px; font-size:1em; font-weight:bold; cursor:pointer; margin-top:8px; }
 
-  .nome-input { background:white; border-radius:16px; padding:16px; margin-bottom:16px;
-                box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-  .nome-input label { font-size:0.85em; color:#888; display:block; margin-bottom:6px; }
-  .nome-input input { width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  /* TELA ALARME RECEBIDO */
+  .alarme-recebido { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                     background:rgba(198,40,40,0.97); z-index:700; flex-direction:column;
+                     align-items:center; justify-content:center; color:white;
+                     text-align:center; padding:30px; }
+  .alarme-recebido.visivel { display:flex; }
+  .alarme-nome { font-size:2em; font-weight:bold; margin:12px 0 6px; }
+  .alarme-tipo-badge { background:rgba(255,255,255,0.2); padding:8px 20px;
+                       border-radius:20px; font-size:1em; margin-bottom:16px; }
+  .alarme-hora { font-size:0.85em; opacity:0.7; margin-bottom:24px; }
+  .alarme-btns { display:flex; flex-direction:column; gap:10px; width:100%; max-width:300px; }
+  .btn-indo { background:white; color:#c62828; border:none; border-radius:14px;
+              padding:16px; font-size:1em; font-weight:bold; cursor:pointer; }
+  .btn-ligar-alarme { background:rgba(255,255,255,0.15); border:2px solid white;
+                      color:white; border-radius:14px; padding:14px; font-size:0.95em; cursor:pointer; }
+
+  /* MODAL CONTATO */
+  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+              background:rgba(0,0,0,0.5); z-index:800; justify-content:center; align-items:flex-end; }
+  .modal-bg.ativo { display:flex; }
+  .modal-cont { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; }
+  .modal-cont h2 { color:#c62828; margin-bottom:16px; }
+  .modal-cont input, .modal-cont select { width:100%; padding:12px; margin-bottom:12px;
+                                           border:1px solid #ddd; border-radius:10px; font-size:1em; }
+  .modal-cont-btns { display:flex; gap:10px; }
+  .modal-cont-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
+  .btn-salvar-cont { background:#c62828; color:white; }
+  .btn-cancelar-cont { background:#eee; color:#333; }
 </style>
 </head>
 <body>
@@ -109,20 +171,16 @@
 
 <div class="conteudo">
 
-  <div class="nome-input">
-    <label>Seu nome no app (para identificação)</label>
-    <input type="text" id="meuNome" placeholder="Ex: Vovó Maria, João (filho)..."
-           value="" oninput="salvarNome(this.value)" />
-  </div>
-
-  <div class="btn-panico-container">
-    <button class="btn-panico" onclick="ativarEmergencia()">
+  <!-- BOTÃO SOS -->
+  <div class="sos-container">
+    <button class="btn-sos" onclick="abrirModalTipo()">
       <span class="icone">🆘</span>
       <span>EMERGÊNCIA</span>
     </button>
-    <div class="legenda-panico">Pressione para alertar todos</div>
+    <div class="sos-legenda">Pressione para alertar toda a família</div>
   </div>
 
+  <!-- STATUS -->
   <div class="status-box">
     <h2>📋 Status</h2>
     <div class="status-item">
@@ -130,12 +188,12 @@
       <span class="badge badge-cinza" id="statusConexao">Conectando...</span>
     </div>
     <div class="status-item">
-      <span>Alarme sonoro em tempo real</span>
-      <span class="badge badge-verde">✓ Ativo</span>
+      <span>Família conectada</span>
+      <span class="badge badge-cinza" id="statusFamilia">--</span>
     </div>
     <div class="status-item">
-      <span>Alertas WhatsApp</span>
-      <span class="badge badge-verde">✓ Configurado</span>
+      <span>Alarme sonoro + voz</span>
+      <span class="badge badge-verde">✓ Ativo</span>
     </div>
     <div class="status-item">
       <span>Contatos cadastrados</span>
@@ -143,174 +201,361 @@
     </div>
   </div>
 
+  <!-- CONTATOS -->
   <div class="secao-titulo">📞 Contatos de emergência</div>
   <div id="listaContatos"></div>
-  <button class="btn-add-cont" onclick="abrirModal()">+ Adicionar contato</button>
+  <button class="btn-add-cont" onclick="abrirModalContato()">+ Adicionar contato</button>
+
+  <!-- GUIA DE EMERGÊNCIAS -->
+  <div class="guia-titulo">🚨 Guia de Primeiros Socorros</div>
+  <div style="background:#fff8f8;padding:10px 16px;margin-bottom:12px;font-size:0.82em;color:#c62828;border-left:3px solid #c62828">
+    ⚠️ Em risco de vida ligue imediatamente para o SAMU 192.
+  </div>
+  <button style="width:100%;padding:16px;background:#c62828;color:white;border:none;border-radius:12px;font-size:1.05em;font-weight:bold;cursor:pointer;margin-bottom:14px;box-shadow:0 4px 12px rgba(198,40,40,0.3)" onclick="window.open('tel:192')">🚑 LIGAR PARA O SAMU — 192</button>
+
+  <div class="grid-guia">
+    <div class="emerg-card" onclick="mostrarGuia('avc')"><div class="icon">🧠</div><div class="nome">AVC</div><div class="desc">Derrame cerebral</div></div>
+    <div class="emerg-card" onclick="mostrarGuia('queda')"><div class="icon">🤕</div><div class="nome">Queda</div><div class="desc">Acidente doméstico</div></div>
+    <div class="emerg-card" onclick="mostrarGuia('engasgo')"><div class="icon">😮</div><div class="nome">Engasgo</div><div class="desc">Obstrução das vias</div></div>
+    <div class="emerg-card" onclick="mostrarGuia('faltaar')"><div class="icon">😤</div><div class="nome">Falta de ar</div><div class="desc">Dificuldade respirar</div></div>
+    <div class="emerg-card" onclick="mostrarGuia('parada')"><div class="icon">❤️</div><div class="nome">Parada cardíaca</div><div class="desc">Sem pulso ou respiração</div></div>
+    <div class="emerg-card" onclick="mostrarGuia('pressao')"><div class="icon">🩸</div><div class="nome">Crise de pressão</div><div class="desc">Pressão alta/baixa</div></div>
+    <div class="emerg-card" onclick="mostrarGuia('glicemia')"><div class="icon">🍬</div><div class="nome">Crise de glicemia</div><div class="desc">Hipo ou hiperglicemia</div></div>
+    <div class="emerg-card" onclick="mostrarGuia('alzheimer')"><div class="icon">🧩</div><div class="nome">Alzheimer</div><div class="desc">Crise e desorientação</div></div>
+  </div>
+
+  <!-- DETALHES GUIA -->
+  <div class="detalhe" id="g-avc">
+    <div class="detalhe-header"><div class="detalhe-icon">🧠</div><div><div class="detalhe-titulo">AVC — Derrame Cerebral</div><div class="detalhe-sub">Cada minuto conta. Aja imediatamente.</div></div></div>
+    <div class="sec-titulo">🔍 Teste SAMU</div>
+    <div class="sinais"><div class="s-titulo">Reconheça os sinais:</div><ul><li><b>S</b>orriso torto — um lado da boca caído</li><li><b>A</b>braço fraco — não consegue levantar os dois</li><li><b>M</b>ensagem confusa — fala embaralhada</li><li><b>U</b>rgência — qualquer sinal: ligue 192</li><li>Dor de cabeça súbita e intensa</li><li>Visão turva, confusão mental repentina</li></ul></div>
+    <div class="sec-titulo">✅ O que fazer</div>
+    <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Ligue 192 imediatamente.</strong> Não espere melhorar.</div></div>
+    <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Mantenha deitado de lado — <strong>posição lateral de segurança.</strong></div></div>
+    <div class="passo"><div class="passo-num">3</div><div class="passo-texto"><strong>Não dê nada para beber ou comer.</strong></div></div>
+    <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Anote o <strong>horário exato</strong> que os sintomas começaram.</div></div>
+    <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Fique ao lado, <strong>fale com calma</strong> até o socorro chegar.</div></div>
+    <div class="nao-fazer"><div class="nf-titulo">🚫 NÃO faça:</div><ul><li>Não dê remédio sem orientação médica</li><li>Não deixe o idoso andar ou se levantar</li><li>Não dê água — pode engasgar</li></ul></div>
+    <div class="acoes-emerg"><button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button><button class="btn-wpp-emerg" onclick="avisarFamiliarGuia('AVC')">📱 Avisar familiar</button></div>
+    <button class="btn-fechar-det" onclick="fecharGuia('avc')">✕ Fechar</button>
+  </div>
+
+  <div class="detalhe" id="g-queda">
+    <div class="detalhe-header"><div class="detalhe-icon">🤕</div><div><div class="detalhe-titulo">Queda</div><div class="detalhe-sub">Avalie antes de mover o idoso.</div></div></div>
+    <div class="sinais"><div class="s-titulo">Chame o SAMU se houver:</div><ul><li>Dor intensa no quadril, perna ou costas</li><li>Incapacidade de mover algum membro</li><li>Perda de consciência, mesmo que breve</li><li>Corte profundo com sangramento intenso</li><li>Deformidade visível (osso fora do lugar)</li></ul></div>
+    <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Não mova o idoso</strong> imediatamente. Avalie primeiro.</div></div>
+    <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Pergunte: <strong>"Está com dor? Onde dói? Consegue mover as pernas?"</strong></div></div>
+    <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Se suspeitar de fratura: <strong>ligue 192</strong> e não tente levantar.</div></div>
+    <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Em sangramento: <strong>pressione o local</strong> com pano limpo.</div></div>
+    <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Observe nas próximas horas: <strong>tontura, vômito, confusão.</strong></div></div>
+    <div class="nao-fazer"><div class="nf-titulo">🚫 NÃO faça:</div><ul><li>Não levante com pressa</li><li>Não ignore dor no quadril</li><li>Não deixe sozinho após batida na cabeça</li></ul></div>
+    <div class="acoes-emerg"><button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button><button class="btn-wpp-emerg" onclick="avisarFamiliarGuia('Queda')">📱 Avisar familiar</button></div>
+    <button class="btn-fechar-det" onclick="fecharGuia('queda')">✕ Fechar</button>
+  </div>
+
+  <div class="detalhe" id="g-engasgo">
+    <div class="detalhe-header"><div class="detalhe-icon">😮</div><div><div class="detalhe-titulo">Engasgo</div><div class="detalhe-sub">Aja nos primeiros segundos.</div></div></div>
+    <div class="sinais"><div class="s-titulo">Sinais de engasgo grave:</div><ul><li>Não consegue falar ou tossir</li><li>Lábios ou rosto ficando azulados</li><li>Mãos no pescoço (sinal universal)</li></ul></div>
+    <div class="passo"><div class="passo-num">1</div><div class="passo-texto">Se consegue tossir: <strong>incentive a tossir forte.</strong></div></div>
+    <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Se não: <strong>5 tapas firmes nas costas</strong> entre as omoplatas.</div></div>
+    <div class="passo"><div class="passo-num">3</div><div class="passo-texto"><strong>Manobra de Heimlich:</strong> abrace por trás, mãos acima do umbigo, 5 compressões para dentro e para cima.</div></div>
+    <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Alterne <strong>5 tapas + 5 compressões</strong> até desobstruir.</div></div>
+    <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Se perder consciência: <strong>ligue 192</strong> e inicie RCP.</div></div>
+    <div class="nao-fazer"><div class="nf-titulo">🚫 NÃO faça:</div><ul><li>Não coloque o dedo na boca às cegas</li><li>Não dê água durante o engasgo</li></ul></div>
+    <div class="acoes-emerg"><button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button><button class="btn-wpp-emerg" onclick="avisarFamiliarGuia('Engasgo')">📱 Avisar familiar</button></div>
+    <button class="btn-fechar-det" onclick="fecharGuia('engasgo')">✕ Fechar</button>
+  </div>
+
+  <div class="detalhe" id="g-faltaar">
+    <div class="detalhe-header"><div class="detalhe-icon">😤</div><div><div class="detalhe-titulo">Falta de Ar</div><div class="detalhe-sub">Pode ser asma, coração ou ansiedade.</div></div></div>
+    <div class="sinais"><div class="s-titulo">Sinais de gravidade:</div><ul><li>Lábios ou dedos azulados</li><li>Respiração muito rápida ou lenta</li><li>Não consegue completar frases</li><li>Dor no peito junto com falta de ar</li></ul></div>
+    <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Sente o idoso ereto</strong> — nunca deitado de barriga para cima.</div></div>
+    <div class="passo"><div class="passo-num">2</div><div class="passo-texto"><strong>Afrouxe roupas</strong> apertadas. Abra janelas.</div></div>
+    <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Se tiver <strong>bombinha prescrita</strong>, use agora.</div></div>
+    <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Fale com calma: <strong>"Respira devagar comigo."</strong></div></div>
+    <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Se não melhorar em 5 minutos: <strong>ligue 192.</strong></div></div>
+    <div class="nao-fazer"><div class="nf-titulo">🚫 NÃO faça:</div><ul><li>Não deite de costas</li><li>Não dê remédio sem prescrição</li></ul></div>
+    <div class="acoes-emerg"><button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button><button class="btn-wpp-emerg" onclick="avisarFamiliarGuia('Falta de ar')">📱 Avisar familiar</button></div>
+    <button class="btn-fechar-det" onclick="fecharGuia('faltaar')">✕ Fechar</button>
+  </div>
+
+  <div class="detalhe" id="g-parada">
+    <div class="detalhe-header"><div class="detalhe-icon">❤️</div><div><div class="detalhe-titulo">Parada Cardíaca</div><div class="detalhe-sub">RCP pode salvar a vida. Aja agora.</div></div></div>
+    <div class="sinais"><div class="s-titulo">Sinais:</div><ul><li>Inconsciente — não responde</li><li>Não respira ou respira de forma anormal</li><li>Sem pulso, lábios azulados</li></ul></div>
+    <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Ligue 192 agora.</strong></div></div>
+    <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Coloque deitado de costas em <strong>superfície firme.</strong></div></div>
+    <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Mãos entrelacadas no <strong>centro do peito.</strong></div></div>
+    <div class="passo"><div class="passo-num">4</div><div class="passo-texto"><strong>30 compressões fortes</strong> — afunde 5cm, ritmo de 100-120/min.</div></div>
+    <div class="passo"><div class="passo-num">5</div><div class="passo-texto"><strong>2 respirações boca a boca</strong> se souber. Se não, continue só as compressões.</div></div>
+    <div class="passo"><div class="passo-num">6</div><div class="passo-texto"><strong>Não pare</strong> até o SAMU chegar.</div></div>
+    <div class="nao-fazer"><div class="nf-titulo">🚫 NÃO faça:</div><ul><li>Não interrompa a RCP sem motivo</li><li>Não faça RCP em pessoa consciente</li></ul></div>
+    <div class="acoes-emerg"><button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button><button class="btn-wpp-emerg" onclick="avisarFamiliarGuia('Parada cardíaca')">📱 Avisar familiar</button></div>
+    <button class="btn-fechar-det" onclick="fecharGuia('parada')">✕ Fechar</button>
+  </div>
+
+  <div class="detalhe" id="g-pressao">
+    <div class="detalhe-header"><div class="detalhe-icon">🩸</div><div><div class="detalhe-titulo">Crise de Pressão</div><div class="detalhe-sub">Alta ou baixa — agem diferente.</div></div></div>
+    <div class="sinais"><div class="s-titulo">Pressão ALTA (acima de 180/110):</div><ul><li>Dor de cabeça intensa na nuca</li><li>Visão turva, enjoo, vômito</li><li>Dor no peito ou falta de ar</li></ul></div>
+    <div class="sinais" style="background:#e3f2fd"><div class="s-titulo" style="color:#1565c0">Pressão BAIXA (abaixo de 90/60):</div><ul><li>Tontura ao levantar, fraqueza</li><li>Desmaio, pele fria e úmida</li></ul></div>
+    <div class="passo"><div class="passo-num">1</div><div class="passo-texto">Alta: <strong>sente confortavelmente,</strong> administre remédio prescrito.</div></div>
+    <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Baixa: <strong>deite e eleve as pernas,</strong> ofereça água.</div></div>
+    <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Meça a cada <strong>15 minutos.</strong> Se não melhorar: <strong>ligue 192.</strong></div></div>
+    <div class="acoes-emerg"><button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button><button class="btn-wpp-emerg" onclick="avisarFamiliarGuia('Crise de pressão')">📱 Avisar familiar</button></div>
+    <button class="btn-fechar-det" onclick="fecharGuia('pressao')">✕ Fechar</button>
+  </div>
+
+  <div class="detalhe" id="g-glicemia">
+    <div class="detalhe-header"><div class="detalhe-icon">🍬</div><div><div class="detalhe-titulo">Crise de Glicemia</div><div class="detalhe-sub">Hipo ou hiperglicemia.</div></div></div>
+    <div class="sinais"><div class="s-titulo">HIPOGLICEMIA (abaixo de 70):</div><ul><li>Tremores, suor frio, confusão</li><li>Tontura, fraqueza intensa</li></ul></div>
+    <div class="sinais" style="background:#fff8e1"><div class="s-titulo" style="color:#f57f17">HIPERGLICEMIA (acima de 250):</div><ul><li>Sede intensa, urina frequente</li><li>Visão turva, hálito de fruta</li></ul></div>
+    <div class="passo"><div class="passo-num">1</div><div class="passo-texto">Hipo consciente: <strong>suco de laranja ou água com açúcar</strong> imediatamente.</div></div>
+    <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Hipo inconsciente: <strong>não dê nada pela boca. Ligue 192.</strong></div></div>
+    <div class="passo"><div class="passo-num">3</div><div class="passo-texto">Hiper: <strong>ofereça água,</strong> siga plano de insulina prescrito.</div></div>
+    <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Acima de 300 ou com vômito: <strong>ligue 192.</strong></div></div>
+    <div class="acoes-emerg"><button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button><button class="btn-wpp-emerg" onclick="avisarFamiliarGuia('Crise de glicemia')">📱 Avisar familiar</button></div>
+    <button class="btn-fechar-det" onclick="fecharGuia('glicemia')">✕ Fechar</button>
+  </div>
+
+  <div class="detalhe" id="g-alzheimer">
+    <div class="detalhe-header"><div class="detalhe-icon">🧩</div><div><div class="detalhe-titulo">Alzheimer — Crise</div><div class="detalhe-sub">Calma e paciência são os melhores remédios.</div></div></div>
+    <div class="sinais"><div class="s-titulo">Situações comuns:</div><ul><li>Agitação intensa ou agressividade</li><li>Desorientação, não sabe onde está</li><li>Fuga ou tentativa de sair</li><li>Alucinações</li></ul></div>
+    <div class="passo"><div class="passo-num">1</div><div class="passo-texto"><strong>Mantenha a calma.</strong> Sua ansiedade aumenta a agitação.</div></div>
+    <div class="passo"><div class="passo-num">2</div><div class="passo-texto">Fale em <strong>voz suave.</strong> Use o nome. Não discuta nem corrija.</div></div>
+    <div class="passo"><div class="passo-num">3</div><div class="passo-texto"><strong>Redirecione</strong> com música, foto ou objeto familiar.</div></div>
+    <div class="passo"><div class="passo-num">4</div><div class="passo-texto">Se tentou fugir: <strong>caminhe junto</strong> e vá redirecionando.</div></div>
+    <div class="passo"><div class="passo-num">5</div><div class="passo-texto">Agressividade: <strong>afaste objetos perigosos,</strong> mantenha distância segura.</div></div>
+    <div class="nao-fazer"><div class="nf-titulo">🚫 NÃO faça:</div><ul><li>Não discuta pela lógica</li><li>Não deixe sozinho em crise</li><li>Não grite ou demonstre desespero</li></ul></div>
+    <div class="acoes-emerg"><button class="btn-samu" onclick="window.open('tel:192')">🚑 SAMU 192</button><button class="btn-wpp-emerg" onclick="avisarFamiliarGuia('Crise de Alzheimer')">📱 Avisar familiar</button></div>
+    <button class="btn-fechar-det" onclick="fecharGuia('alzheimer')">✕ Fechar</button>
+  </div>
 
 </div>
 
-<!-- TELA: EMERGÊNCIA ATIVADA (quem apertou) -->
+<!-- MODAL TIPO DE EMERGÊNCIA -->
+<div class="modal-overlay" id="modalTipo">
+  <div class="modal-box">
+    <div class="modal-titulo">🆘 Qual é a emergência?</div>
+    <div class="modal-sub">Selecione para a voz anunciar o tipo correto para a família</div>
+    <div class="tipos-grid">
+      <button class="tipo-btn" onclick="selTipo(this,'Queda','🤕')"><span class="tipo-icon">🤕</span>Queda</button>
+      <button class="tipo-btn" onclick="selTipo(this,'AVC','🧠')"><span class="tipo-icon">🧠</span>AVC</button>
+      <button class="tipo-btn" onclick="selTipo(this,'Falta de ar','😤')"><span class="tipo-icon">😤</span>Falta de ar</button>
+      <button class="tipo-btn" onclick="selTipo(this,'Engasgo','😮')"><span class="tipo-icon">😮</span>Engasgo</button>
+      <button class="tipo-btn" onclick="selTipo(this,'Parada cardíaca','❤️')"><span class="tipo-icon">❤️</span>Parada cardíaca</button>
+      <button class="tipo-btn" onclick="selTipo(this,'Crise de pressão','🩸')"><span class="tipo-icon">🩸</span>Crise de pressão</button>
+      <button class="tipo-btn" onclick="selTipo(this,'Crise de glicemia','🍬')"><span class="tipo-icon">🍬</span>Crise de glicemia</button>
+      <button class="tipo-btn" onclick="selTipo(this,'Emergência geral','🆘')"><span class="tipo-icon">🆘</span>Emergência geral</button>
+    </div>
+    <button class="btn-disparar" id="btnDisparar" onclick="dispararEmergencia()" disabled style="opacity:0.5">🆘 Disparar alerta para a família</button>
+    <button class="btn-cancelar-modal" onclick="fecharModalTipo()">Cancelar</button>
+  </div>
+</div>
+
+<!-- TELA EMERGÊNCIA ATIVADA -->
 <div class="alerta-ativo" id="alertaAtivo">
   <div class="pulso">🆘</div>
-  <h2>EMERGÊNCIA ENVIADA</h2>
-  <p>Todos os dispositivos conectados foram alertados com som.<br>Abra o WhatsApp para cada contato:</p>
+  <h2>ALERTA ENVIADO!</h2>
+  <div class="alerta-tipo" id="alertaTipoBadge"></div>
+  <p>Toda a família foi alertada com som e voz.<br>Abra o WhatsApp para confirmar:</p>
   <div class="whats-lista" id="whatsLista"></div>
   <button class="btn-cancelar-alerta" onclick="cancelarEmergencia()">✓ Estou bem — Cancelar</button>
 </div>
 
-<!-- TELA: ALARME RECEBIDO (familiares) -->
+<!-- TELA ALARME RECEBIDO -->
 <div class="alarme-recebido" id="alarmeRecebido">
   <div class="pulso">🆘</div>
-  <h2>EMERGÊNCIA!</h2>
-  <p id="alarmeTexto">Um familiar precisa de ajuda urgente!</p>
-  <button class="btn-ok-alarme" onclick="fecharAlarme()">✓ Estou indo ajudar</button>
+  <div class="alarme-nome" id="alarmeNome">--</div>
+  <div class="alarme-tipo-badge" id="alarmeTipo">--</div>
+  <div class="alarme-hora" id="alarmeHora">--</div>
+  <div class="alarme-btns">
+    <button class="btn-indo" onclick="fecharAlarme()">✅ Estou indo ajudar!</button>
+    <button class="btn-ligar-alarme" id="btnLigarAlarme" onclick="ligarParaEmergencia()">📞 Ligar para ela(e)</button>
+    <button style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:14px;padding:12px;font-size:0.9em;cursor:pointer" onclick="window.open('tel:192')">🚑 Ligar SAMU 192</button>
+  </div>
 </div>
 
 <!-- MODAL CONTATO -->
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
+<div class="modal-bg" id="modalContato">
+  <div class="modal-cont">
     <h2>Novo Contato de Emergência</h2>
-    <input type="text" id="cNome" placeholder="Nome completo" />
-    <input type="tel" id="cTel" placeholder="WhatsApp com DDD (ex: 21999990000)" />
+    <input type="text" id="cNome" placeholder="Nome completo">
+    <input type="tel" id="cTel" placeholder="WhatsApp com DDD (ex: 21999990000)">
     <select id="cTipo">
       <option value="Familiar">👨‍👩‍👧 Familiar</option>
-      <option value="Cuidador">🧑‍⚕️ Cuidador / Enfermeiro</option>
+      <option value="Cuidador">🧑‍⚕️ Cuidador</option>
       <option value="Médico">👨‍⚕️ Médico</option>
-      <option value="Vizinho">🏠 Vizinho de confiança</option>
+      <option value="Vizinho">🏠 Vizinho</option>
     </select>
-    <div class="modal-btns">
-      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-salvar" onclick="salvarContato()">Salvar</button>
+    <div class="modal-cont-btns">
+      <button class="btn-cancelar-cont" onclick="fecharModalContato()">Cancelar</button>
+      <button class="btn-salvar-cont" onclick="salvarContato()">Salvar</button>
     </div>
   </div>
 </div>
 
 <script>
-  const socket = io();
-  let contatos = JSON.parse(localStorage.getItem('contatosEmergencia') || '[]');
-  let meuNome = localStorage.getItem('nomeUsuario') || '';
-  let audioCtx = null;
-  let alarmeAtivo = false;
+  var socket = io();
+  var contatos = JSON.parse(localStorage.getItem('contatosEmergencia') || '[]');
+  var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+  var familiaId = localStorage.getItem('familiaId') || '';
+  var familiaNome = localStorage.getItem('familiaNome') || 'Família';
+  var tipoSelecionado = '';
+  var iconeSelecionado = '';
+  var audioCtx = null;
+  var alarmeAtivo = false;
+  var intervalAlarme = null;
+  var telEmergencia = null;
 
-  document.getElementById('meuNome').value = meuNome;
-
-  function salvarNome(v) {
-    meuNome = v;
-    localStorage.setItem('nomeUsuario', v);
+  // Entrar na sala da família
+  if(familiaId && usuario) {
+    socket.emit('entrarFamilia', { familiaId: familiaId, nome: usuario.nome });
   }
 
-  // STATUS CONEXÃO
-  socket.on('connect', () => {
-    const el = document.getElementById('statusConexao');
-    el.textContent = '✓ Conectado';
-    el.className = 'badge badge-verde';
+  // Status conexão
+  socket.on('connect', function() {
+    var el = document.getElementById('statusConexao');
+    el.textContent = '✓ Conectado'; el.className = 'badge badge-verde';
+    var ef = document.getElementById('statusFamilia');
+    ef.textContent = familiaNome || '✓ Ativo'; ef.className = 'badge badge-verde';
   });
-  socket.on('disconnect', () => {
-    const el = document.getElementById('statusConexao');
-    el.textContent = '✗ Sem conexão';
-    el.className = 'badge badge-vermelho';
+  socket.on('disconnect', function() {
+    var el = document.getElementById('statusConexao');
+    el.textContent = '✗ Sem conexão'; el.className = 'badge badge-vermelho';
   });
 
-  // RECEBER ALARME (familiares)
-  socket.on('alarme', (dados) => {
+  // RECEBER ALARME
+  socket.on('alarme', function(dados) {
     tocarAlarmeContinuo();
-    document.getElementById('alarmeTexto').textContent =
-      `🆘 ${dados.de} precisa de ajuda urgente! — ${dados.hora}`;
+    falarEmergencia(dados.nome, dados.tipo);
+    document.getElementById('alarmeNome').textContent = '🆘 ' + dados.nome;
+    document.getElementById('alarmeTipo').textContent = dados.tipo || 'Emergência';
+    document.getElementById('alarmeHora').textContent = '🕐 ' + dados.hora;
+    // Tenta pegar telefone do contato
+    var cont = contatos.find(function(c){ return c.nome === dados.nome; });
+    telEmergencia = cont ? cont.tel : null;
     document.getElementById('alarmeRecebido').classList.add('visivel');
-
-    if (Notification.permission === 'granted') {
-      new Notification('🆘 EMERGÊNCIA - CUIDAR', {
-        body: `${dados.de} precisa de ajuda! — ${dados.hora}`,
-        tag: 'emergencia',
+    // Notificação
+    if(Notification.permission === 'granted') {
+      new Notification('🆘 EMERGÊNCIA — ' + familiaNome, {
+        body: dados.nome + ' — ' + dados.tipo,
         requireInteraction: true
       });
     }
   });
 
-  function getAudioCtx() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    return audioCtx;
+  function falarEmergencia(nome, tipo) {
+    if(!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    var texto = 'Atenção! ' + nome + ' está em emergência! Ocorrência: ' + tipo + '! Por favor ajude imediatamente!';
+    var fala = new SpeechSynthesisUtterance(texto);
+    fala.lang = 'pt-BR'; fala.rate = 0.9; fala.pitch = 1; fala.volume = 1;
+    var vozes = window.speechSynthesis.getVoices();
+    var vozPT = vozes.find(function(v){ return v.lang.indexOf('pt') !== -1; });
+    if(vozPT) fala.voice = vozPT;
+    window.speechSynthesis.speak(fala);
+    // Repete 3x
+    setTimeout(function(){ window.speechSynthesis.speak(fala); }, 4000);
+    setTimeout(function(){ window.speechSynthesis.speak(fala); }, 8000);
   }
 
-  let intervalAlarme = null;
+  function getAudioCtx() {
+    if(!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
 
   function tocarAlarmeContinuo() {
     alarmeAtivo = true;
     tocarBipe();
-    intervalAlarme = setInterval(() => {
-      if (alarmeAtivo) tocarBipe();
-    }, 2500);
+    intervalAlarme = setInterval(function(){ if(alarmeAtivo) tocarBipe(); }, 2500);
+    if(navigator.vibrate) navigator.vibrate([500,200,500,200,500,200,1000,500,500]);
   }
 
   function tocarBipe() {
-    const ctx = getAudioCtx();
-    const frequencias = [880, 660, 880, 660];
-    frequencias.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+    var ctx = getAudioCtx();
+    [880,660,880,660,1046].forEach(function(freq, i) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
       osc.frequency.value = freq;
-      const t = ctx.currentTime + i * 0.22;
+      var t = ctx.currentTime + i * 0.22;
       gain.gain.setValueAtTime(0.5, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-      osc.start(t);
-      osc.stop(t + 0.22);
+      osc.start(t); osc.stop(t + 0.22);
     });
   }
 
   function pararAlarme() {
     alarmeAtivo = false;
-    if (intervalAlarme) { clearInterval(intervalAlarme); intervalAlarme = null; }
+    if(intervalAlarme){ clearInterval(intervalAlarme); intervalAlarme = null; }
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
+    if(navigator.vibrate) navigator.vibrate(0);
   }
 
-  function gerarLinkWhats(contato) {
-    const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-    const nome = meuNome || 'Um familiar';
-    const msg = encodeURIComponent(
-      `🆘 *EMERGÊNCIA - CUIDAR APP*\n\n` +
-      `⏰ Horário: ${hora}\n` +
-      `👤 Quem precisa de ajuda: ${nome}\n\n` +
-      `⚠️ Por favor entre em contato ou acesse o local imediatamente!\n\n` +
-      `_Alerta automático — app Cuidar_`
-    );
-    const tel = contato.tel.replace(/\D/g, '');
-    return `https://wa.me/55${tel}?text=${msg}`;
+  // MODAL TIPO
+  function abrirModalTipo() {
+    tipoSelecionado = ''; iconeSelecionado = '';
+    document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
+    document.getElementById('btnDisparar').disabled = true;
+    document.getElementById('btnDisparar').style.opacity = '0.5';
+    document.getElementById('modalTipo').classList.add('ativo');
   }
 
-  function ativarEmergencia() {
-    // Dispara alarme sonoro local
+  function fecharModalTipo() {
+    document.getElementById('modalTipo').classList.remove('ativo');
+  }
+
+  function selTipo(btn, tipo, icone) {
+    document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel');
+    tipoSelecionado = tipo; iconeSelecionado = icone;
+    document.getElementById('btnDisparar').disabled = false;
+    document.getElementById('btnDisparar').style.opacity = '1';
+  }
+
+  function dispararEmergencia() {
+    if(!tipoSelecionado){ alert('Selecione o tipo de emergência.'); return; }
+    fecharModalTipo();
+    var nomeUsuario = usuario ? usuario.nome : 'Familiar';
+    // Dispara para a família via Socket.io
+    socket.emit('emergencia', {
+      nome: nomeUsuario,
+      tipo: iconeSelecionado + ' ' + tipoSelecionado,
+      familia: familiaNome,
+      familiaId: familiaId
+    });
+    // Toca alarme local também
     tocarAlarmeContinuo();
-
-    // Envia sinal para todos via WebSocket
-    socket.emit('emergencia', { nome: meuNome || 'Idoso' });
-
-    // Notificação local
-    if (Notification.permission === 'granted') {
-      new Notification('🆘 Emergência ativada', { body: 'Alertando todos os contatos...' });
-    }
-
+    // Voz local
+    falarEmergencia(nomeUsuario, tipoSelecionado);
     // Monta botões WhatsApp
-    const lista = document.getElementById('whatsLista');
+    var lista = document.getElementById('whatsLista');
     lista.innerHTML = '';
-    if (contatos.length === 0) {
-      lista.innerHTML = '<p style="color:rgba(255,255,255,0.75);font-size:0.9em">Nenhum contato cadastrado.<br>Cadastre contatos para enviar no WhatsApp.</p>';
+    document.getElementById('alertaTipoBadge').textContent = iconeSelecionado + ' ' + tipoSelecionado;
+    if(contatos.length === 0) {
+      lista.innerHTML = '<p style="color:rgba(255,255,255,0.75);font-size:0.9em">Nenhum contato cadastrado.</p>';
     } else {
-      contatos.forEach(c => {
-        const btn = document.createElement('button');
+      contatos.forEach(function(c) {
+        var btn = document.createElement('button');
         btn.className = 'btn-whats';
-        btn.innerHTML = `📲 Avisar ${c.nome} (${c.tipo})`;
-        btn.onclick = () => {
-          window.open(gerarLinkWhats(c), '_blank');
-          btn.innerHTML = `✅ ${c.nome} — WhatsApp aberto`;
+        btn.innerHTML = '📲 Avisar ' + c.nome + ' (' + c.tipo + ')';
+        btn.onclick = function() {
+          var hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+          var msg = '🆘 *EMERGÊNCIA — ' + familiaNome + '*\n\n' +
+            '👤 Quem precisa de ajuda: *' + nomeUsuario + '*\n' +
+            '⚠️ Ocorrência: *' + tipoSelecionado + '*\n' +
+            '🕐 Horário: ' + hora + '\n\n' +
+            'Por favor entre em contato ou acesse o local imediatamente!\n\n' +
+            '_Alerta automático — app Cuidar_';
+          window.open('https://wa.me/55' + c.tel.replace(/\D/g,'') + '?text=' + encodeURIComponent(msg), '_blank');
+          btn.innerHTML = '✅ ' + c.nome + ' — WhatsApp aberto';
           btn.classList.add('enviado');
           btn.onclick = null;
         };
         lista.appendChild(btn);
       });
     }
-
     document.getElementById('alertaAtivo').classList.add('visivel');
+    if(Notification.permission !== 'granted') Notification.requestPermission();
   }
 
   function cancelarEmergencia() {
@@ -323,49 +568,69 @@
     document.getElementById('alarmeRecebido').classList.remove('visivel');
   }
 
+  function ligarParaEmergencia() {
+    if(telEmergencia) window.open('tel:' + telEmergencia);
+    else alert('Telefone não encontrado. Ligue pelo WhatsApp.');
+  }
+
+  function avisarFamiliarGuia(tipo) {
+    var cont = contatos[0];
+    if(!cont){ alert('Nenhum contato cadastrado.'); return; }
+    var nome = usuario ? usuario.nome : 'Familiar';
+    var hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    var msg = '🚨 *EMERGÊNCIA — CUIDAR APP*\n\n⚠️ Situação: *' + tipo + '*\n👤 ' + nome + '\n🕐 ' + hora + '\n\n_App Cuidar_';
+    window.open('https://wa.me/55' + cont.tel.replace(/\D/g,'') + '?text=' + encodeURIComponent(msg), '_blank');
+  }
+
+  // GUIA
+  function mostrarGuia(id) {
+    document.querySelectorAll('.detalhe').forEach(function(d){ d.classList.remove('ativo'); });
+    var el = document.getElementById('g-'+id);
+    if(el){ el.classList.add('ativo'); el.scrollIntoView({behavior:'smooth',block:'start'}); }
+  }
+  function fecharGuia(id) {
+    var el = document.getElementById('g-'+id);
+    if(el) el.classList.remove('ativo');
+  }
+
+  // CONTATOS
   function renderizar() {
-    const lista = document.getElementById('listaContatos');
-    const num = document.getElementById('numContatos');
+    var lista = document.getElementById('listaContatos');
+    var num = document.getElementById('numContatos');
     num.textContent = contatos.length;
     num.className = 'badge ' + (contatos.length > 0 ? 'badge-verde' : 'badge-cinza');
     lista.innerHTML = '';
-    contatos.forEach(c => {
-      const emojis = { Familiar:'👨‍👩‍👧', Cuidador:'🧑‍⚕️', Médico:'👨‍⚕️', Vizinho:'🏠' };
-      const div = document.createElement('div');
+    var emojis = { Familiar:'👨‍👩‍👧', Cuidador:'🧑‍⚕️', Médico:'👨‍⚕️', Vizinho:'🏠' };
+    contatos.forEach(function(c) {
+      var div = document.createElement('div');
       div.className = 'contato-card';
-      div.innerHTML = `
-        <div class="avatar-cont">${emojis[c.tipo] || '👤'}</div>
-        <div class="cont-info">
-          <div class="cont-nome">${c.nome}</div>
-          <div class="cont-tel">${c.tel}</div>
-          <span class="cont-tipo">${c.tipo}</span>
-        </div>
-        <button class="btn-ligar" onclick="window.open('tel:${c.tel}')">📞 Ligar</button>
-      `;
+      div.innerHTML = '<div class="avatar-cont">' + (emojis[c.tipo]||'👤') + '</div>' +
+        '<div class="cont-info"><div class="cont-nome">' + c.nome + '</div>' +
+        '<div class="cont-tel">' + c.tel + '</div>' +
+        '<span class="cont-tipo">' + c.tipo + '</span></div>' +
+        '<button class="btn-ligar" onclick="window.open(\'tel:' + c.tel + '\')">📞 Ligar</button>';
       lista.appendChild(div);
     });
   }
 
-  function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
-  function fecharModal() {
-    document.getElementById('modalBg').classList.remove('ativo');
+  function abrirModalContato() { document.getElementById('modalContato').classList.add('ativo'); }
+  function fecharModalContato() {
+    document.getElementById('modalContato').classList.remove('ativo');
     document.getElementById('cNome').value = '';
     document.getElementById('cTel').value = '';
   }
-
   function salvarContato() {
-    const nome = document.getElementById('cNome').value.trim();
-    const tel = document.getElementById('cTel').value.trim();
-    const tipo = document.getElementById('cTipo').value;
-    if (!nome || !tel) { alert('Preencha nome e telefone.'); return; }
-    contatos.push({ nome, tel, tipo });
+    var nome = document.getElementById('cNome').value.trim();
+    var tel = document.getElementById('cTel').value.trim();
+    var tipo = document.getElementById('cTipo').value;
+    if(!nome||!tel){ alert('Preencha nome e telefone.'); return; }
+    contatos.push({ nome:nome, tel:tel, tipo:tipo });
     localStorage.setItem('contatosEmergencia', JSON.stringify(contatos));
-    fecharModal();
+    fecharModalContato();
     renderizar();
   }
 
-  if (Notification.permission === 'default') Notification.requestPermission();
-
+  if(Notification.permission === 'default') Notification.requestPermission();
   renderizar();
 </script>
 </body>
