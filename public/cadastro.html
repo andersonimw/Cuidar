@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro - Cuidar</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:sans-serif; background:#1a237e; min-height:100vh;
+         display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+
+  .logo { text-align:center; margin-bottom:32px; }
+  .logo .icon { font-size:4em; margin-bottom:8px; }
+  .logo h1 { color:white; font-size:2em; font-weight:bold; }
+  .logo p { color:rgba(255,255,255,0.7); font-size:0.95em; margin-top:4px; }
+
+  .card { background:white; border-radius:24px; padding:24px; width:100%; max-width:420px; }
+
+  .tabs { display:flex; gap:8px; margin-bottom:24px; }
+  .tab { flex:1; padding:12px; border:2px solid #e0e0e0; border-radius:12px;
+         background:white; font-size:0.9em; cursor:pointer; text-align:center;
+         color:#555; font-weight:bold; transition:all 0.2s; }
+  .tab.ativo { border-color:#1a237e; background:#1a237e; color:white; }
+
+  .secao { display:none; }
+  .secao.ativa { display:block; }
+
+  .form-group { margin-bottom:14px; }
+  .form-group label { font-size:0.82em; color:#555; font-weight:bold;
+                      display:block; margin-bottom:6px; }
+  .form-group input, .form-group select {
+    width:100%; padding:12px 14px; border:1.5px solid #e0e0e0;
+    border-radius:10px; font-size:0.95em; outline:none;
+    transition:border-color 0.2s; }
+  .form-group input:focus, .form-group select:focus { border-color:#1a237e; }
+
+  .btn-principal { width:100%; padding:16px; background:#1a237e; color:white;
+                   border:none; border-radius:12px; font-size:1em; font-weight:bold;
+                   cursor:pointer; margin-top:8px; }
+  .btn-secundario { width:100%; padding:14px; background:#e8eaf6; color:#1a237e;
+                    border:none; border-radius:12px; font-size:0.95em; font-weight:bold;
+                    cursor:pointer; margin-top:10px; }
+
+  .qr-container { text-align:center; padding:20px 0; }
+  .qr-box { background:#f5f5f5; border-radius:16px; padding:20px;
+            display:inline-block; margin-bottom:16px; }
+  .qr-codigo { font-size:1.4em; font-weight:bold; color:#1a237e;
+               background:#e8eaf6; padding:10px 20px; border-radius:10px;
+               letter-spacing:4px; margin-bottom:8px; display:inline-block; }
+  .qr-instrucao { font-size:0.82em; color:#888; line-height:1.6; margin-bottom:16px; }
+
+  .scanner-area { border:2px dashed #1a237e; border-radius:16px; padding:30px;
+                  text-align:center; margin-bottom:16px; cursor:pointer;
+                  background:#f8f9ff; }
+  .scanner-area .scan-icon { font-size:3em; margin-bottom:10px; }
+  .scanner-area p { font-size:0.85em; color:#555; }
+
+  .ou { text-align:center; color:#aaa; font-size:0.85em; margin:12px 0;
+        display:flex; align-items:center; gap:8px; }
+  .ou::before, .ou::after { content:''; flex:1; height:1px; background:#eee; }
+
+  .codigo-manual { display:flex; gap:8px; }
+  .codigo-manual input { flex:1; padding:12px; border:1.5px solid #e0e0e0;
+                         border-radius:10px; font-size:1em; letter-spacing:3px;
+                         text-transform:uppercase; }
+  .codigo-manual button { padding:12px 16px; background:#1a237e; color:white;
+                          border:none; border-radius:10px; font-size:0.9em; cursor:pointer; }
+
+  .sucesso { text-align:center; padding:10px 0; }
+  .sucesso .icon { font-size:3.5em; margin-bottom:12px; }
+  .sucesso h2 { color:#1a237e; font-size:1.2em; margin-bottom:8px; }
+  .sucesso p { font-size:0.85em; color:#666; line-height:1.6; margin-bottom:20px; }
+  .sucesso .nome-familia { font-size:1.1em; font-weight:bold; color:#1a237e;
+                           background:#e8eaf6; padding:8px 16px; border-radius:10px;
+                           display:inline-block; margin-bottom:16px; }
+
+  .relacoes { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .relacao-btn { padding:12px 8px; border:2px solid #e0e0e0; border-radius:10px;
+                 background:white; font-size:0.85em; cursor:pointer; text-align:center;
+                 transition:all 0.2s; }
+  .relacao-btn.sel { border-color:#1a237e; background:#e8eaf6; color:#1a237e; font-weight:bold; }
+
+  #qrcode canvas, #qrcode img { border-radius:8px; }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <div class="icon">💚</div>
+  <h1>Cuidar</h1>
+  <p>Cuidado Familiar Inteligente</p>
+</div>
+
+<div class="card">
+
+  <!-- TABS -->
+  <div class="tabs" id="tabs">
+    <button class="tab ativo" onclick="setTab('criar',this)">👨‍👩‍👧 Criar família</button>
+    <button class="tab" onclick="setTab('entrar',this)">📲 Entrar em família</button>
+  </div>
+
+  <!-- CRIAR FAMÍLIA -->
+  <div class="secao ativa" id="sec-criar">
+    <div id="passo-criar-1">
+      <div class="form-group">
+        <label>Seu nome completo *</label>
+        <input type="text" id="criarNome" placeholder="Ex: Maria Silva">
+      </div>
+      <div class="form-group">
+        <label>Nome da família *</label>
+        <input type="text" id="criarFamilia" placeholder="Ex: Família Silva">
+      </div>
+      <div class="form-group">
+        <label>Sua relação com o idoso</label>
+        <div class="relacoes">
+          <button class="relacao-btn" onclick="selRelacao(this,'Filha(o)')">👧 Filha(o)</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Cônjuge')">💑 Cônjuge</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Neta(o)')">🧒 Neta(o)</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Cuidador(a)')">👩‍⚕️ Cuidador(a)</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Irmã(o)')">🤝 Irmã(o)</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Outro')">👤 Outro</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Seu WhatsApp (com DDD)</label>
+        <input type="tel" id="criarTel" placeholder="Ex: 21999998888">
+      </div>
+      <button class="btn-principal" onclick="gerarFamilia()">✨ Criar família e gerar QR Code</button>
+    </div>
+
+    <!-- QR CODE GERADO -->
+    <div id="passo-criar-2" style="display:none">
+      <div class="qr-container">
+        <p style="font-size:0.9em;color:#555;margin-bottom:12px;text-align:center">
+          Mostre este QR Code para os outros familiares escanearem:
+        </p>
+        <div class="qr-box">
+          <div id="qrcode"></div>
+        </div>
+        <div class="qr-codigo" id="codigoExibido"></div>
+        <div class="qr-instrucao">
+          📱 Cada familiar abre o app no celular dele,<br>
+          toca em <b>"Entrar em família"</b> e escaneia este QR Code.<br>
+          Ou digita o código acima manualmente.
+        </div>
+      </div>
+      <button class="btn-principal" onclick="entrarNoApp()">✅ Entrar no app</button>
+      <button class="btn-secundario" onclick="compartilharCodigo()">📤 Compartilhar código via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- ENTRAR EM FAMÍLIA -->
+  <div class="secao" id="sec-entrar">
+    <div id="passo-entrar-1">
+      <div class="form-group">
+        <label>Seu nome completo *</label>
+        <input type="text" id="entrarNome" placeholder="Ex: João Silva">
+      </div>
+      <div class="form-group">
+        <label>Sua relação com o idoso</label>
+        <div class="relacoes">
+          <button class="relacao-btn" onclick="selRelacao(this,'Filha(o)')">👧 Filha(o)</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Cônjuge')">💑 Cônjuge</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Neta(o)')">🧒 Neta(o)</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Cuidador(a)')">👩‍⚕️ Cuidador(a)</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Irmã(o)')">🤝 Irmã(o)</button>
+          <button class="relacao-btn" onclick="selRelacao(this,'Outro')">👤 Outro</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Seu WhatsApp (com DDD)</label>
+        <input type="tel" id="entrarTel" placeholder="Ex: 21999998888">
+      </div>
+
+      <div class="scanner-area" onclick="iniciarScanner()">
+        <div class="scan-icon">📷</div>
+        <p><b>Toque para escanear o QR Code</b><br>da família</p>
+      </div>
+
+      <div class="ou">ou digite o código manualmente</div>
+
+      <div class="codigo-manual">
+        <input type="text" id="codigoManual" placeholder="Ex: SILVA2026" maxlength="10">
+        <button onclick="entrarPorCodigo()">Entrar</button>
+      </div>
+
+      <!-- Scanner de câmera -->
+      <div id="scannerContainer" style="display:none;margin-top:16px">
+        <video id="scannerVideo" style="width:100%;border-radius:12px" autoplay playsinline></video>
+        <button onclick="pararScanner()" style="width:100%;margin-top:8px;padding:10px;background:#eee;border:none;border-radius:8px;cursor:pointer">✕ Cancelar</button>
+      </div>
+    </div>
+
+    <!-- SUCESSO AO ENTRAR -->
+    <div id="passo-entrar-2" style="display:none">
+      <div class="sucesso">
+        <div class="icon">🎉</div>
+        <h2>Bem-vindo à família!</h2>
+        <div class="nome-familia" id="familiaEncontrada"></div>
+        <p>Você foi adicionado com sucesso.<br>Agora receberá alertas de emergência<br>de todos os familiares.</p>
+      </div>
+      <button class="btn-principal" onclick="entrarNoApp()">✅ Entrar no app</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script>
+  var relacaoSelecionada = '';
+  var scannerStream = null;
+  var scannerInterval = null;
+  var familiaIdGerado = '';
+
+  // Verifica se já tem cadastro
+  window.onload = function() {
+    var usuario = localStorage.getItem('usuarioCuidar');
+    if(usuario) {
+      window.location.href = 'index.html';
+    }
+  };
+
+  function setTab(aba, btn) {
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    document.querySelectorAll('.secao').forEach(function(s){ s.classList.remove('ativa'); });
+    document.getElementById('sec-'+aba).classList.add('ativa');
+  }
+
+  function selRelacao(btn, rel) {
+    document.querySelectorAll('.relacao-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel');
+    relacaoSelecionada = rel;
+  }
+
+  function gerarCodigo(nomeFamilia) {
+    var base = nomeFamilia.replace(/[^a-zA-Z]/g,'').toUpperCase().substring(0,5);
+    var num = Math.floor(1000 + Math.random() * 9000);
+    return base + num;
+  }
+
+  function gerarFamilia() {
+    var nome = document.getElementById('criarNome').value.trim();
+    var familia = document.getElementById('criarFamilia').value.trim();
+    var tel = document.getElementById('criarTel').value.trim().replace(/\D/g,'');
+    if(!nome){ alert('Digite seu nome.'); return; }
+    if(!familia){ alert('Digite o nome da família.'); return; }
+
+    familiaIdGerado = gerarCodigo(familia);
+
+    var usuario = {
+      nome: nome,
+      familia: familia,
+      familiaId: familiaIdGerado,
+      relacao: relacaoSelecionada || 'Familiar',
+      tel: tel,
+      admin: true,
+      cadastradoEm: new Date().toLocaleDateString('pt-BR')
+    };
+
+    localStorage.setItem('usuarioCuidar', JSON.stringify(usuario));
+    localStorage.setItem('familiaId', familiaIdGerado);
+    localStorage.setItem('familiaNome', familia);
+
+    // Mostrar QR Code
+    document.getElementById('passo-criar-1').style.display = 'none';
+    document.getElementById('passo-criar-2').style.display = 'block';
+    document.getElementById('codigoExibido').textContent = familiaIdGerado;
+
+    // Gerar QR Code
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), {
+      text: familiaIdGerado,
+      width: 200,
+      height: 200,
+      colorDark: '#1a237e',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+
+  function compartilharCodigo() {
+    var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || '{}');
+    var msg = '💚 *Cuidar App — Convite Familiar*\n\n' +
+      'Olá! ' + usuario.nome + ' convidou você para a *' + usuario.familia + '*\n\n' +
+      '📲 Código de acesso: *' + familiaIdGerado + '*\n\n' +
+      '1. Baixe o app Cuidar\n' +
+      '2. Toque em "Entrar em família"\n' +
+      '3. Digite o código: *' + familiaIdGerado + '*\n\n' +
+      '_App Cuidar — Cuidado Familiar Inteligente_';
+    if(navigator.share) {
+      navigator.share({ text: msg });
+    } else {
+      window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
+    }
+  }
+
+  function iniciarScanner() {
+    var container = document.getElementById('scannerContainer');
+    var video = document.getElementById('scannerVideo');
+    container.style.display = 'block';
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(function(stream) {
+        scannerStream = stream;
+        video.srcObject = stream;
+        video.play();
+        scannerInterval = setInterval(function() {
+          if(video.readyState === video.HAVE_ENOUGH_DATA) {
+            var canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var code = jsQR(imageData.data, imageData.width, imageData.height);
+            if(code) {
+              pararScanner();
+              document.getElementById('codigoManual').value = code.data;
+              entrarPorCodigo();
+            }
+          }
+        }, 500);
+      })
+      .catch(function() {
+        alert('Câmera não disponível. Digite o código manualmente.');
+        container.style.display = 'none';
+      });
+  }
+
+  function pararScanner() {
+    if(scannerStream) { scannerStream.getTracks().forEach(function(t){ t.stop(); }); scannerStream = null; }
+    if(scannerInterval) { clearInterval(scannerInterval); scannerInterval = null; }
+    document.getElementById('scannerContainer').style.display = 'none';
+  }
+
+  function entrarPorCodigo() {
+    var nome = document.getElementById('entrarNome').value.trim();
+    var codigo = document.getElementById('codigoManual').value.trim().toUpperCase();
+    var tel = document.getElementById('entrarTel').value.trim().replace(/\D/g,'');
+    if(!nome){ alert('Digite seu nome.'); return; }
+    if(!codigo || codigo.length < 4){ alert('Digite o código da família.'); return; }
+
+    var familiaNome = 'Família';
+    // Tenta extrair nome da família do código
+    var letras = codigo.replace(/[0-9]/g,'');
+    if(letras.length > 0) {
+      familiaNome = 'Família ' + letras.charAt(0) + letras.slice(1).toLowerCase();
+    }
+
+    var usuario = {
+      nome: nome,
+      familia: familiaNome,
+      familiaId: codigo,
+      relacao: relacaoSelecionada || 'Familiar',
+      tel: tel,
+      admin: false,
+      cadastradoEm: new Date().toLocaleDateString('pt-BR')
+    };
+
+    localStorage.setItem('usuarioCuidar', JSON.stringify(usuario));
+    localStorage.setItem('familiaId', codigo);
+    localStorage.setItem('familiaNome', familiaNome);
+
+    document.getElementById('familiaEncontrada').textContent = familiaNome;
+    document.getElementById('passo-entrar-1').style.display = 'none';
+    document.getElementById('passo-entrar-2').style.display = 'block';
+  }
+
+  function entrarNoApp() {
+    window.location.href = 'index.html';
+  }
+</script>
+</body>
+</html>
