@@ -6,60 +6,103 @@
 <title>Medicamentos - Cuidar</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
-  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  body { font-family:sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#1a237e; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
   header a { color:white; text-decoration:none; font-size:1.4em; }
   header h1 { font-size:1.2em; flex:1; }
-  .btn-add { position:fixed; bottom:24px; right:24px; background:#2e7d32; color:white;
-             border:none; border-radius:50px; padding:16px 24px; font-size:1em;
-             cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:100; }
-  .lista { padding:16px; display:flex; flex-direction:column; gap:12px; padding-bottom:80px; }
-  .card { background:white; border-radius:16px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-  .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
-  .card-nome { font-weight:bold; font-size:1em; }
-  .card-horario { background:#2e7d32; color:white; padding:4px 12px; border-radius:20px; font-size:0.85em; }
-  .card-info { font-size:0.85em; color:#666; display:flex; flex-direction:column; gap:3px; margin-bottom:10px; }
-  .card-acoes { display:flex; gap:8px; }
-  .btn-confirmar { flex:1; padding:10px; border:none; border-radius:10px;
-                   background:#e8f5e9; color:#2e7d32; font-size:0.9em; cursor:pointer; font-weight:bold; }
-  .btn-confirmar.confirmado { background:#c8e6c9; color:#1b5e20; }
-  .btn-excluir { padding:10px 14px; border:none; border-radius:10px;
-                 background:#ffebee; color:#f44336; font-size:0.9em; cursor:pointer; }
-  .estoque-badge { font-size:0.75em; padding:2px 8px; border-radius:20px;
-                   background:#fff3e0; color:#e65100; margin-top:4px; display:inline-block; }
-  .validade-badge { font-size:0.75em; padding:2px 8px; border-radius:20px;
-                    background:#e8f5e9; color:#2e7d32; margin-top:4px; display:inline-block; margin-left:4px; }
-  .validade-badge.vencendo { background:#fff3e0; color:#e65100; }
-  .validade-badge.vencido { background:#ffebee; color:#f44336; }
+  .conteudo { padding:16px; padding-bottom:80px; }
 
-  /* ALERTAS DE INTERAÇÃO */
-  .alerta-interacao { margin:0 16px 4px; border-radius:12px; padding:12px 16px; font-size:0.85em; }
-  .alerta-interacao.ALTO { background:#ffebee; border-left:4px solid #f44336; color:#c62828; }
-  .alerta-interacao.MEDIO { background:#fff3e0; border-left:4px solid #ff9800; color:#e65100; }
-  .alerta-titulo { font-weight:bold; margin-bottom:4px; }
-  .alerta-meds { font-size:0.8em; opacity:0.8; margin-top:4px; }
-  .aviso-geral { background:#e3f2fd; border-left:4px solid #1565c0;
-                 padding:10px 16px; margin:0 16px 8px; border-radius:0 10px 10px 0;
-                 font-size:0.8em; color:#1565c0; }
+  .adesao-card { background:linear-gradient(135deg,#1a237e,#283593); color:white; border-radius:20px; padding:20px; margin-bottom:16px; }
+  .adesao-titulo { font-size:0.85em; opacity:0.8; margin-bottom:8px; }
+  .adesao-pct { font-size:2.8em; font-weight:bold; }
+  .adesao-sub { font-size:0.82em; opacity:0.75; margin-top:4px; }
+  .adesao-barra-bg { background:rgba(255,255,255,0.2); border-radius:20px; height:10px; margin-top:12px; }
+  .adesao-barra { background:white; border-radius:20px; height:10px; transition:width 0.8s; }
+  .semana-grid { display:flex; gap:6px; margin-top:16px; justify-content:center; }
+  .semana-dia { text-align:center; }
+  .semana-dia .dia-nome { font-size:0.7em; opacity:0.7; margin-bottom:4px; }
+  .semana-dia .dia-circulo { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75em; font-weight:bold; }
+  .dia-tomou { background:#4caf50; color:white; }
+  .dia-pulou { background:#f44336; color:white; }
+  .dia-parcial { background:#ff9800; color:white; }
+  .dia-vazio { background:rgba(255,255,255,0.2); color:rgba(255,255,255,0.6); }
+  .dia-hoje { border:2px solid white; }
 
-  .modal-bg { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-              background:rgba(0,0,0,0.5); z-index:200; justify-content:center; align-items:flex-end; }
-  .modal-bg.ativo { display:flex; }
-  .modal { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-height:92vh; overflow-y:auto; }
-  .modal h2 { color:#2e7d32; margin-bottom:16px; }
-  .modal input, .modal select { width:100%; padding:12px; margin-bottom:12px;
-                                 border:1px solid #ddd; border-radius:10px; font-size:1em; }
-  .modal label { font-size:0.85em; color:#666; margin-bottom:4px; display:block; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab { padding:10px 16px; border:none; border-radius:20px; font-size:0.85em; cursor:pointer; background:#eee; color:#555; white-space:nowrap; }
+  .tab.ativo { background:#1a237e; color:white; font-weight:bold; }
+
+  .card { background:white; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .card h2 { color:#1a237e; font-size:1em; margin-bottom:12px; }
+
+  .form-group { margin-bottom:12px; }
+  .form-group label { font-size:0.85em; color:#555; display:block; margin-bottom:4px; font-weight:bold; }
+  .form-group input, .form-group select, .form-group textarea { width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.95em; }
+  .form-group textarea { height:70px; resize:none; }
+
+  .horarios-lista { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+  .horario-tag { background:#e8eaf6; color:#1a237e; padding:6px 12px; border-radius:20px; font-size:0.85em; display:flex; align-items:center; gap:6px; }
+  .horario-tag button { background:none; border:none; color:#c62828; font-size:1em; cursor:pointer; }
+  .horario-input { display:flex; gap:8px; }
+  .horario-input input { flex:1; }
+  .horario-input button { padding:10px 16px; background:#1a237e; color:white; border:none; border-radius:8px; cursor:pointer; white-space:nowrap; }
+
+  .btn-principal { width:100%; padding:14px; background:#1a237e; color:white; border:none; border-radius:10px; font-size:1em; cursor:pointer; margin-top:8px; }
+
+  .med-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); border-left:4px solid #1a237e; }
+  .med-card.critico { border-left-color:#c62828; }
+  .med-card.atencao { border-left-color:#e65100; }
+  .med-nome { font-size:1.05em; font-weight:bold; color:#1a237e; margin-bottom:4px; }
+  .med-info { font-size:0.82em; color:#666; margin-bottom:8px; line-height:1.6; }
+  .med-horarios { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .med-horario-tag { background:#e8eaf6; color:#1a237e; padding:4px 10px; border-radius:20px; font-size:0.8em; }
+  .med-acoes { display:flex; gap:8px; flex-wrap:wrap; }
+  .btn-tomar { padding:10px 16px; background:#2e7d32; color:white; border:none; border-radius:8px; font-size:0.85em; cursor:pointer; flex:1; }
+  .btn-pular { padding:10px 16px; background:#e65100; color:white; border:none; border-radius:8px; font-size:0.85em; cursor:pointer; flex:1; }
+  .btn-soneca { padding:10px 16px; background:#5c6bc0; color:white; border:none; border-radius:8px; font-size:0.85em; cursor:pointer; flex:1; }
+  .med-estoque { font-size:0.8em; margin-top:8px; padding:6px 10px; border-radius:8px; background:#f5f5f5; }
+  .med-estoque.baixo { background:#fff3e0; color:#e65100; }
+  .med-estoque.critico { background:#ffebee; color:#c62828; }
+  .soneca-badge { background:#e8eaf6; color:#5c6bc0; font-size:0.75em; padding:4px 10px; border-radius:20px; display:inline-block; margin-top:6px; }
+
+  .historico-item { background:#f8f9fa; border-radius:10px; padding:10px 12px; margin-bottom:8px; font-size:0.85em; }
+  .historico-data { font-size:0.75em; color:#888; margin-bottom:4px; }
+  .historico-status { font-weight:bold; }
+  .status-tomou { color:#2e7d32; }
+  .status-pulou { color:#c62828; }
+  .motivo-badge { display:inline-block; background:#fff3e0; color:#e65100; font-size:0.75em; padding:2px 8px; border-radius:20px; margin-top:4px; }
+
+  .interacao-alerta { background:#ffebee; border-left:4px solid #c62828; padding:10px 12px; border-radius:0 8px 8px 0; margin-bottom:8px; font-size:0.85em; color:#c62828; }
+  .familiar-card { background:#e8f5e9; border-left:4px solid #2e7d32; padding:12px; border-radius:0 12px 12px 0; margin-bottom:10px; }
+  .familiar-card h3 { color:#2e7d32; font-size:0.9em; margin-bottom:8px; }
+  .sem-dados { text-align:center; color:#bbb; padding:30px; font-size:0.9em; }
+
+  .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:1000; display:flex; align-items:flex-end; justify-content:center; }
+  .modal-box { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; }
+  .modal-titulo { font-size:1.1em; font-weight:bold; color:#1a237e; margin-bottom:6px; text-align:center; }
+  .modal-sub { font-size:0.85em; color:#888; text-align:center; margin-bottom:16px; }
+  .motivos-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .motivo-btn { padding:14px 8px; border:2px solid #eee; border-radius:12px; background:white; font-size:0.85em; cursor:pointer; text-align:center; transition:all 0.2s; line-height:1.4; }
+  .motivo-btn.sel { border-color:#1a237e; background:#e8eaf6; color:#1a237e; font-weight:bold; }
+  .motivo-obs { width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:0.9em; margin-bottom:12px; resize:none; height:70px; }
+  .modal-aviso { background:#fff3e0; border-left:3px solid #e65100; padding:10px; border-radius:0 8px 8px 0; font-size:0.82em; color:#e65100; margin-bottom:12px; }
   .modal-btns { display:flex; gap:10px; }
-  .modal-btns button { flex:1; padding:14px; border:none; border-radius:10px; font-size:1em; cursor:pointer; }
-  .btn-salvar { background:#2e7d32; color:white; }
-  .btn-cancelar { background:#eee; color:#333; }
-  .vazio { text-align:center; padding:60px 20px; color:#aaa; }
-  .vazio .icon { font-size:3em; margin-bottom:12px; }
+  .btn-confirmar { flex:2; padding:12px; background:#1a237e; color:white; border:none; border-radius:10px; font-size:0.95em; cursor:pointer; }
 
-  .secao-alertas { padding:16px 0 0; }
-  .secao-titulo-alert { font-size:0.8em; font-weight:bold; color:#555;
-                        text-transform:uppercase; letter-spacing:0.05em; padding:0 16px 8px; }
+  /* ALARME */
+  .alarme-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(26,35,126,0.97); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center; }
+  .alarme-icone { font-size:5em; animation:pulsar 1s infinite; margin-bottom:20px; }
+  .alarme-titulo { color:white; font-size:1.4em; font-weight:bold; margin-bottom:10px; }
+  .alarme-nome { color:#90caf9; font-size:1.8em; font-weight:bold; margin-bottom:8px; }
+  .alarme-dosagem { color:#fff; font-size:1.1em; margin-bottom:30px; opacity:0.9; }
+  .alarme-hora { color:rgba(255,255,255,0.6); font-size:0.9em; margin-bottom:30px; }
+  .alarme-btns { display:flex; flex-direction:column; gap:12px; width:100%; max-width:300px; }
+  .btn-alarme-tomar { padding:18px; background:#4caf50; color:white; border:none; border-radius:16px; font-size:1.1em; font-weight:bold; cursor:pointer; }
+  .btn-alarme-soneca { padding:14px; background:rgba(255,255,255,0.15); color:white; border:2px solid rgba(255,255,255,0.3); border-radius:16px; font-size:0.95em; cursor:pointer; }
+  .btn-alarme-pular { padding:14px; background:rgba(198,40,40,0.5); color:white; border:none; border-radius:16px; font-size:0.95em; cursor:pointer; }
+  .alarme-repeticao { color:rgba(255,255,255,0.5); font-size:0.8em; margin-top:20px; }
+  @keyframes pulsar { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
 </style>
 </head>
 <body>
@@ -69,150 +112,607 @@
   <h1>💊 Medicamentos</h1>
 </header>
 
-<div id="secaoAlertas"></div>
-<div class="lista" id="lista"></div>
-<button class="btn-add" onclick="abrirModal()">+ Adicionar</button>
+<div class="conteudo">
+  <div class="adesao-card">
+    <div class="adesao-titulo">📊 Taxa de adesão — últimos 30 dias</div>
+    <div class="adesao-pct" id="adesaoPct">--%</div>
+    <div class="adesao-sub" id="adesaoSub">Carregando...</div>
+    <div class="adesao-barra-bg"><div class="adesao-barra" id="adesaoBarra" style="width:0%"></div></div>
+    <div class="semana-grid" id="semanaGrid"></div>
+  </div>
 
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <h2>Novo Medicamento</h2>
-    <label>Nome do medicamento</label>
-    <input type="text" id="mNome" placeholder="Ex: Losartana 50mg" />
-    <label>Dose</label>
-    <input type="text" id="mDose" placeholder="Ex: 1 comprimido" />
-    <label>Horário</label>
-    <input type="time" id="mHorario" />
-    <label>Via de administração</label>
-    <select id="mVia">
-      <option value="Oral">Oral</option>
-      <option value="Injetável">Injetável</option>
-      <option value="Tópico">Tópico</option>
-      <option value="Sublingual">Sublingual</option>
-    </select>
-    <label>Estoque (quantidade)</label>
-    <input type="number" id="mEstoque" placeholder="Ex: 30" min="0" />
-    <label>Data de validade</label>
-    <input type="date" id="mValidade" />
-    <div class="modal-btns">
-      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-      <button class="btn-salvar" onclick="salvar()">Salvar</button>
+  <div class="tabs">
+    <button class="tab ativo" onclick="setAba('lista',this)">📋 Remédios</button>
+    <button class="tab" onclick="setAba('adicionar',this)">➕ Adicionar</button>
+    <button class="tab" onclick="setAba('historico',this)">📜 Histórico</button>
+    <button class="tab" onclick="setAba('familiar',this)">👨‍👩‍👧 Familiar</button>
+    <button class="tab" onclick="setAba('interacoes',this)">⚠️ Interações</button>
+  </div>
+
+  <div id="aba-lista"><div id="listaMeds"></div></div>
+
+  <div id="aba-adicionar" style="display:none">
+    <div class="card">
+      <h2>➕ Novo Medicamento</h2>
+      <div class="form-group">
+        <label>Nome do medicamento *</label>
+        <input type="text" id="medNome" placeholder="Ex: Dipirona 500mg">
+      </div>
+      <div class="form-group">
+        <label>Dosagem</label>
+        <input type="text" id="medDosagem" placeholder="Ex: 1 comprimido">
+      </div>
+      <div class="form-group">
+        <label>Horários (o alarme vai tocar nestes horários)</label>
+        <div class="horarios-lista" id="horariosTags"></div>
+        <div class="horario-input">
+          <input type="time" id="horarioInput">
+          <button onclick="adicionarHorario()">+ Horário</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Via de administração</label>
+        <select id="medVia">
+          <option>Oral</option><option>Sublingual</option><option>Injetável</option>
+          <option>Tópico</option><option>Inalatório</option><option>Ocular</option><option>Nasal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Quantidade em estoque</label>
+        <input type="number" id="medEstoque" placeholder="Ex: 30" min="0">
+      </div>
+      <div class="form-group">
+        <label>⚠️ Alertar quando restar (unidades)</label>
+        <input type="number" id="medAlertaEstoque" placeholder="Ex: 10" min="1" value="10">
+      </div>
+      <div class="form-group">
+        <label>Data de validade</label>
+        <input type="date" id="medValidade">
+      </div>
+      <div class="form-group">
+        <label>Armazenamento</label>
+        <select id="medArmazenamento">
+          <option>Temperatura ambiente</option><option>Refrigerado (2-8°C)</option>
+          <option>Longe da luz</option><option>Lugar seco</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Observações</label>
+        <textarea id="medObs" placeholder="Ex: Tomar com água, antes do café..."></textarea>
+      </div>
+      <button class="btn-principal" onclick="salvarMed()">💾 Salvar Medicamento</button>
+    </div>
+  </div>
+
+  <div id="aba-historico" style="display:none">
+    <div class="card">
+      <h2>📜 Histórico completo de doses</h2>
+      <div id="listaHistorico"></div>
+    </div>
+  </div>
+
+  <div id="aba-familiar" style="display:none">
+    <div class="card">
+      <h2>👨‍👩‍👧 Aviso automático ao familiar</h2>
+      <p style="font-size:0.85em;color:#666;margin-bottom:16px;line-height:1.6">Quando uma dose for pulada, o app envia automaticamente um aviso via WhatsApp para o familiar responsável.</p>
+      <div class="form-group">
+        <label>Nome do familiar responsável</label>
+        <input type="text" id="familiarNome" placeholder="Ex: Maria (filha)">
+      </div>
+      <div class="form-group">
+        <label>WhatsApp (com DDD)</label>
+        <input type="tel" id="familiarTel" placeholder="Ex: 11999998888">
+      </div>
+      <button class="btn-principal" onclick="salvarFamiliar()">💾 Salvar familiar</button>
+    </div>
+    <div class="familiar-card" id="familiarSalvo" style="display:none">
+      <h3>✅ Familiar configurado</h3>
+      <div id="familiarInfo" style="font-size:0.9em;color:#333"></div>
+      <button onclick="testarAviso()" style="margin-top:10px;padding:10px 20px;background:#2e7d32;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.85em">📱 Testar aviso agora</button>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>📋 Últimos avisos enviados</h2>
+      <div id="listaAvisos"></div>
+    </div>
+  </div>
+
+  <div id="aba-interacoes" style="display:none">
+    <div class="card">
+      <h2>⚠️ Interações detectadas</h2>
+      <div id="listaInteracoes"></div>
     </div>
   </div>
 </div>
 
+<!-- MODAL MOTIVO PULOU -->
+<div class="modal-overlay" id="modalMotivo" style="display:none">
+  <div class="modal-box">
+    <div class="modal-titulo">⏭️ Dose pulada</div>
+    <div class="modal-sub" id="modalMedNome"></div>
+    <div class="modal-aviso">⚠️ Registrar o motivo é obrigatório. Isso ajuda o médico a entender o histórico.</div>
+    <div class="motivos-grid">
+      <button class="motivo-btn" onclick="selMotivo(this,'😴 Estava dormindo')">😴<br>Estava dormindo</button>
+      <button class="motivo-btn" onclick="selMotivo(this,'🤢 Efeito colateral')">🤢<br>Efeito colateral</button>
+      <button class="motivo-btn" onclick="selMotivo(this,'💊 Sem estoque')">💊<br>Sem estoque</button>
+      <button class="motivo-btn" onclick="selMotivo(this,'🏥 Médico orientou')">🏥<br>Médico orientou</button>
+      <button class="motivo-btn" onclick="selMotivo(this,'😣 Náusea/Vômito')">😣<br>Náusea/Vômito</button>
+      <button class="motivo-btn" onclick="selMotivo(this,'❓ Esqueceu')">❓<br>Esqueceu</button>
+      <button class="motivo-btn" onclick="selMotivo(this,'🍽️ Não comeu ainda')">🍽️<br>Não comeu ainda</button>
+      <button class="motivo-btn" onclick="selMotivo(this,'📍 Estava fora')">📍<br>Estava fora</button>
+    </div>
+    <textarea class="motivo-obs" id="motivoObs" placeholder="Observação adicional (opcional)..."></textarea>
+    <div class="modal-btns">
+      <button class="btn-confirmar" onclick="confirmarPulo()">✅ Confirmar dose pulada</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELA DE ALARME -->
+<div class="alarme-overlay" id="alarmeOverlay" style="display:none">
+  <div class="alarme-icone">💊</div>
+  <div class="alarme-titulo">⏰ Hora do remédio!</div>
+  <div class="alarme-nome" id="alarmeNome"></div>
+  <div class="alarme-dosagem" id="alarmeDosagem"></div>
+  <div class="alarme-hora" id="alarmeHora"></div>
+  <div class="alarme-btns">
+    <button class="btn-alarme-tomar" onclick="alarmeTomarDose()">✅ Tomei agora!</button>
+    <button class="btn-alarme-soneca" onclick="alarmeSoneca()">😴 Lembrar em 15 min</button>
+    <button class="btn-alarme-pular" onclick="alarmePular()">⏭️ Vou pular essa dose</button>
+  </div>
+  <div class="alarme-repeticao" id="alarmeRepeticao">🔔 Repetindo a cada 2 minutos até confirmar</div>
+</div>
+
 <script src="interacoes.js"></script>
 <script>
-  var meds = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+var meds = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+var historico = JSON.parse(localStorage.getItem('historicoMeds') || '[]');
+var avisos = JSON.parse(localStorage.getItem('avisosEnviados') || '[]');
+var familiar = JSON.parse(localStorage.getItem('familiarMeds') || 'null');
+var horariosSelecionados = [];
+var medPulandoId = null;
+var motivoSelecionado = '';
+var sonecaTimers = {};
+var alarmeAtivo = null;
+var alarmeRepetirTimer = null;
+var alarmeAudio = null;
+var medAlarmeAtual = null;
 
-  function verificarValidade(dataStr) {
-    if (!dataStr) return null;
-    var hoje = new Date();
-    hoje.setHours(0,0,0,0);
-    var partes = dataStr.split('-');
-    var validade = new Date(partes[0], partes[1]-1, partes[2]);
-    var diff = Math.floor((validade - hoje) / (1000*60*60*24));
-    if (diff < 0) return { classe:'vencido', texto:'⚠️ Vencido' };
-    if (diff <= 30) return { classe:'vencendo', texto:'⚠️ Vence em ' + diff + ' dias' };
-    return { classe:'', texto:'✓ Válido até ' + dataStr.split('-').reverse().join('/') };
-  }
+// Carregar familiar
+if(familiar) {
+  document.getElementById('familiarNome').value = familiar.nome || '';
+  document.getElementById('familiarTel').value = familiar.tel || '';
+  mostrarFamiliarSalvo();
+}
 
-  function renderAlertas() {
-    var secao = document.getElementById('secaoAlertas');
-    if (meds.length < 2) { secao.innerHTML = ''; return; }
+// ===== SISTEMA DE ALARME =====
+function iniciarSistemaAlarme() {
+  verificarAlarmes();
+  setInterval(verificarAlarmes, 30000); // verifica a cada 30 segundos
+}
 
-    var alertas = verificarInteracoes(meds);
-    if (alertas.length === 0) { secao.innerHTML = ''; return; }
+function verificarAlarmes() {
+  if(alarmeAtivo) return; // já tem alarme tocando
+  var agora = new Date();
+  var horaAtual = agora.getHours().toString().padStart(2,'0') + ':' + agora.getMinutes().toString().padStart(2,'0');
+  var hojeStr = agora.toLocaleDateString('pt-BR');
 
-    var html = '<div class="secao-alertas">';
-    html += '<div class="secao-titulo-alert">⚠️ Alertas de interação medicamentosa</div>';
-    html += '<div class="aviso-geral">ℹ️ Estas informações são orientativas. Consulte sempre o médico ou farmacêutico.</div>';
-
-    alertas.forEach(function(a) {
-      html += '<div class="alerta-interacao ' + a.risco + '">';
-      html += '<div class="alerta-titulo">' + (a.risco === 'ALTO' ? '🔴 Risco Alto' : '🟠 Atenção') + '</div>';
-      html += '<div>' + a.descricao + '</div>';
-      html += '<div class="alerta-meds">Medicamentos: ' + a.medicamentos.join(', ') + '</div>';
-      html += '</div>';
+  meds.forEach(function(med) {
+    if(!med.ativo || !med.horarios) return;
+    med.horarios.forEach(function(horario) {
+      if(horario === horaAtual) {
+        // Verifica se já foi confirmado hoje nesse horário
+        var jaConfirmado = historico.some(function(h) {
+          return h.medId === med.id && h.data === hojeStr && h.hora === horario && (h.status === 'tomou' || h.status === 'pulou');
+        });
+        if(!jaConfirmado && !sonecaTimers[med.id+'_'+horario]) {
+          dispararAlarme(med, horario);
+        }
+      }
     });
-    html += '</div>';
-    secao.innerHTML = html;
-  }
+  });
+}
 
-  function renderizar() {
-    renderAlertas();
-    var lista = document.getElementById('lista');
-    if (meds.length === 0) {
-      lista.innerHTML = '<div class="vazio"><div class="icon">💊</div><p>Nenhum medicamento ainda.</p><p>Toque em + para adicionar.</p></div>';
-      return;
+function dispararAlarme(med, horario) {
+  alarmeAtivo = { med: med, horario: horario };
+  medAlarmeAtual = med;
+
+  // Mostrar tela de alarme
+  document.getElementById('alarmeNome').textContent = med.nome;
+  document.getElementById('alarmeDosagem').textContent = med.dosagem ? 'Dose: ' + med.dosagem + ' — ' + med.via : 'Via: ' + med.via;
+  document.getElementById('alarmeHora').textContent = '🕐 Horário: ' + horario + (med.obs ? ' | ' + med.obs : '');
+  document.getElementById('alarmeOverlay').style.display = 'flex';
+
+  // Som do alarme
+  tocarSomAlarme();
+
+  // Voz falando o remédio
+  setTimeout(function() { falarRemedio(med); }, 800);
+
+  // Repetir a cada 2 minutos se não confirmar
+  alarmeRepetirTimer = setInterval(function() {
+    tocarSomAlarme();
+    falarRemedio(med);
+  }, 120000);
+}
+
+function tocarSomAlarme() {
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep(freq, start, dur, vol) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(vol||0.3, ctx.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + dur);
     }
-    lista.innerHTML = '';
-    meds.forEach(function(m, i) {
-      var val = verificarValidade(m.validade);
-      var div = document.createElement('div');
-      div.className = 'card';
-      div.innerHTML =
-        '<div class="card-header">' +
-          '<div class="card-nome">' + m.nome + '</div>' +
-          '<div class="card-horario">' + m.horario + '</div>' +
-        '</div>' +
-        '<div class="card-info">' +
-          '<span>💊 ' + m.dose + ' · ' + m.via + '</span>' +
-          (m.estoque ? '<span class="estoque-badge">📦 Estoque: ' + m.estoque + ' unidades</span>' : '') +
-          (val ? '<span class="validade-badge ' + val.classe + '">' + val.texto + '</span>' : '') +
-        '</div>' +
-        '<div class="card-acoes">' +
-          '<button class="btn-confirmar' + (m.confirmado ? ' confirmado' : '') + '" onclick="confirmar(' + i + ')">' +
-            (m.confirmado ? '✅ Administrado' : '✓ Confirmar administração') +
-          '</button>' +
-          '<button class="btn-excluir" onclick="excluir(' + i + ')">🗑️</button>' +
-        '</div>';
-      lista.appendChild(div);
-    });
-  }
+    // Melodia de alarme
+    beep(880, 0, 0.15, 0.4);
+    beep(880, 0.2, 0.15, 0.4);
+    beep(1046, 0.4, 0.3, 0.4);
+    beep(880, 0.8, 0.15, 0.4);
+    beep(880, 1.0, 0.15, 0.4);
+    beep(1046, 1.2, 0.3, 0.4);
+    beep(880, 1.6, 0.15, 0.4);
+    beep(880, 1.8, 0.15, 0.4);
+    beep(1175, 2.0, 0.5, 0.4);
+  } catch(e) {}
 
-  function confirmar(i) {
-    meds[i].confirmado = !meds[i].confirmado;
-    localStorage.setItem('medicamentos', JSON.stringify(meds));
-    renderizar();
+  // Vibração
+  if(navigator.vibrate) {
+    navigator.vibrate([500,200,500,200,500,200,1000]);
   }
+}
 
-  function excluir(i) {
-    if (!confirm('Excluir ' + meds[i].nome + '?')) return;
-    meds.splice(i, 1);
-    localStorage.setItem('medicamentos', JSON.stringify(meds));
-    renderizar();
+function falarRemedio(med) {
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var texto = 'Atenção! Está na hora de tomar ' + med.nome + '.';
+  if(med.dosagem) texto += ' A dose é ' + med.dosagem + '.';
+  texto += ' Por favor tome o seu comprimido agora.';
+  var fala = new SpeechSynthesisUtterance(texto);
+  fala.lang = 'pt-BR';
+  fala.rate = 0.9;
+  fala.pitch = 1;
+  fala.volume = 1;
+  // Tenta voz feminina em português
+  var vozes = window.speechSynthesis.getVoices();
+  var vozPT = vozes.find(function(v){ return v.lang.indexOf('pt')!==-1 && v.name.indexOf('female')!==-1; })
+    || vozes.find(function(v){ return v.lang.indexOf('pt')!==-1; });
+  if(vozPT) fala.voice = vozPT;
+  window.speechSynthesis.speak(fala);
+}
+
+function pararAlarme() {
+  if(alarmeRepetirTimer) { clearInterval(alarmeRepetirTimer); alarmeRepetirTimer = null; }
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  if(navigator.vibrate) navigator.vibrate(0);
+  document.getElementById('alarmeOverlay').style.display = 'none';
+  alarmeAtivo = null;
+}
+
+function alarmeTomarDose() {
+  if(!medAlarmeAtual) return;
+  pararAlarme();
+  tomarDose(medAlarmeAtual.id);
+}
+
+function alarmeSoneca() {
+  if(!alarmeAtivo) return;
+  var med = alarmeAtivo.med;
+  var horario = alarmeAtivo.horario;
+  var chave = med.id+'_'+horario;
+  pararAlarme();
+  sonecaTimers[chave] = setTimeout(function() {
+    delete sonecaTimers[chave];
+    dispararAlarme(med, horario);
+  }, 15*60*1000);
+  alert('😴 Soneca ativada! Você será lembrado em 15 minutos.');
+}
+
+function alarmePular() {
+  if(!medAlarmeAtual) return;
+  pararAlarme();
+  abrirModalPulo(medAlarmeAtual.id);
+}
+
+// ===== ABAS =====
+function setAba(aba, btn) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('ativo'); });
+  btn.classList.add('ativo');
+  ['lista','adicionar','historico','familiar','interacoes'].forEach(function(a){
+    document.getElementById('aba-'+a).style.display = a===aba?'':'none';
+  });
+  if(aba==='lista') renderLista();
+  if(aba==='historico') renderHistorico();
+  if(aba==='interacoes') renderInteracoes();
+  if(aba==='familiar') renderAvisos();
+}
+
+// ===== ADESÃO =====
+function calcularAdesao() {
+  var agora = new Date();
+  var trintaDiasAtras = new Date(agora - 30*24*60*60*1000);
+  var tomou=0, pulou=0;
+  historico.forEach(function(h) {
+    var p = h.data.split('/');
+    if(p.length===3) {
+      var d = new Date(p[2]+'-'+p[1]+'-'+p[0]);
+      if(d>=trintaDiasAtras) { if(h.status==='tomou') tomou++; else if(h.status==='pulou') pulou++; }
+    }
+  });
+  var total=tomou+pulou;
+  var pct=total===0?0:Math.round((tomou/total)*100);
+  document.getElementById('adesaoPct').textContent=pct+'%';
+  document.getElementById('adesaoSub').textContent=total===0?'Nenhuma dose registrada ainda':tomou+' doses tomadas de '+total+' nos últimos 30 dias';
+  document.getElementById('adesaoBarra').style.width=pct+'%';
+  renderSemanaGrid();
+}
+
+function renderSemanaGrid() {
+  var dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var agora=new Date();
+  var html='';
+  for(var i=6;i>=0;i--) {
+    var d=new Date(agora-i*24*60*60*1000);
+    var dStr=d.toLocaleDateString('pt-BR');
+    var tomou=0,pulou=0;
+    historico.forEach(function(h){ if(h.data===dStr){ if(h.status==='tomou')tomou++; else if(h.status==='pulou')pulou++; } });
+    var cls='dia-vazio', label='—';
+    if(tomou>0&&pulou===0){cls='dia-tomou';label='✓';}
+    else if(pulou>0&&tomou===0){cls='dia-pulou';label='✗';}
+    else if(tomou>0&&pulou>0){cls='dia-parcial';label='~';}
+    var hoje=i===0?' dia-hoje':'';
+    html+='<div class="semana-dia"><div class="dia-nome">'+dias[d.getDay()]+'</div><div class="dia-circulo '+cls+hoje+'">'+label+'</div></div>';
   }
+  document.getElementById('semanaGrid').innerHTML=html;
+}
 
-  function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
-  function fecharModal() {
-    document.getElementById('modalBg').classList.remove('ativo');
-    document.getElementById('mNome').value = '';
-    document.getElementById('mDose').value = '';
-    document.getElementById('mHorario').value = '';
-    document.getElementById('mEstoque').value = '';
-    document.getElementById('mValidade').value = '';
-    document.getElementById('mVia').value = 'Oral';
+// ===== MEDICAMENTOS =====
+function adicionarHorario() {
+  var h=document.getElementById('horarioInput').value;
+  if(!h){alert('Selecione um horário.');return;}
+  if(horariosSelecionados.indexOf(h)!==-1){alert('Horário já adicionado.');return;}
+  horariosSelecionados.push(h);
+  renderHorariosTags();
+  document.getElementById('horarioInput').value='';
+}
+
+function renderHorariosTags() {
+  document.getElementById('horariosTags').innerHTML=horariosSelecionados.map(function(h,i){
+    return '<div class="horario-tag">'+h+'<button onclick="removerHorario('+i+')">×</button></div>';
+  }).join('');
+}
+
+function removerHorario(i){ horariosSelecionados.splice(i,1); renderHorariosTags(); }
+
+function salvarMed() {
+  var nome=document.getElementById('medNome').value.trim();
+  if(!nome){alert('Digite o nome do medicamento.');return;}
+  var med={
+    id:Date.now(), nome:nome,
+    dosagem:document.getElementById('medDosagem').value.trim(),
+    horarios:horariosSelecionados.slice(),
+    via:document.getElementById('medVia').value,
+    estoque:parseInt(document.getElementById('medEstoque').value)||0,
+    alertaEstoque:parseInt(document.getElementById('medAlertaEstoque').value)||10,
+    validade:document.getElementById('medValidade').value,
+    armazenamento:document.getElementById('medArmazenamento').value,
+    obs:document.getElementById('medObs').value.trim(),
+    ativo:true
+  };
+  meds.push(med);
+  localStorage.setItem('medicamentos',JSON.stringify(meds));
+  document.getElementById('medNome').value='';
+  document.getElementById('medDosagem').value='';
+  document.getElementById('medEstoque').value='';
+  document.getElementById('medValidade').value='';
+  document.getElementById('medObs').value='';
+  horariosSelecionados=[];
+  renderHorariosTags();
+  alert('✅ Medicamento salvo! O alarme vai tocar nos horários cadastrados.');
+  setAba('lista',document.querySelectorAll('.tab')[0]);
+}
+
+function renderLista() {
+  calcularAdesao();
+  var el=document.getElementById('listaMeds');
+  var ativos=meds.filter(function(m){return m.ativo;});
+  if(ativos.length===0){
+    el.innerHTML='<div class="sem-dados">Nenhum medicamento cadastrado.<br>Toque em "Adicionar" para começar.</div>';
+    return;
   }
+  var hoje=new Date().toISOString().split('T')[0];
+  el.innerHTML=ativos.map(function(m){
+    var cls='', alertas=[];
+    if(m.validade&&m.validade<hoje){cls='critico';alertas.push('🚨 VENCIDO!');}
+    else if(m.estoque>0&&m.estoque<=m.alertaEstoque){cls='atencao';alertas.push('⚠️ Estoque baixo: '+m.estoque+' unid.');}
+    var estoqueHtml='';
+    if(m.estoque>=0){
+      var ecls=m.estoque<=m.alertaEstoque?(m.estoque<=3?'critico':'baixo'):'';
+      estoqueHtml='<div class="med-estoque '+ecls+'">📦 Estoque: '+m.estoque+' unid. | Alerta com: '+m.alertaEstoque+'</div>';
+    }
+    return '<div class="med-card '+cls+'">'+
+      '<div class="med-nome">💊 '+m.nome+'</div>'+
+      '<div class="med-info">'+
+        (m.dosagem?'Dose: '+m.dosagem+' | ':'')+
+        'Via: '+m.via+
+        (m.validade?' | Val: '+m.validade.split('-').reverse().join('/'):'')+'<br>'+
+        (m.armazenamento?'🌡️ '+m.armazenamento:'')+'<br>'+
+        (m.obs?'📝 '+m.obs:'')+'<br>'+
+        alertas.join(' ')
+      +'</div>'+
+      '<div class="med-horarios">'+
+        (m.horarios&&m.horarios.length
+          ?m.horarios.map(function(h){return '<span class="med-horario-tag">🔔 '+h+'</span>';}).join('')
+          :'<span style="color:#aaa;font-size:0.8em">Sem horário definido</span>')+
+      '</div>'+
+      estoqueHtml+
+      '<div class="med-acoes" style="margin-top:10px">'+
+        '<button class="btn-tomar" onclick="tomarDose('+m.id+')">✅ Tomou</button>'+
+        '<button class="btn-pular" onclick="abrirModalPulo('+m.id+')">⏭️ Pulou</button>'+
+        '<button class="btn-soneca" onclick="ativarSonecaManual('+m.id+')">😴 +15min</button>'+
+      '</div>'+
+      '<div style="margin-top:8px">'+
+        '<button onclick="excluirMed('+m.id+')" style="width:100%;padding:8px;background:#c62828;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82em">🗑️ Excluir medicamento</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
 
-  function salvar() {
-    var nome = document.getElementById('mNome').value.trim();
-    var horario = document.getElementById('mHorario').value;
-    if (!nome || !horario) { alert('Preencha nome e horário.'); return; }
-    meds.push({
-      nome: nome,
-      dose: document.getElementById('mDose').value.trim(),
-      horario: horario,
-      via: document.getElementById('mVia').value,
-      estoque: document.getElementById('mEstoque').value,
-      validade: document.getElementById('mValidade').value,
-      confirmado: false
-    });
-    localStorage.setItem('medicamentos', JSON.stringify(meds));
-    fecharModal();
-    renderizar();
+function tomarDose(id) {
+  var med=meds.find(function(m){return m.id===id;});
+  if(!med) return;
+  var agora=new Date();
+  historico.unshift({
+    medId:id, medNome:med.nome, status:'tomou',
+    data:agora.toLocaleDateString('pt-BR'),
+    hora:agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+    motivo:'', obs:''
+  });
+  if(med.estoque>0) med.estoque--;
+  localStorage.setItem('medicamentos',JSON.stringify(meds));
+  localStorage.setItem('historicoMeds',JSON.stringify(historico));
+  // Som de confirmação
+  try {
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var osc=ctx.createOscillator(); var g=ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.frequency.value=880; g.gain.setValueAtTime(0.2,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
+    osc.start(); osc.stop(ctx.currentTime+0.5);
+  } catch(e){}
+  alert('✅ '+med.nome+' registrado como tomado!');
+  renderLista();
+}
+
+function ativarSonecaManual(id) {
+  alert('😴 Soneca ativada! Você será lembrado em 15 minutos.');
+  var med=meds.find(function(m){return m.id===id;});
+  if(!med) return;
+  setTimeout(function(){
+    dispararAlarme(med,'manual');
+  }, 15*60*1000);
+}
+
+// ===== MODAL MOTIVO =====
+function abrirModalPulo(id) {
+  var med=meds.find(function(m){return m.id===id;});
+  medPulandoId=id; motivoSelecionado='';
+  document.getElementById('motivoObs').value='';
+  document.getElementById('modalMedNome').textContent=med?'💊 '+med.nome:'';
+  document.querySelectorAll('.motivo-btn').forEach(function(b){b.classList.remove('sel');});
+  document.getElementById('modalMotivo').style.display='flex';
+}
+
+function selMotivo(btn,motivo) {
+  document.querySelectorAll('.motivo-btn').forEach(function(b){b.classList.remove('sel');});
+  btn.classList.add('sel'); motivoSelecionado=motivo;
+}
+
+function confirmarPulo() {
+  if(!motivoSelecionado){alert('⚠️ Selecione o motivo. O registro é obrigatório.');return;}
+  var med=meds.find(function(m){return m.id===medPulandoId;});
+  if(!med) return;
+  var agora=new Date();
+  historico.unshift({
+    medId:medPulandoId, medNome:med.nome, status:'pulou',
+    data:agora.toLocaleDateString('pt-BR'),
+    hora:agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+    motivo:motivoSelecionado,
+    obs:document.getElementById('motivoObs').value.trim()
+  });
+  localStorage.setItem('historicoMeds',JSON.stringify(historico));
+  document.getElementById('modalMotivo').style.display='none';
+  avisarFamiliar(med.nome,motivoSelecionado);
+  alert('⏭️ Dose registrada!\nMotivo: '+motivoSelecionado);
+  renderLista();
+}
+
+// ===== FAMILIAR =====
+function salvarFamiliar() {
+  var nome=document.getElementById('familiarNome').value.trim();
+  var tel=document.getElementById('familiarTel').value.trim().replace(/\D/g,'');
+  if(!nome||!tel){alert('Preencha nome e WhatsApp.');return;}
+  familiar={nome:nome,tel:tel};
+  localStorage.setItem('familiarMeds',JSON.stringify(familiar));
+  mostrarFamiliarSalvo();
+  alert('✅ Familiar salvo! Avisos automáticos ativados.');
+}
+
+function mostrarFamiliarSalvo() {
+  if(!familiar) return;
+  document.getElementById('familiarSalvo').style.display='block';
+  document.getElementById('familiarInfo').innerHTML='👤 '+familiar.nome+'<br>📱 ('+familiar.tel.substring(0,2)+') '+familiar.tel.substring(2);
+}
+
+function avisarFamiliar(medNome,motivo) {
+  if(!familiar) return;
+  var agora=new Date();
+  var hora=agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  var data=agora.toLocaleDateString('pt-BR');
+  var msg='🔔 *CUIDAR — Dose Pulada*\n\n💊 Medicamento: *'+medNome+'*\n⏭️ Motivo: '+motivo+'\n🕐 Horário: '+hora+'\n📅 Data: '+data+'\n\n_Mensagem automática do app Cuidar_';
+  avisos.unshift({medNome:medNome,motivo:motivo,hora:hora,data:data,familiar:familiar.nome});
+  if(avisos.length>20) avisos=avisos.slice(0,20);
+  localStorage.setItem('avisosEnviados',JSON.stringify(avisos));
+  window.open('https://wa.me/55'+familiar.tel+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function testarAviso() {
+  if(!familiar) return;
+  var msg='🔔 *CUIDAR — Teste de Aviso*\n\nOlá '+familiar.nome+'! Este é um teste do sistema de aviso automático do app Cuidar.\n\nQuando uma dose for pulada, você receberá uma mensagem como esta. ✅\n\n_App Cuidar — Cuidado Familiar Inteligente_';
+  window.open('https://wa.me/55'+familiar.tel+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function renderAvisos() {
+  mostrarFamiliarSalvo();
+  var el=document.getElementById('listaAvisos');
+  if(avisos.length===0){el.innerHTML='<div class="sem-dados">Nenhum aviso enviado ainda.</div>';return;}
+  el.innerHTML=avisos.slice(0,10).map(function(a){
+    return '<div class="historico-item"><div class="historico-data">'+a.data+' às '+a.hora+' → '+a.familiar+'</div><div class="status-pulou">⏭️ '+a.medNome+'</div><div class="motivo-badge">'+a.motivo+'</div></div>';
+  }).join('');
+}
+
+function excluirMed(id) {
+  if(!confirm('Excluir este medicamento?')) return;
+  meds=meds.filter(function(m){return m.id!==id;});
+  localStorage.setItem('medicamentos',JSON.stringify(meds));
+  renderLista();
+}
+
+function renderHistorico() {
+  var el=document.getElementById('listaHistorico');
+  if(historico.length===0){el.innerHTML='<div class="sem-dados">Nenhum registro ainda.</div>';return;}
+  el.innerHTML=historico.slice(0,50).map(function(h){
+    var cls=h.status==='tomou'?'status-tomou':'status-pulou';
+    var icon=h.status==='tomou'?'✅':'⏭️';
+    return '<div class="historico-item"><div class="historico-data">'+h.data+' às '+h.hora+'</div><div class="historico-status '+cls+'">'+icon+' '+h.medNome+'</div>'+(h.motivo?'<div class="motivo-badge">'+h.motivo+'</div>':'')+(h.obs?'<div style="font-size:0.8em;color:#888;margin-top:4px">📝 '+h.obs+'</div>':'')+'</div>';
+  }).join('');
+}
+
+function renderInteracoes() {
+  var el=document.getElementById('listaInteracoes');
+  if(meds.length<2){el.innerHTML='<div class="sem-dados">Cadastre pelo menos 2 medicamentos para verificar interações.</div>';return;}
+  var alertas=[];
+  if(typeof verificarInteracao==='function'){
+    for(var i=0;i<meds.length;i++){
+      for(var j=i+1;j<meds.length;j++){
+        var r=verificarInteracao(meds[i].nome,meds[j].nome);
+        if(r) alertas.push({med1:meds[i].nome,med2:meds[j].nome,risco:r});
+      }
+    }
   }
+  if(alertas.length===0){el.innerHTML='<div style="color:#2e7d32;text-align:center;padding:20px">✅ Nenhuma interação perigosa detectada.</div>';return;}
+  el.innerHTML=alertas.map(function(a){return '<div class="interacao-alerta">⚠️ <b>'+a.med1+'</b> + <b>'+a.med2+'</b><br>'+a.risco+'</div>';}).join('');
+}
 
-  renderizar();
+// Iniciar sistema de alarme
+renderLista();
+iniciarSistemaAlarme();
 </script>
 </body>
 </html>
