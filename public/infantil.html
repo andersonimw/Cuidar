@@ -269,6 +269,18 @@
     }
   });
 
+  socket.on('reconnect', function() {
+    if(familiaId && usuario) {
+      socket.emit('entrarFamilia', { familiaId: familiaId, nome: usuario.nome });
+    }
+  });
+
+  socket.io.on('reconnect', function() {
+    if(familiaId && usuario) {
+      socket.emit('entrarFamilia', { familiaId: familiaId, nome: usuario.nome });
+    }
+  });
+
   socket.on('mensagem', function(dados) {
     if(dados.nome !== (usuario ? usuario.nome : '')) {
       adicionarMsgChat(dados, false);
