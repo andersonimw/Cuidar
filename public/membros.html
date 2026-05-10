@@ -297,6 +297,33 @@
     alert('✅ ' + nome + ' adicionado!\nAguarde alguns segundos e reabra esta tela para ver o ID médico gerado.');
   }
 
+  // Gerar IDs médicos para membros que não têm
+  function gerarIdsMedicos() {
+    var familiaId = localStorage.getItem('familiaId') || '';
+    if(!familiaId) return;
+    fetch('/api/membros/gerar-id-medico', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ familia_id: familiaId })
+    }).then(function(r){ return r.json(); })
+    .then(function(r){
+      if(r.ok) {
+        // Atualizar IDs médicos nos perfis locais
+        r.membros.forEach(function(m) {
+          perfis.forEach(function(p) {
+            if(p.membroIdBanco === m.id || p.nome === m.nome) {
+              p.idMedico = m.id_medico;
+            }
+          });
+        });
+        localStorage.setItem('perfisFamily', JSON.stringify(perfis));
+        renderizar();
+      }
+    }).catch(function(){});
+  }
+
+  // Chamar ao abrir a tela
+  gerarIdsMedicos();
   renderizar();
 </script>
 </body>
