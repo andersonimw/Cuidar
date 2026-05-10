@@ -394,6 +394,27 @@ Pergunta: ${pergunta}`;
 });
 
 
+// ===== GERAR ID MÉDICO PARA MEMBROS SEM ID =====
+app.post('/api/membros/gerar-id-medico', async (req, res) => {
+  try {
+    const { familia_id } = req.body;
+    const membros = await pool.query(
+      'SELECT * FROM membros WHERE familia_id=$1 AND id_medico IS NULL', [familia_id]
+    );
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    for(const m of membros.rows) {
+      const prefix = m.nome.replace(/[^a-zA-Z]/g,'').toUpperCase().substring(0,3) || 'MBR';
+      let idMedico = prefix + '-';
+      for(let i=0; i<5; i++) idMedico += chars.charAt(Math.floor(Math.random()*chars.length));
+      await pool.query('UPDATE membros SET id_medico=$1 WHERE id=$2', [idMedico, m.id]);
+    }
+    const atualizados = await pool.query(
+      'SELECT id, nome, id_medico FROM membros WHERE familia_id=$1', [familia_id]
+    );
+    res.json({ ok: true, membros: atualizados.rows });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
 // ===== LISTAR MEMBROS DA FAMÍLIA PARA MÉDICO =====
 app.get('/api/familia/:codigo/membros', async (req, res) => {
   try {
