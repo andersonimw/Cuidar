@@ -277,11 +277,27 @@
   }
 
   function excluir(i) {
-    if (!confirm('Excluir ' + vacinas[i].nome + '?')) return;
+    var vac = vacinas[i];
+    if(!vac) return;
+    if(!confirm("Excluir " + vac.nome + "?")) return;
+    var dbId = vac.dbId || null;
     vacinas.splice(i, 1);
     localStorage.setItem(_chaveVacinas, JSON.stringify(vacinas));
+    if(dbId) {
+      fetch("/api/vacinas/excluir", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id: dbId })
+      });
+    }
     renderizar();
   }
+
+
+
+
+
+
 
   function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
   function fecharModal() {
@@ -336,7 +352,30 @@
     renderLista();
   }
 
-  renderizar();
+  function carregarDoBANCO() {
+    var familiaId = localStorage.getItem("familiaId") || "";
+    if(!familiaId) { renderizar(); return; }
+    fetch("/api/vacinas/" + familiaId)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      vacinas = [];
+      if(r.ok && r.vacinas && r.vacinas.length > 0) {
+        r.vacinas.forEach(function(v) {
+          vacinas.push({
+            dbId: v.id,
+            nome: v.nome,
+            data: v.data,
+            doses: v.doses,
+            status: v.status,
+            obs: v.obs || ""
+          });
+        });
+        localStorage.setItem(_chaveVacinas, JSON.stringify(vacinas));
+      }
+      renderizar();
+    }).catch(function(){ renderizar(); });
+  }
+  carregarDoBANCO();
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>

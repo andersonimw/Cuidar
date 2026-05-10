@@ -352,6 +352,13 @@ app.post('/api/vacinas/salvar', async (req, res) => {
     res.json({ ok: true, vacina: r.rows[0] });
   } catch(e) { res.json({ ok: false, erro: e.message }); }
 });
+app.post('/api/vacinas/excluir', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM vacinas WHERE id=$1', [req.body.id]);
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
 
 
 // ===== ASSISTENTE IA GEMINI =====
