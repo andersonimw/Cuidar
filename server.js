@@ -13,7 +13,7 @@ app.use(express.static('public'));
 // Conexão MongoDB
 const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://cuidar_user:Cuidar2026!@cluster0.1xovffx.mongodb.net/cuidar?appName=Cluster0';
 
-mongoose.connect(MONGO_URL)
+mongoose.connect(MONGO_URL, { serverSelectionTimeoutMS: 30000, connectTimeoutMS: 30000 })
   .then(() => console.log('✅ MongoDB conectado!'))
   .catch(err => console.log('❌ Erro MongoDB:', err));
 
