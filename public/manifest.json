@@ -1,0 +1,18 @@
+{
+  "name": "CD+ Cuidado Digital",
+  "short_name": "CD+",
+  "description": "Cuidado familiar inteligente",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a1628",
+  "theme_color": "#00e676",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

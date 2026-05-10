@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cuidar</title>
+<title>CD+</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#00e676">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CD+">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: sans-serif; background:#f0f4f8; color:#333; }
@@ -200,5 +206,27 @@
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>
+<script>
+  if("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").then(function(reg) {
+      console.log("CD+ SW registrado:", reg.scope);
+      // Pedir permissão de notificação
+      if("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission().then(function(p) {
+          console.log("Notificação:", p);
+        });
+      }
+      // Enviar medicamentos para o SW agendar alarmes
+      var meds = JSON.parse(localStorage.getItem("medicamentos_usuario_principal") || "[]");
+      if(meds.length > 0 && reg.active) {
+        meds.forEach(function(med) {
+          if(med.ativo && med.horarios && med.horarios.length > 0) {
+            reg.active.postMessage({ tipo: "agendarMedicamento", med: med });
+          }
+        });
+      }
+    }).catch(function(e) { console.log("SW erro:", e); });
+  }
+</script>
 </body>
 </html>
