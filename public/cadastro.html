@@ -264,6 +264,8 @@
     localStorage.setItem('familiaNome', familia);
 
     // Mostrar QR Code
+    salvarFamiliaDB(familiaIdGerado, familia);
+    salvarMembroDB(familiaIdGerado, nome, relacaoSelecionada||'Admin', tel, true);
     document.getElementById('passo-criar-1').style.display = 'none';
     document.getElementById('passo-criar-2').style.display = 'block';
     document.getElementById('codigoExibido').textContent = familiaIdGerado;
@@ -363,6 +365,7 @@
     localStorage.setItem('familiaId', codigo);
     localStorage.setItem('familiaNome', familiaNome);
 
+    salvarMembroDB(codigo, nome, relacaoSelecionada||'Familiar', tel, false);
     document.getElementById('familiaEncontrada').textContent = familiaNome;
     document.getElementById('passo-entrar-1').style.display = 'none';
     document.getElementById('passo-entrar-2').style.display = 'block';
