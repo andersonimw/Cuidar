@@ -151,8 +151,23 @@
 </div>
 
 <script>
-  var familiaIdAtual = '';
-  var nomeMedicoAtual = '';
+  var familiaIdAtual = sessionStorage.getItem('medicoFamiliaId') || '';
+  var nomeMedicoAtual = sessionStorage.getItem('medicoNome') || '';
+
+  // Restaurar sessão se existir
+  if(familiaIdAtual && nomeMedicoAtual) {
+    document.querySelector('.loading') || document.getElementById('formAcesso').insertAdjacentHTML('beforeend', '<div class="loading">🔍 Restaurando sessão...</div>');
+    fetch('/api/medico/' + familiaIdAtual)
+      .then(function(r){ return r.json(); })
+      .then(function(r){
+        var loading = document.querySelector('.loading');
+        if(loading) loading.remove();
+        if(r.ok) renderPainel(r, nomeMedicoAtual);
+      }).catch(function(){
+        var loading = document.querySelector('.loading');
+        if(loading) loading.remove();
+      });
+  }
 
   function acessar() {
     var nome = document.getElementById('nomeMedico').value.trim();
@@ -161,6 +176,8 @@
     if(!id){ alert('Digite o ID do paciente.'); return; }
 
     nomeMedicoAtual = nome;
+    sessionStorage.setItem('medicoFamiliaId', id);
+    sessionStorage.setItem('medicoNome', nome);
     document.getElementById('msgErro').style.display = 'none';
     document.getElementById('formAcesso').innerHTML += '<div class="loading">🔍 Buscando dados...</div>';
 
@@ -301,6 +318,8 @@
 
   function novoAcesso() {
     familiaIdAtual = '';
+    sessionStorage.removeItem('medicoFamiliaId');
+    sessionStorage.removeItem('medicoNome');
     document.getElementById('formAcesso').style.display = 'block';
     document.getElementById('painelMedico').classList.remove('ativo');
     document.getElementById('idPaciente').value = '';
