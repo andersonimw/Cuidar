@@ -14,9 +14,9 @@
   .logo h1 { color:white; font-size:2em; font-weight:bold; }
   .logo p { color:rgba(255,255,255,0.7); font-size:0.95em; margin-top:4px; }
   .card { background:white; border-radius:24px; padding:24px; width:100%; max-width:420px; }
-  .tabs { display:flex; gap:8px; margin-bottom:24px; }
-  .tab { flex:1; padding:12px; border:2px solid #e0e0e0; border-radius:12px; background:white;
-         font-size:0.9em; cursor:pointer; text-align:center; color:#555; font-weight:bold; }
+  .tabs { display:flex; gap:6px; margin-bottom:24px; }
+  .tab { flex:1; padding:10px 6px; border:2px solid #e0e0e0; border-radius:12px; background:white;
+         font-size:0.78em; cursor:pointer; text-align:center; color:#555; font-weight:bold; line-height:1.3; }
   .tab.ativo { border-color:#1a237e; background:#1a237e; color:white; }
   .secao { display:none; }
   .secao.ativa { display:block; }
@@ -40,8 +40,12 @@
   .tipo-btn.sel { border-color:#1a237e; background:#e8eaf6; color:#1a237e; font-weight:bold; }
   .qr-container { text-align:center; padding:16px 0; }
   .qr-box { background:#f5f5f5; border-radius:16px; padding:20px; display:inline-block; margin-bottom:12px; }
-  .codigo { font-size:1.4em; font-weight:bold; color:#1a237e; background:#e8eaf6;
-    padding:10px 20px; border-radius:10px; letter-spacing:4px; margin-bottom:8px; display:inline-block; }
+  .codigo { font-size:1.3em; font-weight:bold; color:#1a237e; background:#e8eaf6;
+    padding:10px 20px; border-radius:10px; letter-spacing:3px; margin-bottom:8px; display:inline-block; }
+  .id-pessoal-box { background:#e8f5e9; border-radius:16px; padding:16px; margin-bottom:16px; text-align:center; }
+  .id-pessoal-box .label { font-size:0.8em; color:#2e7d32; font-weight:bold; margin-bottom:6px; }
+  .id-pessoal-box .id { font-size:1.4em; font-weight:bold; color:#1a237e; letter-spacing:3px; }
+  .id-pessoal-box .aviso { font-size:0.75em; color:#555; margin-top:8px; line-height:1.5; }
   .instrucao { font-size:0.82em; color:#888; line-height:1.6; margin-bottom:16px; }
   .sucesso { text-align:center; padding:10px 0; }
   .sucesso .icon { font-size:3.5em; margin-bottom:12px; }
@@ -65,6 +69,8 @@
   .scanner-area .si { font-size:2.5em; margin-bottom:8px; }
   #scannerContainer { margin-top:12px; }
   #scannerContainer video { width:100%; border-radius:12px; }
+  .recuperar-box { background:#fff8e1; border-radius:16px; padding:20px; margin-bottom:16px; }
+  .recuperar-box p { font-size:0.85em; color:#555; line-height:1.6; margin-bottom:12px; }
 </style>
 </head>
 <body>
@@ -79,6 +85,7 @@
   <div class="tabs">
     <button class="tab ativo" onclick="setTab('criar',this)">👨‍👩‍👧 Criar família</button>
     <button class="tab" onclick="setTab('entrar',this)">📲 Entrar em família</button>
+    <button class="tab" onclick="setTab('recuperar',this)">🔑 Já tenho ID</button>
   </div>
 
   <!-- CRIAR FAMÍLIA -->
@@ -120,14 +127,19 @@
     </div>
 
     <div id="passo-criar-2" style="display:none">
+      <div class="id-pessoal-box">
+        <div class="label">🔑 SEU ID PESSOAL — ANOTE AGORA</div>
+        <div class="id" id="idPessoalExibido"></div>
+        <div class="aviso">⚠️ Guarde este ID. Ele é sua chave pessoal.<br>Com ele você recupera seu acesso em qualquer celular.</div>
+      </div>
       <div class="qr-container">
-        <p style="font-size:0.9em;color:#555;margin-bottom:12px;text-align:center">
-          Mostre este QR Code para outros familiares entrarem:
+        <p style="font-size:0.85em;color:#555;margin-bottom:8px;text-align:center">
+          Código da família para outros membros entrarem:
         </p>
         <div class="qr-box"><div id="qrcode"></div></div>
         <div class="codigo" id="codigoExibido"></div>
         <div class="instrucao">
-          📱 Compartilhe o código acima com familiares.<br>
+          📱 Compartilhe o código da família com familiares.<br>
           Eles abrem o app → "Entrar em família" → digitam o código.
         </div>
       </div>
@@ -170,9 +182,9 @@
         <div class="si">📷</div>
         <p><b>Escanear QR Code</b> da família</p>
       </div>
-      <div class="ou">ou digite o código</div>
+      <div class="ou">ou digite o código da família</div>
       <div class="codigo-manual">
-        <input type="text" id="codigoManual" placeholder="Ex: BARR8183" maxlength="12">
+        <input type="text" id="codigoManual" placeholder="Ex: BARR9598" maxlength="12">
         <button onclick="entrarPorCodigo()">Entrar</button>
       </div>
       <div id="erroEntrar" style="margin-top:10px"></div>
@@ -187,10 +199,30 @@
         <div class="icon">🎉</div>
         <h2>Bem-vindo à família!</h2>
         <div class="nome-familia" id="familiaEncontrada"></div>
-        <p>Você foi adicionado com sucesso.<br>Receberá alertas de todos os familiares.</p>
+        <p>Você foi adicionado com sucesso.</p>
+      </div>
+      <div class="id-pessoal-box">
+        <div class="label">🔑 SEU ID PESSOAL — ANOTE AGORA</div>
+        <div class="id" id="idPessoalEntrar"></div>
+        <div class="aviso">⚠️ Guarde este ID. Com ele você recupera seu acesso em qualquer celular sem precisar pedir o código da família novamente.</div>
       </div>
       <button class="btn-principal" onclick="entrarNoApp()">✅ Entrar no app</button>
     </div>
+  </div>
+
+  <!-- JÁ TENHO ID -->
+  <div class="secao" id="sec-recuperar">
+    <div class="recuperar-box">
+      <p>Digite seu <b>ID pessoal</b> (ex: AND-HP4RS) para recuperar seu acesso. O app vai te reconhecer automaticamente.</p>
+    </div>
+    <div class="form-group">
+      <label>Seu ID pessoal *</label>
+      <div class="codigo-manual">
+        <input type="text" id="idRecuperar" placeholder="Ex: AND-HP4RS" maxlength="12" style="text-transform:uppercase;letter-spacing:2px">
+        <button onclick="recuperarPorId()">Entrar</button>
+      </div>
+    </div>
+    <div id="erroRecuperar" style="margin-top:10px"></div>
   </div>
 </div>
 
@@ -261,13 +293,9 @@
     var familia = document.getElementById('criarFamilia').value.trim();
     var tel = document.getElementById('criarTel').value.trim().replace(/\D/g,'');
     var erroEl = document.getElementById('erroCriar');
-
     if(!nome){ erroEl.innerHTML='<div class="erro-box">Digite seu nome.</div>'; return; }
     if(!familia){ erroEl.innerHTML='<div class="erro-box">Digite o nome da família.</div>'; return; }
-
     erroEl.innerHTML = '<div class="loading">⏳ Criando família...</div>';
-
-    // Tenta criar com até 3 códigos diferentes
     tentarCriarFamilia(familia, nome, tel, erroEl, 3);
   }
 
@@ -285,12 +313,10 @@
     .then(function(r){ return r.json(); })
     .then(function(r){
       if(!r.ok) {
-        // Código duplicado — tenta novamente com novo código
         tentarCriarFamilia(familia, nome, tel, erroEl, tentativas - 1);
         return;
       }
       codigoGerado = r.familia.codigo;
-      // Família criada — agora cria o membro principal
       return fetch('/api/membros/salvar', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
@@ -308,28 +334,19 @@
         var membroIdBanco = r2.ok ? r2.membro.id : null;
         var idMedico = r2.ok ? r2.membro.id_medico : null;
         salvarSessao({
-          usuario: {
-            nome: nome,
-            familia: familia,
-            familiaId: codigoGerado,
-            relacao: relSel || 'Admin',
-            tipo: tipoSel,
-            tel: tel,
-            admin: true,
-            membroIdBanco: membroIdBanco,
-            idMedico: idMedico
-          },
-          familiaId: codigoGerado,
-          familiaNome: familia,
-          membroIdBanco: membroIdBanco,
-          idMedico: idMedico
+          usuario: { nome:nome, familia:familia, familiaId:codigoGerado,
+            relacao:relSel||'Admin', tipo:tipoSel, tel:tel, admin:true,
+            membroIdBanco:membroIdBanco, idMedico:idMedico },
+          familiaId: codigoGerado, familiaNome: familia,
+          membroIdBanco: membroIdBanco, idMedico: idMedico
         });
         erroEl.innerHTML = '';
+        document.getElementById('idPessoalExibido').textContent = idMedico || '';
         mostrarQR();
       });
     })
     .catch(function() {
-      erroEl.innerHTML = '<div class="erro-box">❌ Erro de conexão. Verifique sua internet.</div>';
+      erroEl.innerHTML = '<div class="erro-box">❌ Erro de conexão.</div>';
     });
   }
 
@@ -339,7 +356,7 @@
     document.getElementById('codigoExibido').textContent = codigoGerado;
     document.getElementById('qrcode').innerHTML = '';
     new QRCode(document.getElementById('qrcode'), {
-      text: codigoGerado, width:180, height:180,
+      text: codigoGerado, width:160, height:160,
       colorDark:'#1a237e', colorLight:'#ffffff',
       correctLevel: QRCode.CorrectLevel.H
     });
@@ -347,7 +364,7 @@
 
   function compartilharCodigo() {
     var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || '{}');
-    var msg = '💚 *Cuidar App — Convite Familiar*\n\nOlá! ' + usuario.nome + ' convidou você para a *' + usuario.familia + '*\n\n📲 Código: *' + codigoGerado + '*\n\n1. Abra o app Cuidar\n2. Toque em "Entrar em família"\n3. Digite: *' + codigoGerado + '*\n\n_App Cuidar — Cuidado Familiar Inteligente_';
+    var msg = '💚 *Cuidar App — Convite Familiar*\n\nOlá! ' + usuario.nome + ' convidou você para a *' + usuario.familia + '*\n\n📲 Código da família: *' + codigoGerado + '*\n\n1. Abra o app Cuidar\n2. Toque em "Entrar em família"\n3. Digite: *' + codigoGerado + '*\n\n_App Cuidar — Cuidado Familiar Inteligente_';
     if(navigator.share) navigator.share({ text: msg });
     else window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
   }
@@ -357,12 +374,9 @@
     var codigo = document.getElementById('codigoManual').value.trim().toUpperCase();
     var tel = document.getElementById('entrarTel').value.trim().replace(/\D/g,'');
     var erroEl = document.getElementById('erroEntrar');
-
     if(!nome){ erroEl.innerHTML='<div class="erro-box">Digite seu nome.</div>'; return; }
     if(!codigo){ erroEl.innerHTML='<div class="erro-box">Digite o código da família.</div>'; return; }
-
     erroEl.innerHTML = '<div class="loading">⏳ Buscando família...</div>';
-
     fetch('/api/familia/' + codigo)
     .then(function(r){ return r.json(); })
     .then(function(r){
@@ -375,12 +389,9 @@
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
-          familia_id: codigo,
-          nome: nome,
+          familia_id: codigo, nome: nome,
           relacao: relEntrar || 'Familiar',
-          tipo: tipoEntrar,
-          tel: tel,
-          admin: false
+          tipo: tipoEntrar, tel: tel, admin: false
         })
       })
       .then(function(r2){ return r2.json(); })
@@ -388,26 +399,64 @@
         var membroIdBanco = r2.ok ? r2.membro.id : null;
         var idMedico = r2.ok ? r2.membro.id_medico : null;
         salvarSessao({
-          usuario: {
-            nome: nome,
-            familia: familiaNome,
-            familiaId: codigo,
-            relacao: relEntrar || 'Familiar',
-            tipo: tipoEntrar,
-            tel: tel,
-            admin: false,
-            membroIdBanco: membroIdBanco,
-            idMedico: idMedico
-          },
-          familiaId: codigo,
-          familiaNome: familiaNome,
-          membroIdBanco: membroIdBanco,
-          idMedico: idMedico
+          usuario: { nome:nome, familia:familiaNome, familiaId:codigo,
+            relacao:relEntrar||'Familiar', tipo:tipoEntrar, tel:tel, admin:false,
+            membroIdBanco:membroIdBanco, idMedico:idMedico },
+          familiaId: codigo, familiaNome: familiaNome,
+          membroIdBanco: membroIdBanco, idMedico: idMedico
         });
         erroEl.innerHTML = '';
+        document.getElementById('idPessoalEntrar').textContent = idMedico || '';
         document.getElementById('familiaEncontrada').textContent = familiaNome;
         document.getElementById('passo-entrar-1').style.display = 'none';
         document.getElementById('passo-entrar-2').style.display = 'block';
+      });
+    })
+    .catch(function(){
+      erroEl.innerHTML = '<div class="erro-box">❌ Erro de conexão.</div>';
+    });
+  }
+
+  // RECUPERAR POR ID PESSOAL
+  function recuperarPorId() {
+    var id = document.getElementById('idRecuperar').value.trim().toUpperCase();
+    var erroEl = document.getElementById('erroRecuperar');
+    if(!id){ erroEl.innerHTML='<div class="erro-box">Digite seu ID pessoal.</div>'; return; }
+    erroEl.innerHTML = '<div class="loading">⏳ Buscando seu perfil...</div>';
+    fetch('/api/medico/' + id)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r.ok || !r.membro){
+        erroEl.innerHTML = '<div class="erro-box">❌ ID não encontrado. Verifique e tente novamente.</div>';
+        return;
+      }
+      var membro = r.membro;
+      var familiaId = membro.familia_id;
+      // Buscar nome da família
+      return fetch('/api/familia/' + familiaId)
+      .then(function(r2){ return r2.json(); })
+      .then(function(r2){
+        var familiaNome = r2.ok ? r2.familia.nome : familiaId;
+        salvarSessao({
+          usuario: {
+            nome: membro.nome,
+            familia: familiaNome,
+            familiaId: familiaId,
+            relacao: membro.relacao || 'Familiar',
+            tipo: membro.tipo || 'adulto',
+            tel: membro.tel || '',
+            admin: membro.admin || false,
+            membroIdBanco: membro.id,
+            idMedico: membro.id_medico
+          },
+          familiaId: familiaId,
+          familiaNome: familiaNome,
+          membroIdBanco: membro.id,
+          idMedico: membro.id_medico
+        });
+        erroEl.innerHTML = '';
+        alert('✅ Bem-vindo de volta, ' + membro.nome + '!');
+        entrarNoApp();
       });
     })
     .catch(function(){
@@ -421,9 +470,7 @@
     container.style.display = 'block';
     navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' } })
     .then(function(stream) {
-      scannerStream = stream;
-      video.srcObject = stream;
-      video.play();
+      scannerStream = stream; video.srcObject = stream; video.play();
       scannerInterval = setInterval(function() {
         if(video.readyState === video.HAVE_ENOUGH_DATA) {
           var canvas = document.createElement('canvas');
@@ -432,11 +479,7 @@
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           var code = jsQR(imageData.data, imageData.width, imageData.height);
-          if(code) {
-            pararScanner();
-            document.getElementById('codigoManual').value = code.data;
-            entrarPorCodigo();
-          }
+          if(code) { pararScanner(); document.getElementById('codigoManual').value = code.data; entrarPorCodigo(); }
         }
       }, 500);
     })
