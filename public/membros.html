@@ -11,232 +11,184 @@
   header a { color:white; text-decoration:none; font-size:1.4em; }
   header h1 { font-size:1.2em; flex:1; }
   .conteudo { padding:16px; padding-bottom:80px; }
-
-  .info-box { background:#e8f5e9; border-left:4px solid #2e7d32; padding:12px 16px;
-              border-radius:0 12px 12px 0; font-size:0.85em; color:#2e7d32; margin-bottom:16px; }
-
-  .perfil-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px;
-                 box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; align-items:center; gap:14px;
-                 cursor:pointer; border:3px solid transparent; transition:all 0.2s; }
-  .perfil-card.ativo { border-color:#2e7d32; background:#e8f5e9; }
-  .perfil-card:active { transform:scale(0.98); }
-  .perfil-avatar { width:56px; height:56px; border-radius:50%; display:flex; align-items:center;
-                   justify-content:center; font-size:1.8em; flex-shrink:0; }
-  .avatar-adulto { background:#e3f2fd; }
-  .avatar-idoso { background:#fff3e0; }
-  .avatar-crianca { background:#f3e5f5; }
-  .perfil-info { flex:1; }
-  .perfil-nome { font-weight:bold; font-size:1em; color:#333; }
-  .perfil-rel { font-size:0.8em; color:#888; margin-top:2px; }
-  .perfil-tipo { font-size:0.72em; padding:2px 8px; border-radius:20px; display:inline-block; margin-top:4px; }
-  .tipo-adulto { background:#e3f2fd; color:#1565c0; }
-  .tipo-idoso { background:#fff3e0; color:#e65100; }
-  .tipo-crianca { background:#f3e5f5; color:#6a1b9a; }
-  .ativo-badge { background:#2e7d32; color:white; font-size:0.72em; padding:2px 10px; border-radius:20px; }
-  .perfil-acoes { display:flex; flex-direction:column; gap:6px; }
-  .btn-selecionar { padding:8px 14px; background:#2e7d32; color:white; border:none; border-radius:8px; font-size:0.82em; cursor:pointer; }
-  .btn-excluir-perfil { padding:8px 14px; background:#ffebee; color:#c62828; border:none; border-radius:8px; font-size:0.82em; cursor:pointer; }
-
-  .btn-add { width:100%; padding:16px; background:white; border:2px dashed #2e7d32; color:#2e7d32;
-             border-radius:16px; font-size:1em; cursor:pointer; margin-bottom:12px; font-weight:bold; }
-
-  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-           background:rgba(0,0,0,0.5); z-index:100; align-items:flex-end; justify-content:center; }
+  .info-box { background:#e8f5e9; border-left:4px solid #2e7d32; padding:12px 16px; border-radius:0 12px 12px 0; font-size:0.85em; color:#2e7d32; margin-bottom:16px; }
+  .perfil-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; align-items:center; gap:14px; border:3px solid transparent; }
+  .perfil-card.ativo { border-color:#2e7d32; background:#f1f8f1; }
+  .avatar { width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8em; flex-shrink:0; }
+  .av-adulto { background:#e3f2fd; }
+  .av-idoso { background:#fff3e0; }
+  .av-crianca { background:#f3e5f5; }
+  .info { flex:1; }
+  .nome { font-weight:bold; font-size:1em; }
+  .rel { font-size:0.8em; color:#888; margin-top:2px; }
+  .tipo-badge { font-size:0.72em; padding:2px 8px; border-radius:20px; display:inline-block; margin-top:4px; }
+  .tb-adulto { background:#e3f2fd; color:#1565c0; }
+  .tb-idoso { background:#fff3e0; color:#e65100; }
+  .tb-crianca { background:#f3e5f5; color:#6a1b9a; }
+  .ativo-badge { background:#2e7d32; color:white; font-size:0.72em; padding:2px 10px; border-radius:20px; margin-left:4px; }
+  .id-medico { margin-top:6px; background:#e8eaf6; border-radius:8px; padding:4px 10px; display:inline-flex; align-items:center; gap:6px; }
+  .id-medico span { font-size:0.75em; color:#1a237e; font-family:monospace; letter-spacing:1px; }
+  .id-medico button { background:none; border:none; cursor:pointer; font-size:0.85em; }
+  .acoes { display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+  .btn-sel { padding:8px 14px; background:#2e7d32; color:white; border:none; border-radius:8px; font-size:0.82em; cursor:pointer; }
+  .btn-sel:disabled { background:#aaa; }
+  .btn-exc { padding:8px 14px; background:#ffebee; color:#c62828; border:none; border-radius:8px; font-size:0.82em; cursor:pointer; }
+  .btn-add { width:100%; padding:16px; background:white; border:2px dashed #2e7d32; color:#2e7d32; border-radius:16px; font-size:1em; cursor:pointer; margin-bottom:12px; font-weight:bold; }
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; align-items:flex-end; justify-content:center; }
   .modal.ativo { display:flex; }
   .modal-box { background:white; border-radius:24px 24px 0 0; padding:24px; width:100%; max-height:85vh; overflow-y:auto; }
   .modal-titulo { font-size:1.1em; font-weight:bold; color:#2e7d32; margin-bottom:16px; text-align:center; }
-
   .form-group { margin-bottom:14px; }
   .form-group label { font-size:0.85em; color:#555; font-weight:bold; display:block; margin-bottom:6px; }
   .form-group input, .form-group select { width:100%; padding:12px; border:1.5px solid #ddd; border-radius:10px; font-size:0.95em; outline:none; }
-  .form-group input:focus, .form-group select:focus { border-color:#2e7d32; }
-
   .tipos-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
-  .tipo-btn { padding:12px 8px; border:2px solid #eee; border-radius:12px; background:white;
-              font-size:0.82em; cursor:pointer; text-align:center; transition:all 0.2s; }
-  .tipo-btn .tipo-icon { font-size:1.8em; display:block; margin-bottom:4px; }
+  .tipo-btn { padding:12px 8px; border:2px solid #eee; border-radius:12px; background:white; font-size:0.82em; cursor:pointer; text-align:center; }
+  .tipo-btn .ti { font-size:1.8em; display:block; margin-bottom:4px; }
   .tipo-btn.sel { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; font-weight:bold; }
-
-  .btn-salvar { width:100%; padding:16px; background:#2e7d32; color:white; border:none;
-                border-radius:12px; font-size:1em; font-weight:bold; cursor:pointer; }
-  .btn-cancelar { width:100%; padding:12px; background:#eee; color:#555; border:none;
-                  border-radius:12px; font-size:0.95em; cursor:pointer; margin-top:8px; }
-
-  .sem-perfis { text-align:center; color:#bbb; padding:30px; font-size:0.9em; }
+  .btn-salvar { width:100%; padding:16px; background:#2e7d32; color:white; border:none; border-radius:12px; font-size:1em; font-weight:bold; cursor:pointer; }
+  .btn-cancelar { width:100%; padding:12px; background:#eee; color:#555; border:none; border-radius:12px; font-size:0.95em; cursor:pointer; margin-top:8px; }
+  .loading { text-align:center; color:#888; padding:20px; }
 </style>
 </head>
 <body>
-
 <header>
   <a href="index.html">←</a>
   <h1>👥 Perfis Familiares</h1>
 </header>
-
 <div class="conteudo">
-
-  <div class="info-box">
-    💡 Selecione um perfil para gerenciar a saúde de cada membro da família separadamente.
-  </div>
-
-  <div id="listaPerfis"></div>
-
+  <div class="info-box">💡 Selecione um perfil para gerenciar a saúde de cada membro separadamente.</div>
+  <div id="listaPerfis"><div class="loading">Carregando perfis...</div></div>
   <button class="btn-add" onclick="abrirModal()">➕ Adicionar novo membro</button>
-
 </div>
 
-<!-- MODAL NOVO PERFIL -->
 <div class="modal" id="modal">
   <div class="modal-box">
-    <div class="modal-titulo">➕ Novo Membro Familiar</div>
-
+    <div class="modal-titulo">➕ Novo Membro</div>
     <div class="form-group">
       <label>Nome completo *</label>
       <input type="text" id="pNome" placeholder="Ex: Maria Silva">
     </div>
-
     <div class="form-group">
-      <label>Tipo de perfil *</label>
+      <label>Tipo *</label>
       <div class="tipos-grid">
-        <button class="tipo-btn" onclick="selTipo(this,'adulto')">
-          <span class="tipo-icon">👨</span>Adulto
-        </button>
-        <button class="tipo-btn" onclick="selTipo(this,'idoso')">
-          <span class="tipo-icon">👴</span>Idoso
-        </button>
-        <button class="tipo-btn" onclick="selTipo(this,'crianca')">
-          <span class="tipo-icon">👶</span>Criança
-        </button>
+        <button class="tipo-btn" onclick="selTipo(this,'adulto')"><span class="ti">👨</span>Adulto</button>
+        <button class="tipo-btn" onclick="selTipo(this,'idoso')"><span class="ti">👴</span>Idoso</button>
+        <button class="tipo-btn" onclick="selTipo(this,'crianca')"><span class="ti">👶</span>Criança</button>
       </div>
     </div>
-
     <div class="form-group">
-      <label>Relação com a família</label>
+      <label>Relação</label>
       <select id="pRelacao">
-        <option value="Pai/Mãe">👨‍👩‍👧 Pai/Mãe</option>
-        <option value="Filho(a)">👧 Filho(a)</option>
-        <option value="Avô/Avó">👴 Avô/Avó</option>
-        <option value="Cônjuge">💑 Cônjuge</option>
-        <option value="Irmão(ã)">🤝 Irmão(ã)</option>
-        <option value="Neto(a)">🧒 Neto(a)</option>
-        <option value="Outro">👤 Outro</option>
+        <option>Pai/Mãe</option><option>Filho(a)</option><option>Avô/Avó</option>
+        <option>Cônjuge</option><option>Irmão(ã)</option><option>Neto(a)</option><option>Outro</option>
       </select>
     </div>
-
     <div class="form-group">
       <label>Data de nascimento</label>
       <input type="date" id="pNascimento">
     </div>
-
-    <button class="btn-salvar" onclick="salvarPerfil()">✅ Salvar perfil</button>
+    <button class="btn-salvar" onclick="salvarPerfil()">✅ Salvar</button>
     <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
   </div>
 </div>
 
 <script>
-  var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
   var familiaId = localStorage.getItem('familiaId') || '';
-  var perfis = JSON.parse(localStorage.getItem('perfisFamily') || '[]');
+  var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
   var membroAtivo = JSON.parse(localStorage.getItem('membroAtivo') || 'null');
-  var tipoSelecionado = '';
+  var tipoSel = '';
+  var membrosDB = [];
 
-  // Adiciona o próprio usuário como primeiro perfil se não existir
-  if(perfis.length === 0 && usuario) {
-    perfis.push({
-      id: 'usuario_' + Date.now(),
-      nome: usuario.nome,
-      tipo: usuario.tipo || 'adulto',
-      relacao: usuario.relacao || 'Admin',
-      nascimento: '',
-      principal: true
-    });
-    localStorage.setItem('perfisFamily', JSON.stringify(perfis));
-  }
+  var emojis = { adulto:'👨', idoso:'👴', crianca:'👶' };
+  var avClasses = { adulto:'av-adulto', idoso:'av-idoso', crianca:'av-crianca' };
+  var tbClasses = { adulto:'tb-adulto', idoso:'tb-idoso', crianca:'tb-crianca' };
+  var tbLabels = { adulto:'👨 Adulto', idoso:'👴 Idoso', crianca:'👶 Criança' };
 
-  // Define membro ativo padrão
-  if(!membroAtivo && perfis.length > 0) {
-    membroAtivo = perfis[0];
-    localStorage.setItem('membroAtivo', JSON.stringify(membroAtivo));
-  }
-
-  function getEmoji(tipo) {
-    if(tipo === 'idoso') return '👴';
-    if(tipo === 'crianca') return '👶';
-    return '👨';
-  }
-
-  function getAvatarClass(tipo) {
-    if(tipo === 'idoso') return 'avatar-idoso';
-    if(tipo === 'crianca') return 'avatar-crianca';
-    return 'avatar-adulto';
-  }
-
-  function getTipoBadge(tipo) {
-    if(tipo === 'idoso') return '<span class="perfil-tipo tipo-idoso">👴 Idoso</span>';
-    if(tipo === 'crianca') return '<span class="perfil-tipo tipo-crianca">👶 Criança</span>';
-    return '<span class="perfil-tipo tipo-adulto">👨 Adulto</span>';
+  function calcIdade(nasc) {
+    if(!nasc) return '';
+    var d = new Date(nasc);
+    var idade = new Date().getFullYear() - d.getFullYear();
+    return ' · ' + idade + ' anos';
   }
 
   function renderizar() {
     var el = document.getElementById('listaPerfis');
-    if(perfis.length === 0) {
-      el.innerHTML = '<div class="sem-perfis">Nenhum membro cadastrado ainda.</div>';
+    if(membrosDB.length === 0) {
+      el.innerHTML = '<div class="loading">Nenhum membro ainda.</div>';
       return;
     }
     el.innerHTML = '';
-    perfis.forEach(function(p) {
-      var ativo = membroAtivo && membroAtivo.id === p.id;
+    membrosDB.forEach(function(m) {
+      var ativo = membroAtivo && membroAtivo.membroIdBanco === m.id;
+      var tipo = m.tipo || 'adulto';
       var div = document.createElement('div');
       div.className = 'perfil-card' + (ativo ? ' ativo' : '');
+      var idHtml = m.id_medico
+        ? '<div class="id-medico"><span>🏥 ' + m.id_medico + '</span><button onclick="copiar(\'' + m.id_medico + '\')">📋</button></div>'
+        : '<div style="font-size:0.75em;color:#aaa;margin-top:4px">Gerando ID médico...</div>';
       div.innerHTML =
-        '<div class="perfil-avatar ' + getAvatarClass(p.tipo) + '">' + getEmoji(p.tipo) + '</div>' +
-        '<div class="perfil-info">' +
-          '<div class="perfil-nome">' + p.nome + '</div>' +
-          '<div class="perfil-rel">' + (p.relacao||'') + (p.nascimento ? ' · ' + calcIdade(p.nascimento) : '') + '</div>' +
-          getTipoBadge(p.tipo) +
-          (ativo ? ' <span class="ativo-badge">✓ Ativo</span>' : '') +
+        '<div class="avatar ' + avClasses[tipo] + '">' + emojis[tipo] + '</div>' +
+        '<div class="info">' +
+          '<div class="nome">' + m.nome + '</div>' +
+          '<div class="rel">' + (m.relacao||'') + calcIdade(m.data_nascimento) + '</div>' +
+          '<span class="tipo-badge ' + tbClasses[tipo] + '">' + tbLabels[tipo] + '</span>' +
+          (ativo ? '<span class="ativo-badge">✓ Ativo</span>' : '') +
+          idHtml +
         '</div>' +
-        '<div class="perfil-acoes">' +
-          (!ativo ? '<button class="btn-selecionar" onclick="selecionarPerfil(\'' + p.id + '\')">Selecionar</button>' : '<button class="btn-selecionar" disabled style="opacity:0.5">Ativo</button>') +
-          (!p.principal ? '<button class="btn-excluir-perfil" onclick="excluirPerfil(\'' + p.id + '\')">Excluir</button>' : '') +
+        '<div class="acoes">' +
+          '<button class="btn-sel" ' + (ativo?'disabled':'onclick="selecionar('+m.id+')"') + '>' + (ativo?'Ativo':'Selecionar') + '</button>' +
+          (!m.admin ? '<button class="btn-exc" onclick="excluir('+m.id+',\''+m.nome+'\')">Excluir</button>' : '') +
         '</div>';
       el.appendChild(div);
     });
   }
 
-  function calcIdade(nascimento) {
-    if(!nascimento) return '';
-    var hoje = new Date();
-    var nasc = new Date(nascimento);
-    var idade = hoje.getFullYear() - nasc.getFullYear();
-    return idade + ' anos';
+  function selecionar(id) {
+    var m = membrosDB.find(function(x){ return x.id === id; });
+    if(!m) return;
+    membroAtivo = {
+      id: 'membro_' + m.id,
+      membroIdBanco: m.id,
+      nome: m.nome,
+      tipo: m.tipo || 'adulto',
+      relacao: m.relacao || '',
+      idMedico: m.id_medico
+    };
+    localStorage.setItem('membroAtivo', JSON.stringify(membroAtivo));
+    renderizar();
+    alert('✅ Perfil de ' + m.nome + ' selecionado!\nOs módulos agora mostram os dados de ' + m.nome + '.');
   }
 
-  function selecionarPerfil(id) {
-    var perfil = perfis.find(function(p){ return p.id === id; });
-    if(!perfil) return;
-    membroAtivo = perfil;
-    localStorage.setItem('membroAtivo', JSON.stringify(perfil));
-    renderizar();
-    alert('✅ Perfil de ' + perfil.nome + ' selecionado!\nTodos os módulos agora gerenciam os dados de ' + perfil.nome + '.');
+  function excluir(id, nome) {
+    if(!confirm('Excluir perfil de ' + nome + '?')) return;
+    fetch('/api/membros/excluir', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ id: id })
+    }).then(function(){ carregarDB(); });
   }
 
-  function excluirPerfil(id) {
-    var perfil = perfis.find(function(p){ return p.id === id; });
-    if(!perfil) return;
-    if(!confirm('Excluir o perfil de ' + perfil.nome + '?\n\nOs dados salvos no app serão mantidos.')) return;
-    perfis = perfis.filter(function(p){ return p.id !== id; });
-    localStorage.setItem('perfisFamily', JSON.stringify(perfis));
-    if(membroAtivo && membroAtivo.id === id) {
-      membroAtivo = perfis[0] || null;
-      localStorage.setItem('membroAtivo', JSON.stringify(membroAtivo));
-    }
-    renderizar();
+  function copiar(id) {
+    if(navigator.clipboard) navigator.clipboard.writeText(id).then(function(){ alert('ID copiado: ' + id); });
+    else alert('ID médico: ' + id);
+  }
+
+  function carregarDB() {
+    if(!familiaId) return;
+    fetch('/api/membros/' + familiaId)
+      .then(function(r){ return r.json(); })
+      .then(function(r){
+        if(r.ok && r.membros) {
+          membrosDB = r.membros;
+          renderizar();
+        }
+      }).catch(function(){ renderizar(); });
   }
 
   function selTipo(btn, tipo) {
     document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
     btn.classList.add('sel');
-    tipoSelecionado = tipo;
+    tipoSel = tipo;
   }
 
   function abrirModal() { document.getElementById('modal').classList.add('ativo'); }
@@ -245,154 +197,35 @@
     document.getElementById('pNome').value = '';
     document.getElementById('pNascimento').value = '';
     document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
-    tipoSelecionado = '';
+    tipoSel = '';
   }
 
   function salvarPerfil() {
     var nome = document.getElementById('pNome').value.trim();
     if(!nome){ alert('Digite o nome.'); return; }
-    if(!tipoSelecionado){ alert('Selecione o tipo de perfil.'); return; }
-
-    var perfil = {
-      id: 'membro_' + Date.now(),
-      nome: nome,
-      tipo: tipoSelecionado,
-      relacao: document.getElementById('pRelacao').value,
-      nascimento: document.getElementById('pNascimento').value,
-      principal: false
-    };
-
-    perfis.push(perfil);
-    localStorage.setItem('perfisFamily', JSON.stringify(perfis));
-
-    // Salvar no banco
-    if(familiaId) {
-      fetch('/api/membros/salvar', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          familia_id: familiaId,
-          nome: perfil.nome,
-          relacao: perfil.relacao,
-          tipo: perfil.tipo,
-          data_nascimento: perfil.nascimento || null,
-          admin: false
-        })
-      }).then(function(r){ return r.json(); })
-      .then(function(r){
-        if(r.ok && r.membro && r.membro.id_medico) {
-          // Salvar ID médico no perfil local
-          perfil.idMedico = r.membro.id_medico;
-          perfil.membroIdBanco = r.membro.id;
-          perfis[perfis.length-1] = perfil;
-          localStorage.setItem('perfisFamily', JSON.stringify(perfis));
-          renderizar();
-        }
-      })
-      .catch(function(e){ console.log('Erro:', e); });
-    }
-
-    fecharModal();
-    renderizar();
-    alert('✅ ' + nome + ' adicionado!\nAguarde alguns segundos e reabra esta tela para ver o ID médico gerado.');
-  }
-
-  // Gerar IDs médicos para membros que não têm
-  function gerarIdsMedicos() {
-    var familiaId = localStorage.getItem('familiaId') || '';
-    if(!familiaId) return;
-    fetch('/api/membros/gerar-id-medico', {
+    if(!tipoSel){ alert('Selecione o tipo.'); return; }
+    fetch('/api/membros/salvar', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ familia_id: familiaId })
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        familia_id: familiaId,
+        nome: nome,
+        relacao: document.getElementById('pRelacao').value,
+        tipo: tipoSel,
+        data_nascimento: document.getElementById('pNascimento').value || null,
+        admin: false
+      })
     }).then(function(r){ return r.json(); })
     .then(function(r){
       if(r.ok) {
-        // Atualizar IDs médicos nos perfis locais
-        r.membros.forEach(function(m) {
-          perfis.forEach(function(p) {
-            if(p.membroIdBanco === m.id || p.nome === m.nome) {
-              p.idMedico = m.id_medico;
-            }
-          });
-        });
-        localStorage.setItem('perfisFamily', JSON.stringify(perfis));
-        renderizar();
+        fecharModal();
+        carregarDB();
+        alert('✅ ' + nome + ' adicionado! ID médico: ' + (r.membro.id_medico||'gerando...'));
       }
-    }).catch(function(){});
+    }).catch(function(){ alert('Erro ao salvar.'); });
   }
 
-  // Carregar membros do banco ao abrir
-  function carregarMembrosDB() {
-    var familiaId = localStorage.getItem('familiaId') || '';
-    if(!familiaId) return;
-
-    // Primeiro gera IDs médicos para quem não tem
-    fetch('/api/membros/gerar-id-medico', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ familia_id: familiaId })
-    }).then(function(r){ return r.json(); }).catch(function(){});
-
-    // Carrega membros do banco
-    fetch('/api/membros/' + familiaId)
-      .then(function(r){ return r.json(); })
-      .then(function(r){
-        if(!r.ok || !r.membros) return;
-        // Sincronizar perfis locais com banco
-        var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
-        var perfisAtualizados = [];
-        // Adiciona perfil principal do usuário
-        if(usuario) {
-          var perfilPrincipal = perfis.find(function(p){ return p.principal; });
-          if(!perfilPrincipal) {
-            perfilPrincipal = {
-              id: 'usuario_principal',
-              nome: usuario.nome,
-              tipo: usuario.tipo || 'adulto',
-              relacao: usuario.relacao || 'Admin',
-              principal: true
-            };
-          }
-          // Busca ID médico do banco para o usuário principal
-          var membroBanco = r.membros.find(function(m){
-            return m.nome === usuario.nome;
-          });
-          if(membroBanco) {
-            perfilPrincipal.idMedico = membroBanco.id_medico;
-            perfilPrincipal.membroIdBanco = membroBanco.id;
-          }
-          perfisAtualizados.push(perfilPrincipal);
-        }
-        // Adiciona outros membros do banco
-        r.membros.forEach(function(m) {
-          if(usuario && m.nome === usuario.nome) return; // pula o principal
-          var perfilExistente = perfis.find(function(p){
-            return p.membroIdBanco === m.id || p.nome === m.nome;
-          });
-          if(perfilExistente) {
-            perfilExistente.idMedico = m.id_medico;
-            perfilExistente.membroIdBanco = m.id;
-            perfisAtualizados.push(perfilExistente);
-          } else {
-            perfisAtualizados.push({
-              id: 'membro_' + m.id,
-              nome: m.nome,
-              tipo: m.tipo || 'adulto',
-              relacao: m.relacao || '',
-              idMedico: m.id_medico,
-              membroIdBanco: m.id,
-              principal: false
-            });
-          }
-        });
-        perfis = perfisAtualizados;
-        localStorage.setItem('perfisFamily', JSON.stringify(perfis));
-        renderizar();
-      }).catch(function(){ renderizar(); });
-  }
-
-  carregarMembrosDB();
+  carregarDB();
 </script>
 </body>
 </html>
