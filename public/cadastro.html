@@ -22,7 +22,7 @@
   .secao.ativa { display:block; }
   .form-group { margin-bottom:14px; }
   .form-group label { font-size:0.82em; color:#555; font-weight:bold; display:block; margin-bottom:6px; }
-  .form-group input, .form-group select { width:100%; padding:12px 14px; border:1.5px solid #e0e0e0;
+  .form-group input { width:100%; padding:12px 14px; border:1.5px solid #e0e0e0;
     border-radius:10px; font-size:0.95em; outline:none; }
   .form-group input:focus { border-color:#1a237e; }
   .btn-principal { width:100%; padding:16px; background:#1a237e; color:white; border:none;
@@ -76,7 +76,7 @@
 </div>
 
 <div class="card">
-  <div class="tabs" id="tabs">
+  <div class="tabs">
     <button class="tab ativo" onclick="setTab('criar',this)">👨‍👩‍👧 Criar família</button>
     <button class="tab" onclick="setTab('entrar',this)">📲 Entrar em família</button>
   </div>
@@ -95,7 +95,7 @@
       <div class="form-group">
         <label>Você é</label>
         <div class="tipos">
-          <button class="tipo-btn ativo sel" onclick="selTipo(this,'adulto')"><span class="ti">👨</span>Adulto</button>
+          <button class="tipo-btn sel" onclick="selTipo(this,'adulto')"><span class="ti">👨</span>Adulto</button>
           <button class="tipo-btn" onclick="selTipo(this,'idoso')"><span class="ti">👴</span>Idoso</button>
           <button class="tipo-btn" onclick="selTipo(this,'crianca')"><span class="ti">👶</span>Criança</button>
         </div>
@@ -166,7 +166,6 @@
         <label>WhatsApp (com DDD)</label>
         <input type="tel" id="entrarTel" placeholder="Ex: 21999998888">
       </div>
-
       <div class="scanner-area" onclick="iniciarScanner()">
         <div class="si">📷</div>
         <p><b>Escanear QR Code</b> da família</p>
@@ -188,7 +187,7 @@
         <div class="icon">🎉</div>
         <h2>Bem-vindo à família!</h2>
         <div class="nome-familia" id="familiaEncontrada"></div>
-        <p>Você foi adicionado com sucesso.<br>Receberá alertas de emergência de todos os familiares.</p>
+        <p>Você foi adicionado com sucesso.<br>Receberá alertas de todos os familiares.</p>
       </div>
       <button class="btn-principal" onclick="entrarNoApp()">✅ Entrar no app</button>
     </div>
@@ -205,7 +204,6 @@
   var scannerStream = null;
   var scannerInterval = null;
 
-  // Verificar se já tem cadastro
   window.onload = function() {
     if(localStorage.getItem('usuarioCuidar')) {
       window.location.href = 'index.html';
@@ -221,26 +219,41 @@
 
   function selTipo(btn, tipo) {
     document.querySelectorAll('#sec-criar .tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
-    btn.classList.add('sel');
-    tipoSel = tipo;
+    btn.classList.add('sel'); tipoSel = tipo;
   }
-
   function selRel(btn, rel) {
     document.querySelectorAll('#sec-criar .rel-btn').forEach(function(b){ b.classList.remove('sel'); });
-    btn.classList.add('sel');
-    relSel = rel;
+    btn.classList.add('sel'); relSel = rel;
   }
-
   function selTipoEntrar(btn, tipo) {
     document.querySelectorAll('#sec-entrar .tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
-    btn.classList.add('sel');
-    tipoEntrar = tipo;
+    btn.classList.add('sel'); tipoEntrar = tipo;
   }
-
   function selRelEntrar(btn, rel) {
     document.querySelectorAll('#sec-entrar .rel-btn').forEach(function(b){ b.classList.remove('sel'); });
-    btn.classList.add('sel');
-    relEntrar = rel;
+    btn.classList.add('sel'); relEntrar = rel;
+  }
+
+  function gerarCodigo(nome) {
+    var base = nome.replace(/[^a-zA-Z]/g,'').toUpperCase().substring(0,4);
+    if(base.length < 2) base = 'FAM';
+    var num = Math.floor(1000 + Math.random() * 9000);
+    return base + num;
+  }
+
+  function salvarSessao(dados) {
+    localStorage.setItem('usuarioCuidar', JSON.stringify(dados.usuario));
+    localStorage.setItem('familiaId', dados.familiaId);
+    localStorage.setItem('familiaNome', dados.familiaNome);
+    localStorage.setItem('membroAtivo', JSON.stringify({
+      id: 'usuario_principal',
+      membroIdBanco: dados.membroIdBanco,
+      nome: dados.usuario.nome,
+      tipo: dados.usuario.tipo,
+      relacao: dados.usuario.relacao,
+      idMedico: dados.idMedico,
+      principal: true
+    }));
   }
 
   function criarFamilia() {
@@ -252,32 +265,32 @@
     if(!nome){ erroEl.innerHTML='<div class="erro-box">Digite seu nome.</div>'; return; }
     if(!familia){ erroEl.innerHTML='<div class="erro-box">Digite o nome da família.</div>'; return; }
 
-    erroEl.innerHTML = '<div class="loading">Criando família...</div>';
+    erroEl.innerHTML = '<div class="loading">⏳ Criando família...</div>';
 
-    // Criar família no banco
+    // Tenta criar com até 3 códigos diferentes
+    tentarCriarFamilia(familia, nome, tel, erroEl, 3);
+  }
+
+  function tentarCriarFamilia(familia, nome, tel, erroEl, tentativas) {
+    if(tentativas <= 0) {
+      erroEl.innerHTML = '<div class="erro-box">Erro ao criar família. Tente novamente.</div>';
+      return;
+    }
+    var codigo = gerarCodigo(familia);
     fetch('/api/familia/criar', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ codigo: gerarCodigo(familia), nome: familia })
+      body: JSON.stringify({ codigo: codigo, nome: familia })
     })
     .then(function(r){ return r.json(); })
     .then(function(r){
       if(!r.ok) {
-        // Tentar com código diferente
-        return fetch('/api/familia/criar', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ codigo: gerarCodigo(familia), nome: familia })
-        }).then(function(r2){ return r2.json(); });
+        // Código duplicado — tenta novamente com novo código
+        tentarCriarFamilia(familia, nome, tel, erroEl, tentativas - 1);
+        return;
       }
-      return r;
-    })
-    .then(function(r){
-      if(!r.ok){ erroEl.innerHTML='<div class="erro-box">Erro ao criar família. Tente novamente.</div>'; return; }
-
       codigoGerado = r.familia.codigo;
-
-      // Criar membro principal no banco
+      // Família criada — agora cria o membro principal
       return fetch('/api/membros/salvar', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
@@ -289,41 +302,34 @@
           tel: tel,
           admin: true
         })
-      }).then(function(r2){ return r2.json(); })
+      })
+      .then(function(r2){ return r2.json(); })
       .then(function(r2){
-        // Salvar no localStorage
-        var usuario = {
-          nome: nome,
-          familia: familia,
+        var membroIdBanco = r2.ok ? r2.membro.id : null;
+        var idMedico = r2.ok ? r2.membro.id_medico : null;
+        salvarSessao({
+          usuario: {
+            nome: nome,
+            familia: familia,
+            familiaId: codigoGerado,
+            relacao: relSel || 'Admin',
+            tipo: tipoSel,
+            tel: tel,
+            admin: true,
+            membroIdBanco: membroIdBanco,
+            idMedico: idMedico
+          },
           familiaId: codigoGerado,
-          relacao: relSel || 'Admin',
-          tipo: tipoSel,
-          tel: tel,
-          admin: true,
-          membroIdBanco: r2.ok ? r2.membro.id : null,
-          idMedico: r2.ok ? r2.membro.id_medico : null
-        };
-        localStorage.setItem('usuarioCuidar', JSON.stringify(usuario));
-        localStorage.setItem('familiaId', codigoGerado);
-        localStorage.setItem('familiaNome', familia);
-
-        // Definir como membro ativo
-        localStorage.setItem('membroAtivo', JSON.stringify({
-          id: 'usuario_principal',
-          membroIdBanco: r2.ok ? r2.membro.id : null,
-          nome: nome,
-          tipo: tipoSel,
-          relacao: relSel || 'Admin',
-          idMedico: r2.ok ? r2.membro.id_medico : null,
-          principal: true
-        }));
-
+          familiaNome: familia,
+          membroIdBanco: membroIdBanco,
+          idMedico: idMedico
+        });
         erroEl.innerHTML = '';
         mostrarQR();
       });
     })
-    .catch(function(e){
-      erroEl.innerHTML = '<div class="erro-box">Erro de conexão. Verifique sua internet.</div>';
+    .catch(function() {
+      erroEl.innerHTML = '<div class="erro-box">❌ Erro de conexão. Verifique sua internet.</div>';
     });
   }
 
@@ -341,15 +347,9 @@
 
   function compartilharCodigo() {
     var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || '{}');
-    var msg = '💚 *Cuidar App — Convite Familiar*\n\nOlá! ' + usuario.nome + ' convidou você para a *' + usuario.familia + '*\n\n📲 Código: *' + codigoGerado + '*\n\n1. Baixe o app Cuidar\n2. Toque em "Entrar em família"\n3. Digite: *' + codigoGerado + '*\n\n_App Cuidar — Cuidado Familiar Inteligente_';
+    var msg = '💚 *Cuidar App — Convite Familiar*\n\nOlá! ' + usuario.nome + ' convidou você para a *' + usuario.familia + '*\n\n📲 Código: *' + codigoGerado + '*\n\n1. Abra o app Cuidar\n2. Toque em "Entrar em família"\n3. Digite: *' + codigoGerado + '*\n\n_App Cuidar — Cuidado Familiar Inteligente_';
     if(navigator.share) navigator.share({ text: msg });
     else window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
-  }
-
-  function gerarCodigo(nome) {
-    var base = nome.replace(/[^a-zA-Z]/g,'').toUpperCase().substring(0,4);
-    var num = Math.floor(1000 + Math.random() * 9000);
-    return base + num;
   }
 
   function entrarPorCodigo() {
@@ -361,34 +361,34 @@
     if(!nome){ erroEl.innerHTML='<div class="erro-box">Digite seu nome.</div>'; return; }
     if(!codigo){ erroEl.innerHTML='<div class="erro-box">Digite o código da família.</div>'; return; }
 
-    erroEl.innerHTML = '<div class="loading">Buscando família...</div>';
+    erroEl.innerHTML = '<div class="loading">⏳ Buscando família...</div>';
 
-    // Buscar família no banco pelo código
     fetch('/api/familia/' + codigo)
-      .then(function(r){ return r.json(); })
-      .then(function(r){
-        if(!r.ok){
-          erroEl.innerHTML = '<div class="erro-box">❌ Família não encontrada. Verifique o código.</div>';
-          return;
-        }
-
-        var familiaNome = r.familia.nome;
-
-        // Adicionar membro no banco
-        return fetch('/api/membros/salvar', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({
-            familia_id: codigo,
-            nome: nome,
-            relacao: relEntrar || 'Familiar',
-            tipo: tipoEntrar,
-            tel: tel,
-            admin: false
-          })
-        }).then(function(r2){ return r2.json(); })
-        .then(function(r2){
-          var usuario = {
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r.ok){
+        erroEl.innerHTML = '<div class="erro-box">❌ Família não encontrada. Verifique o código.</div>';
+        return;
+      }
+      var familiaNome = r.familia.nome;
+      return fetch('/api/membros/salvar', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          familia_id: codigo,
+          nome: nome,
+          relacao: relEntrar || 'Familiar',
+          tipo: tipoEntrar,
+          tel: tel,
+          admin: false
+        })
+      })
+      .then(function(r2){ return r2.json(); })
+      .then(function(r2){
+        var membroIdBanco = r2.ok ? r2.membro.id : null;
+        var idMedico = r2.ok ? r2.membro.id_medico : null;
+        salvarSessao({
+          usuario: {
             nome: nome,
             familia: familiaNome,
             familiaId: codigo,
@@ -396,30 +396,23 @@
             tipo: tipoEntrar,
             tel: tel,
             admin: false,
-            membroIdBanco: r2.ok ? r2.membro.id : null,
-            idMedico: r2.ok ? r2.membro.id_medico : null
-          };
-          localStorage.setItem('usuarioCuidar', JSON.stringify(usuario));
-          localStorage.setItem('familiaId', codigo);
-          localStorage.setItem('familiaNome', familiaNome);
-          localStorage.setItem('membroAtivo', JSON.stringify({
-            id: 'usuario_principal',
-            membroIdBanco: r2.ok ? r2.membro.id : null,
-            nome: nome,
-            tipo: tipoEntrar,
-            relacao: relEntrar || 'Familiar',
-            idMedico: r2.ok ? r2.membro.id_medico : null,
-            principal: true
-          }));
-          erroEl.innerHTML = '';
-          document.getElementById('familiaEncontrada').textContent = familiaNome;
-          document.getElementById('passo-entrar-1').style.display = 'none';
-          document.getElementById('passo-entrar-2').style.display = 'block';
+            membroIdBanco: membroIdBanco,
+            idMedico: idMedico
+          },
+          familiaId: codigo,
+          familiaNome: familiaNome,
+          membroIdBanco: membroIdBanco,
+          idMedico: idMedico
         });
-      })
-      .catch(function(){
-        erroEl.innerHTML = '<div class="erro-box">❌ Erro de conexão.</div>';
+        erroEl.innerHTML = '';
+        document.getElementById('familiaEncontrada').textContent = familiaNome;
+        document.getElementById('passo-entrar-1').style.display = 'none';
+        document.getElementById('passo-entrar-2').style.display = 'block';
       });
+    })
+    .catch(function(){
+      erroEl.innerHTML = '<div class="erro-box">❌ Erro de conexão.</div>';
+    });
   }
 
   function iniciarScanner() {
@@ -427,36 +420,35 @@
     var video = document.getElementById('scannerVideo');
     container.style.display = 'block';
     navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' } })
-      .then(function(stream) {
-        scannerStream = stream;
-        video.srcObject = stream;
-        video.play();
-        scannerInterval = setInterval(function() {
-          if(video.readyState === video.HAVE_ENOUGH_DATA) {
-            var canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            var ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            var code = jsQR(imageData.data, imageData.width, imageData.height);
-            if(code) {
-              pararScanner();
-              document.getElementById('codigoManual').value = code.data;
-              entrarPorCodigo();
-            }
+    .then(function(stream) {
+      scannerStream = stream;
+      video.srcObject = stream;
+      video.play();
+      scannerInterval = setInterval(function() {
+        if(video.readyState === video.HAVE_ENOUGH_DATA) {
+          var canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          var code = jsQR(imageData.data, imageData.width, imageData.height);
+          if(code) {
+            pararScanner();
+            document.getElementById('codigoManual').value = code.data;
+            entrarPorCodigo();
           }
-        }, 500);
-      })
-      .catch(function() {
-        alert('Câmera não disponível. Digite o código manualmente.');
-        container.style.display = 'none';
-      });
+        }
+      }, 500);
+    })
+    .catch(function() {
+      alert('Câmera não disponível. Digite o código manualmente.');
+      container.style.display = 'none';
+    });
   }
 
   function pararScanner() {
-    if(scannerStream) { scannerStream.getTracks().forEach(function(t){ t.stop(); }); scannerStream = null; }
-    if(scannerInterval) { clearInterval(scannerInterval); scannerInterval = null; }
+    if(scannerStream){ scannerStream.getTracks().forEach(function(t){ t.stop(); }); scannerStream=null; }
+    if(scannerInterval){ clearInterval(scannerInterval); scannerInterval=null; }
     document.getElementById('scannerContainer').style.display = 'none';
   }
 
