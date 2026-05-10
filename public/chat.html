@@ -13,6 +13,7 @@
   header h1 { font-size:1.2em; flex:1; }
   .status-dot { width:10px; height:10px; border-radius:50%; background:#ccc; flex-shrink:0; }
   .status-dot.online { background:#69f0ae; }
+  .familia-badge { font-size:0.75em; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:20px; }
 
   .categorias { display:flex; gap:8px; padding:12px 16px; overflow-x:auto; flex-shrink:0;
                 background:white; border-bottom:1px solid #eee; }
@@ -33,11 +34,8 @@
                            box-shadow:0 1px 4px rgba(0,0,0,0.1); }
   .msg-hora { font-size:0.7em; color:#aaa; padding:0 4px; }
   .msg-cat { font-size:0.7em; padding:2px 8px; border-radius:20px; background:#f0f0f0; color:#888; margin-top:2px; }
-
   .msg-sistema { text-align:center; font-size:0.78em; color:#aaa; padding:4px 0; }
-
   .digitando { font-size:0.8em; color:#888; padding:0 16px 8px; font-style:italic; min-height:24px; flex-shrink:0; }
-
   .input-area { background:white; border-top:1px solid #eee; padding:10px 12px;
                 display:flex; gap:8px; align-items:flex-end; flex-shrink:0; }
   .input-area textarea { flex:1; border:1px solid #ddd; border-radius:20px; padding:10px 14px;
@@ -46,13 +44,11 @@
   .btn-enviar { background:#2e7d32; color:white; border:none; border-radius:50%;
                 width:44px; height:44px; font-size:1.3em; cursor:pointer; flex-shrink:0;
                 display:flex; align-items:center; justify-content:center; }
-
-  .nome-topo { background:white; padding:12px 16px; border-bottom:1px solid #eee; flex-shrink:0; }
-  .nome-topo input { width:100%; padding:8px 12px; border:1px solid #ddd; border-radius:10px; font-size:0.9em; }
-
   .vazio { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
            color:#bbb; gap:8px; }
   .vazio .icon { font-size:3em; }
+  .sem-cadastro { background:#fff3e0; border-left:4px solid #e65100; padding:12px 16px;
+                  font-size:0.85em; color:#e65100; margin:12px 16px; border-radius:0 10px 10px 0; }
 </style>
 </head>
 <body>
@@ -60,21 +56,17 @@
 <header>
   <a href="index.html">←</a>
   <h1>💬 Chat Familiar</h1>
+  <span class="familia-badge" id="familiaBadge"></span>
   <div class="status-dot" id="statusDot"></div>
 </header>
 
-<div class="nome-topo">
-  <input type="text" id="meuNome" placeholder="Seu nome no chat (ex: Ana, João filho...)"
-         oninput="salvarNome(this.value)" />
-</div>
-
 <div class="categorias">
-  <button class="cat-btn ativo" onclick="setCategoria('Geral', this)">💬 Geral</button>
-  <button class="cat-btn" onclick="setCategoria('Medicamentos', this)">💊 Medicamentos</button>
-  <button class="cat-btn" onclick="setCategoria('Consultas', this)">🏥 Consultas</button>
-  <button class="cat-btn" onclick="setCategoria('Humor', this)">😊 Humor</button>
-  <button class="cat-btn" onclick="setCategoria('Urgente', this)">⚠️ Urgente</button>
-  <button class="cat-btn" onclick="setCategoria('Financeiro', this)">💰 Financeiro</button>
+  <button class="cat-btn ativo" onclick="setCategoria('Geral',this)">💬 Geral</button>
+  <button class="cat-btn" onclick="setCategoria('Medicamentos',this)">💊 Medicamentos</button>
+  <button class="cat-btn" onclick="setCategoria('Consultas',this)">🏥 Consultas</button>
+  <button class="cat-btn" onclick="setCategoria('Humor',this)">😊 Humor</button>
+  <button class="cat-btn" onclick="setCategoria('Urgente',this)">⚠️ Urgente</button>
+  <button class="cat-btn" onclick="setCategoria('Financeiro',this)">💰 Financeiro</button>
 </div>
 
 <div class="mensagens" id="mensagens">
@@ -95,61 +87,75 @@
 </div>
 
 <script>
-  const socket = io();
-  let meuNome = localStorage.getItem('nomeUsuario') || '';
-  let categoriaAtual = 'Geral';
-  let digitandoTimer = null;
-  let euEstouDigitando = false;
+  var socket = io();
+  var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+  var familiaId = localStorage.getItem('familiaId') || '';
+  var familiaNome = localStorage.getItem('familiaNome') || '';
+  var meuNome = usuario ? usuario.nome : (localStorage.getItem('nomeUsuario') || '');
+  var categoriaAtual = 'Geral';
+  var digitandoTimer = null;
+  var euEstouDigitando = false;
 
-  document.getElementById('meuNome').value = meuNome;
+  // Mostrar nome da família
+  if(familiaNome) {
+    document.getElementById('familiaBadge').textContent = familiaNome;
+  }
 
-  function salvarNome(v) {
-    meuNome = v.trim();
-    localStorage.setItem('nomeUsuario', v.trim());
+  // Aviso se não tem cadastro
+  if(!usuario) {
+    var aviso = document.createElement('div');
+    aviso.className = 'sem-cadastro';
+    aviso.innerHTML = '⚠️ Você não está cadastrado em nenhuma família. <a href="cadastro.html" style="color:#e65100;font-weight:bold">Cadastre-se aqui</a>';
+    document.querySelector('.categorias').after(aviso);
   }
 
   // CONEXÃO
-  socket.on('connect', () => {
+  socket.on('connect', function() {
     document.getElementById('statusDot').classList.add('online');
-    socket.emit('entrou', { nome: meuNome || 'Alguém' });
+    // Entrar na sala da família
+    if(familiaId && meuNome) {
+      socket.emit('entrarFamilia', { familiaId: familiaId, nome: meuNome });
+      socket.emit('entrou', { nome: meuNome, familiaId: familiaId });
+    }
   });
-  socket.on('disconnect', () => {
+
+  socket.on('disconnect', function() {
     document.getElementById('statusDot').classList.remove('online');
   });
 
   // RECEBER MENSAGEM
-  socket.on('mensagem', (dados) => {
+  socket.on('mensagem', function(dados) {
     adicionarMensagem(dados, false);
   });
 
   // ALGUÉM ENTROU
-  socket.on('entrou', (dados) => {
-    if (dados.nome && dados.nome !== (meuNome || 'Alguém')) {
-      adicionarSistema(`${dados.nome} entrou no chat`);
+  socket.on('entrou', function(dados) {
+    if(dados.nome && dados.nome !== meuNome) {
+      adicionarSistema(dados.nome + ' entrou no chat 👋');
     }
   });
 
   // DIGITANDO
-  socket.on('digitando', (dados) => {
-    if (dados.nome === (meuNome || 'Alguém')) return;
-    document.getElementById('digitando').textContent = `${dados.nome} está digitando...`;
+  socket.on('digitando', function(dados) {
+    if(dados.nome === meuNome) return;
+    document.getElementById('digitando').textContent = dados.nome + ' está digitando...';
     clearTimeout(digitandoTimer);
-    digitandoTimer = setTimeout(() => {
+    digitandoTimer = setTimeout(function() {
       document.getElementById('digitando').textContent = '';
     }, 2500);
   });
 
   function setCategoria(cat, btn) {
     categoriaAtual = cat;
-    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('ativo'));
+    document.querySelectorAll('.cat-btn').forEach(function(b){ b.classList.remove('ativo'); });
     btn.classList.add('ativo');
   }
 
   function notificarDigitando() {
-    if (!euEstouDigitando) {
+    if(!euEstouDigitando) {
       euEstouDigitando = true;
-      socket.emit('digitando', { nome: meuNome || 'Alguém' });
-      setTimeout(() => { euEstouDigitando = false; }, 2000);
+      socket.emit('digitando', { nome: meuNome || 'Alguém', familiaId: familiaId });
+      setTimeout(function(){ euEstouDigitando = false; }, 2000);
     }
   }
 
@@ -159,26 +165,26 @@
   }
 
   function teclaEnter(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if(e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       enviarMensagem();
     }
   }
 
   function enviarMensagem() {
-    const input = document.getElementById('inputMsg');
-    const texto = input.value.trim();
-    if (!texto) return;
-    if (!meuNome) {
-      alert('Digite seu nome no campo acima antes de enviar.');
-      document.getElementById('meuNome').focus();
+    var input = document.getElementById('inputMsg');
+    var texto = input.value.trim();
+    if(!texto) return;
+    if(!meuNome) {
+      alert('Cadastre-se primeiro para enviar mensagens.');
       return;
     }
-    const dados = {
+    var dados = {
       nome: meuNome,
-      texto,
+      texto: texto,
       categoria: categoriaAtual,
-      hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+      familiaId: familiaId,
+      hora: new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
     };
     socket.emit('mensagem', dados);
     adicionarMensagem(dados, true);
@@ -187,43 +193,31 @@
   }
 
   function adicionarMensagem(dados, minha) {
-    const vazio = document.getElementById('vazio');
-    if (vazio) vazio.remove();
-
-    const cont = document.getElementById('mensagens');
-    const div = document.createElement('div');
+    var vazio = document.getElementById('vazio');
+    if(vazio) vazio.remove();
+    var cont = document.getElementById('mensagens');
+    var div = document.createElement('div');
     div.className = 'msg ' + (minha ? 'minha' : 'outra');
-
-    const catEmojis = {
-      Geral:'💬', Medicamentos:'💊', Consultas:'🏥',
-      Humor:'😊', Urgente:'⚠️', Financeiro:'💰'
-    };
-
-    div.innerHTML = `
-      ${!minha ? `<div class="msg-autor">${dados.nome}</div>` : ''}
-      <div class="msg-balao">${dados.texto}</div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <span class="msg-hora">${dados.hora}</span>
-        ${dados.categoria !== 'Geral' ? `<span class="msg-cat">${catEmojis[dados.categoria]||''} ${dados.categoria}</span>` : ''}
-      </div>
-    `;
+    var catEmojis = { Geral:'💬', Medicamentos:'💊', Consultas:'🏥', Humor:'😊', Urgente:'⚠️', Financeiro:'💰' };
+    div.innerHTML =
+      (!minha ? '<div class="msg-autor">' + dados.nome + '</div>' : '') +
+      '<div class="msg-balao">' + dados.texto + '</div>' +
+      '<div style="display:flex;gap:6px;align-items:center">' +
+        '<span class="msg-hora">' + dados.hora + '</span>' +
+        (dados.categoria !== 'Geral' ? '<span class="msg-cat">' + (catEmojis[dados.categoria]||'') + ' ' + dados.categoria + '</span>' : '') +
+      '</div>';
     cont.appendChild(div);
     cont.scrollTop = cont.scrollHeight;
   }
 
   function adicionarSistema(texto) {
-    const cont = document.getElementById('mensagens');
-    const div = document.createElement('div');
+    var cont = document.getElementById('mensagens');
+    var div = document.createElement('div');
     div.className = 'msg-sistema';
     div.textContent = texto;
     cont.appendChild(div);
     cont.scrollTop = cont.scrollHeight;
   }
-
-  // REGISTRAR EVENTO NO SERVER
-  socket.on('connect', () => {
-    socket.emit('entrou', { nome: meuNome || 'Alguém' });
-  });
 </script>
 </body>
 </html>
