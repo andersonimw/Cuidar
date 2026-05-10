@@ -735,7 +735,46 @@ function renderInteracoes() {
 }
 
 // Iniciar sistema de alarme
-renderLista();
+// Carregar medicamentos do banco
+function carregarDoBANCO() {
+  var familiaId = localStorage.getItem('familiaId') || '';
+  var membroAtivo = JSON.parse(localStorage.getItem('membroAtivo') || 'null');
+  var membroId = membroAtivo ? membroAtivo.membroIdBanco : null;
+  if(!familiaId) { renderLista(); return; }
+  var url = membroId 
+    ? '/api/medicamentos/' + familiaId + '/' + membroId
+    : '/api/medicamentos/' + familiaId;
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(r.ok && r.meds && r.meds.length > 0) {
+        // Mesclar dados do banco com localStorage
+        r.meds.forEach(function(m) {
+          var existe = meds.find(function(x){ return x.dbId === m.id; });
+          if(!existe) {
+            meds.push({
+              id: m.id,
+              dbId: m.id,
+              nome: m.nome,
+              dosagem: m.dosagem,
+              horarios: m.horarios ? JSON.parse(m.horarios) : [],
+              via: m.via,
+              estoque: m.estoque,
+              alertaEstoque: m.alerta_estoque,
+              validade: m.validade,
+              armazenamento: m.armazenamento,
+              obs: m.obs,
+              ativo: true
+            });
+          }
+        });
+        localStorage.setItem(_chaveMeds, JSON.stringify(meds));
+      }
+      renderLista();
+    }).catch(function(){ renderLista(); });
+}
+
+carregarDoBANCO();
 iniciarSistemaAlarme();
 </script>
 <script src="/socket.io/socket.io.js"></script>
