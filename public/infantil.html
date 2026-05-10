@@ -270,7 +270,9 @@
   });
 
   socket.on('mensagem', function(dados) {
-    adicionarMsgChat(dados, false);
+    if(dados.nome !== (usuario ? usuario.nome : '')) {
+      adicionarMsgChat(dados, false);
+    }
   });
 
   // ===== PONTOS =====
