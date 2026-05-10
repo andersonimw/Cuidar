@@ -41,6 +41,17 @@
   <p>Cuidado familiar inteligente</p>
 </header>
 
+<div id="seletorPerfil" style="background:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div id="perfilEmoji" style="font-size:1.6em">👨</div>
+    <div>
+      <div id="perfilNome" style="font-weight:bold;font-size:0.9em;color:#333">Carregando...</div>
+      <div id="perfilTipo" style="font-size:0.75em;color:#888"></div>
+    </div>
+  </div>
+  <button onclick="window.location='membros.html'" style="padding:8px 14px;background:#e8f5e9;color:#2e7d32;border:none;border-radius:20px;font-size:0.82em;cursor:pointer;font-weight:bold">👥 Perfis</button>
+</div>
+
 <button class="resumo-btn" onclick="window.location='resumo.html'">
   <div class="icon">🌅</div>
   <div class="texto">
@@ -161,6 +172,19 @@
 
 <script src="notificacoes.js"></script>
 <script>
+  // Carregar perfil ativo
+  var membroAtivo = JSON.parse(localStorage.getItem('membroAtivo') || 'null');
+  var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+  if(membroAtivo) {
+    var emojis = { adulto:'👨', idoso:'👴', crianca:'👶' };
+    document.getElementById('perfilEmoji').textContent = emojis[membroAtivo.tipo] || '👨';
+    document.getElementById('perfilNome').textContent = membroAtivo.nome;
+    document.getElementById('perfilTipo').textContent = membroAtivo.relacao || membroAtivo.tipo;
+  } else if(usuario) {
+    document.getElementById('perfilNome').textContent = usuario.nome;
+    document.getElementById('perfilTipo').textContent = usuario.relacao || 'Admin';
+  }
+
   // Verificar cadastro
   if(!localStorage.getItem('usuarioCuidar')){
     window.location.replace('cadastro.html');

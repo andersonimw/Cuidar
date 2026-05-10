@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perfis - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .conteudo { padding:16px; padding-bottom:80px; }
+
+  .info-box { background:#e8f5e9; border-left:4px solid #2e7d32; padding:12px 16px;
+              border-radius:0 12px 12px 0; font-size:0.85em; color:#2e7d32; margin-bottom:16px; }
+
+  .perfil-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px;
+                 box-shadow:0 2px 8px rgba(0,0,0,0.08); display:flex; align-items:center; gap:14px;
+                 cursor:pointer; border:3px solid transparent; transition:all 0.2s; }
+  .perfil-card.ativo { border-color:#2e7d32; background:#e8f5e9; }
+  .perfil-card:active { transform:scale(0.98); }
+  .perfil-avatar { width:56px; height:56px; border-radius:50%; display:flex; align-items:center;
+                   justify-content:center; font-size:1.8em; flex-shrink:0; }
+  .avatar-adulto { background:#e3f2fd; }
+  .avatar-idoso { background:#fff3e0; }
+  .avatar-crianca { background:#f3e5f5; }
+  .perfil-info { flex:1; }
+  .perfil-nome { font-weight:bold; font-size:1em; color:#333; }
+  .perfil-rel { font-size:0.8em; color:#888; margin-top:2px; }
+  .perfil-tipo { font-size:0.72em; padding:2px 8px; border-radius:20px; display:inline-block; margin-top:4px; }
+  .tipo-adulto { background:#e3f2fd; color:#1565c0; }
+  .tipo-idoso { background:#fff3e0; color:#e65100; }
+  .tipo-crianca { background:#f3e5f5; color:#6a1b9a; }
+  .ativo-badge { background:#2e7d32; color:white; font-size:0.72em; padding:2px 10px; border-radius:20px; }
+  .perfil-acoes { display:flex; flex-direction:column; gap:6px; }
+  .btn-selecionar { padding:8px 14px; background:#2e7d32; color:white; border:none; border-radius:8px; font-size:0.82em; cursor:pointer; }
+  .btn-excluir-perfil { padding:8px 14px; background:#ffebee; color:#c62828; border:none; border-radius:8px; font-size:0.82em; cursor:pointer; }
+
+  .btn-add { width:100%; padding:16px; background:white; border:2px dashed #2e7d32; color:#2e7d32;
+             border-radius:16px; font-size:1em; cursor:pointer; margin-bottom:12px; font-weight:bold; }
+
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+           background:rgba(0,0,0,0.5); z-index:100; align-items:flex-end; justify-content:center; }
+  .modal.ativo { display:flex; }
+  .modal-box { background:white; border-radius:24px 24px 0 0; padding:24px; width:100%; max-height:85vh; overflow-y:auto; }
+  .modal-titulo { font-size:1.1em; font-weight:bold; color:#2e7d32; margin-bottom:16px; text-align:center; }
+
+  .form-group { margin-bottom:14px; }
+  .form-group label { font-size:0.85em; color:#555; font-weight:bold; display:block; margin-bottom:6px; }
+  .form-group input, .form-group select { width:100%; padding:12px; border:1.5px solid #ddd; border-radius:10px; font-size:0.95em; outline:none; }
+  .form-group input:focus, .form-group select:focus { border-color:#2e7d32; }
+
+  .tipos-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
+  .tipo-btn { padding:12px 8px; border:2px solid #eee; border-radius:12px; background:white;
+              font-size:0.82em; cursor:pointer; text-align:center; transition:all 0.2s; }
+  .tipo-btn .tipo-icon { font-size:1.8em; display:block; margin-bottom:4px; }
+  .tipo-btn.sel { border-color:#2e7d32; background:#e8f5e9; color:#2e7d32; font-weight:bold; }
+
+  .btn-salvar { width:100%; padding:16px; background:#2e7d32; color:white; border:none;
+                border-radius:12px; font-size:1em; font-weight:bold; cursor:pointer; }
+  .btn-cancelar { width:100%; padding:12px; background:#eee; color:#555; border:none;
+                  border-radius:12px; font-size:0.95em; cursor:pointer; margin-top:8px; }
+
+  .sem-perfis { text-align:center; color:#bbb; padding:30px; font-size:0.9em; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>👥 Perfis Familiares</h1>
+</header>
+
+<div class="conteudo">
+
+  <div class="info-box">
+    💡 Selecione um perfil para gerenciar a saúde de cada membro da família separadamente.
+  </div>
+
+  <div id="listaPerfis"></div>
+
+  <button class="btn-add" onclick="abrirModal()">➕ Adicionar novo membro</button>
+
+</div>
+
+<!-- MODAL NOVO PERFIL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-titulo">➕ Novo Membro Familiar</div>
+
+    <div class="form-group">
+      <label>Nome completo *</label>
+      <input type="text" id="pNome" placeholder="Ex: Maria Silva">
+    </div>
+
+    <div class="form-group">
+      <label>Tipo de perfil *</label>
+      <div class="tipos-grid">
+        <button class="tipo-btn" onclick="selTipo(this,'adulto')">
+          <span class="tipo-icon">👨</span>Adulto
+        </button>
+        <button class="tipo-btn" onclick="selTipo(this,'idoso')">
+          <span class="tipo-icon">👴</span>Idoso
+        </button>
+        <button class="tipo-btn" onclick="selTipo(this,'crianca')">
+          <span class="tipo-icon">👶</span>Criança
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Relação com a família</label>
+      <select id="pRelacao">
+        <option value="Pai/Mãe">👨‍👩‍👧 Pai/Mãe</option>
+        <option value="Filho(a)">👧 Filho(a)</option>
+        <option value="Avô/Avó">👴 Avô/Avó</option>
+        <option value="Cônjuge">💑 Cônjuge</option>
+        <option value="Irmão(ã)">🤝 Irmão(ã)</option>
+        <option value="Neto(a)">🧒 Neto(a)</option>
+        <option value="Outro">👤 Outro</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Data de nascimento</label>
+      <input type="date" id="pNascimento">
+    </div>
+
+    <button class="btn-salvar" onclick="salvarPerfil()">✅ Salvar perfil</button>
+    <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+  var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+  var familiaId = localStorage.getItem('familiaId') || '';
+  var perfis = JSON.parse(localStorage.getItem('perfisFamily') || '[]');
+  var membroAtivo = JSON.parse(localStorage.getItem('membroAtivo') || 'null');
+  var tipoSelecionado = '';
+
+  // Adiciona o próprio usuário como primeiro perfil se não existir
+  if(perfis.length === 0 && usuario) {
+    perfis.push({
+      id: 'usuario_' + Date.now(),
+      nome: usuario.nome,
+      tipo: usuario.tipo || 'adulto',
+      relacao: usuario.relacao || 'Admin',
+      nascimento: '',
+      principal: true
+    });
+    localStorage.setItem('perfisFamily', JSON.stringify(perfis));
+  }
+
+  // Define membro ativo padrão
+  if(!membroAtivo && perfis.length > 0) {
+    membroAtivo = perfis[0];
+    localStorage.setItem('membroAtivo', JSON.stringify(membroAtivo));
+  }
+
+  function getEmoji(tipo) {
+    if(tipo === 'idoso') return '👴';
+    if(tipo === 'crianca') return '👶';
+    return '👨';
+  }
+
+  function getAvatarClass(tipo) {
+    if(tipo === 'idoso') return 'avatar-idoso';
+    if(tipo === 'crianca') return 'avatar-crianca';
+    return 'avatar-adulto';
+  }
+
+  function getTipoBadge(tipo) {
+    if(tipo === 'idoso') return '<span class="perfil-tipo tipo-idoso">👴 Idoso</span>';
+    if(tipo === 'crianca') return '<span class="perfil-tipo tipo-crianca">👶 Criança</span>';
+    return '<span class="perfil-tipo tipo-adulto">👨 Adulto</span>';
+  }
+
+  function renderizar() {
+    var el = document.getElementById('listaPerfis');
+    if(perfis.length === 0) {
+      el.innerHTML = '<div class="sem-perfis">Nenhum membro cadastrado ainda.</div>';
+      return;
+    }
+    el.innerHTML = '';
+    perfis.forEach(function(p) {
+      var ativo = membroAtivo && membroAtivo.id === p.id;
+      var div = document.createElement('div');
+      div.className = 'perfil-card' + (ativo ? ' ativo' : '');
+      div.innerHTML =
+        '<div class="perfil-avatar ' + getAvatarClass(p.tipo) + '">' + getEmoji(p.tipo) + '</div>' +
+        '<div class="perfil-info">' +
+          '<div class="perfil-nome">' + p.nome + '</div>' +
+          '<div class="perfil-rel">' + (p.relacao||'') + (p.nascimento ? ' · ' + calcIdade(p.nascimento) : '') + '</div>' +
+          getTipoBadge(p.tipo) +
+          (ativo ? ' <span class="ativo-badge">✓ Ativo</span>' : '') +
+        '</div>' +
+        '<div class="perfil-acoes">' +
+          (!ativo ? '<button class="btn-selecionar" onclick="selecionarPerfil(\'' + p.id + '\')">Selecionar</button>' : '<button class="btn-selecionar" disabled style="opacity:0.5">Ativo</button>') +
+          (!p.principal ? '<button class="btn-excluir-perfil" onclick="excluirPerfil(\'' + p.id + '\')">Excluir</button>' : '') +
+        '</div>';
+      el.appendChild(div);
+    });
+  }
+
+  function calcIdade(nascimento) {
+    if(!nascimento) return '';
+    var hoje = new Date();
+    var nasc = new Date(nascimento);
+    var idade = hoje.getFullYear() - nasc.getFullYear();
+    return idade + ' anos';
+  }
+
+  function selecionarPerfil(id) {
+    var perfil = perfis.find(function(p){ return p.id === id; });
+    if(!perfil) return;
+    membroAtivo = perfil;
+    localStorage.setItem('membroAtivo', JSON.stringify(perfil));
+    renderizar();
+    alert('✅ Perfil de ' + perfil.nome + ' selecionado!\nTodos os módulos agora gerenciam os dados de ' + perfil.nome + '.');
+  }
+
+  function excluirPerfil(id) {
+    var perfil = perfis.find(function(p){ return p.id === id; });
+    if(!perfil) return;
+    if(!confirm('Excluir o perfil de ' + perfil.nome + '?\n\nOs dados salvos no app serão mantidos.')) return;
+    perfis = perfis.filter(function(p){ return p.id !== id; });
+    localStorage.setItem('perfisFamily', JSON.stringify(perfis));
+    if(membroAtivo && membroAtivo.id === id) {
+      membroAtivo = perfis[0] || null;
+      localStorage.setItem('membroAtivo', JSON.stringify(membroAtivo));
+    }
+    renderizar();
+  }
+
+  function selTipo(btn, tipo) {
+    document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel');
+    tipoSelecionado = tipo;
+  }
+
+  function abrirModal() { document.getElementById('modal').classList.add('ativo'); }
+  function fecharModal() {
+    document.getElementById('modal').classList.remove('ativo');
+    document.getElementById('pNome').value = '';
+    document.getElementById('pNascimento').value = '';
+    document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
+    tipoSelecionado = '';
+  }
+
+  function salvarPerfil() {
+    var nome = document.getElementById('pNome').value.trim();
+    if(!nome){ alert('Digite o nome.'); return; }
+    if(!tipoSelecionado){ alert('Selecione o tipo de perfil.'); return; }
+
+    var perfil = {
+      id: 'membro_' + Date.now(),
+      nome: nome,
+      tipo: tipoSelecionado,
+      relacao: document.getElementById('pRelacao').value,
+      nascimento: document.getElementById('pNascimento').value,
+      principal: false
+    };
+
+    perfis.push(perfil);
+    localStorage.setItem('perfisFamily', JSON.stringify(perfis));
+
+    // Salvar no banco
+    if(familiaId) {
+      fetch('/api/membros/salvar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          familia_id: familiaId,
+          nome: perfil.nome,
+          relacao: perfil.relacao,
+          tipo: perfil.tipo,
+          data_nascimento: perfil.nascimento || null,
+          admin: false
+        })
+      }).then(function(r){ return r.json(); })
+      .then(function(r){ console.log('Membro no banco:', r); })
+      .catch(function(e){ console.log('Erro:', e); });
+    }
+
+    fecharModal();
+    renderizar();
+    alert('✅ ' + nome + ' adicionado com sucesso!');
+  }
+
+  renderizar();
+</script>
+</body>
+</html>
