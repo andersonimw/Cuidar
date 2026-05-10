@@ -460,8 +460,33 @@
       if (b.textContent.includes('Consultas')) b.classList.add('ativo');
     });
   }
+  function carregarDoBANCO() {
+    var familiaId = localStorage.getItem("familiaId") || "";
+    if(!familiaId) { renderCalendario(); return; }
+    fetch("/api/eventos/" + familiaId)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(r.ok && r.eventos && r.eventos.length > 0) {
+        r.eventos.forEach(function(e) {
+          var existe = eventos.find(function(x){ return x.dbId === e.id; });
+          if(!existe) {
+            eventos.push({
+              dbId: e.id,
+              nome: e.titulo,
+              tipo: e.tipo || "consulta",
+              data: e.data,
+              hora: e.hora || "",
+              obs: e.obs || ""
+            });
+          }
+        });
+        localStorage.setItem(_chaveCalendario, JSON.stringify(eventos));
+      }
+      renderCalendario();
+    }).catch(function(){ renderCalendario(); });
+  }
 
-  renderCalendario();
+  carregarDoBANCO();
 </script>
 <script src="perfil_ativo.js"></script>
 <script src="/socket.io/socket.io.js"></script>
