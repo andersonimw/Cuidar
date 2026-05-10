@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistente de Saúde - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:sans-serif; background:#f0f4f8; color:#333; display:flex; flex-direction:column; height:100vh; }
+  header { background:linear-gradient(135deg,#1a237e,#283593); color:white; padding:16px 20px; display:flex; align-items:center; gap:12px; flex-shrink:0; }
+  header a { color:white; text-decoration:none; font-size:1.4em; }
+  header h1 { font-size:1.2em; flex:1; }
+  .status { width:10px; height:10px; border-radius:50%; background:#69f0ae; }
+
+  .intro { background:linear-gradient(135deg,#1a237e,#283593); color:white; padding:16px 20px; flex-shrink:0; }
+  .intro p { font-size:0.85em; opacity:0.9; line-height:1.6; }
+
+  .sugestoes { display:flex; gap:8px; padding:12px 16px; overflow-x:auto; flex-shrink:0; background:white; border-bottom:1px solid #eee; }
+  .sugestoes::-webkit-scrollbar { display:none; }
+  .sug { padding:8px 14px; background:#e8eaf6; color:#1a237e; border:none; border-radius:20px; font-size:0.8em; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+  .sug:active { background:#c5cae9; }
+
+  .mensagens { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+
+  .msg { display:flex; flex-direction:column; gap:4px; max-width:85%; }
+  .msg.usuario { align-self:flex-end; align-items:flex-end; }
+  .msg.ia { align-self:flex-start; align-items:flex-start; }
+  .msg-autor { font-size:0.75em; color:#888; padding:0 4px; }
+  .msg-balao { padding:12px 16px; border-radius:18px; font-size:0.9em; line-height:1.6; }
+  .msg.usuario .msg-balao { background:#1a237e; color:white; border-bottom-right-radius:4px; }
+  .msg.ia .msg-balao { background:white; color:#333; border-bottom-left-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+  .msg-aviso { font-size:0.75em; color:#e65100; background:#fff3e0; padding:6px 12px; border-radius:10px; margin-top:4px; }
+
+  .digitando-ia { align-self:flex-start; background:white; padding:12px 16px; border-radius:18px; border-bottom-left-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1); display:none; }
+  .dots { display:flex; gap:4px; }
+  .dot { width:8px; height:8px; border-radius:50%; background:#1a237e; animation:bounce 1.2s infinite; }
+  .dot:nth-child(2) { animation-delay:0.2s; }
+  .dot:nth-child(3) { animation-delay:0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+  .input-area { background:white; border-top:1px solid #eee; padding:12px 16px; display:flex; gap:8px; align-items:flex-end; flex-shrink:0; }
+  .input-area textarea { flex:1; border:1.5px solid #e0e0e0; border-radius:20px; padding:10px 14px; font-size:0.95em; resize:none; max-height:100px; outline:none; font-family:sans-serif; line-height:1.4; }
+  .input-area textarea:focus { border-color:#1a237e; }
+  .btn-enviar { background:#1a237e; color:white; border:none; border-radius:50%; width:44px; height:44px; font-size:1.2em; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .btn-enviar:disabled { background:#ccc; }
+
+  .vazio { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#bbb; gap:12px; padding:20px; text-align:center; }
+  .vazio .icon { font-size:4em; }
+  .vazio h3 { color:#555; font-size:1em; }
+  .vazio p { font-size:0.85em; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html">←</a>
+  <h1>🤖 Assistente de Saúde</h1>
+  <div class="status"></div>
+</header>
+
+<div class="intro">
+  <p>💡 Tire dúvidas sobre saúde, medicamentos, cuidado de idosos e muito mais. Powered by Google Gemini.</p>
+</div>
+
+<div class="sugestoes">
+  <button class="sug" onclick="perguntarRapido('Quais os sintomas de AVC?')">🧠 Sintomas de AVC</button>
+  <button class="sug" onclick="perguntarRapido('Como controlar a pressão alta?')">🩸 Pressão alta</button>
+  <button class="sug" onclick="perguntarRapido('Dipirona e ibuprofeno podem ser tomados juntos?')">💊 Interação de remédios</button>
+  <button class="sug" onclick="perguntarRapido('O que fazer quando um idoso cai?')">🤕 Idoso caiu</button>
+  <button class="sug" onclick="perguntarRapido('Como lidar com crise de Alzheimer?')">🧩 Alzheimer</button>
+  <button class="sug" onclick="perguntarRapido('Quais vacinas idosos precisam tomar?')">💉 Vacinas idosos</button>
+  <button class="sug" onclick="perguntarRapido('Como fazer RCP em adultos?')">❤️ RCP</button>
+  <button class="sug" onclick="perguntarRapido('Quanta água um idoso deve beber por dia?')">💧 Hidratação idoso</button>
+</div>
+
+<div class="mensagens" id="mensagens">
+  <div class="vazio" id="vazio">
+    <div class="icon">🤖</div>
+    <h3>Olá! Sou seu assistente de saúde.</h3>
+    <p>Pode me perguntar sobre medicamentos, sintomas, cuidado de idosos, crianças, primeiros socorros e bem-estar familiar.</p>
+    <p style="color:#e65100;font-size:0.8em;margin-top:8px">⚠️ Não substituo consulta médica.</p>
+  </div>
+</div>
+
+<div class="digitando-ia" id="digitandoIA">
+  <div class="dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+</div>
+
+<div class="input-area">
+  <textarea id="inputPergunta" placeholder="Digite sua pergunta de saúde..." rows="1"
+            oninput="ajustarAltura(this)"
+            onkeydown="teclaEnter(event)"></textarea>
+  <button class="btn-enviar" id="btnEnviar" onclick="enviarPergunta()">➤</button>
+</div>
+
+<script>
+  var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+  var carregando = false;
+
+  function ajustarAltura(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  }
+
+  function teclaEnter(e) {
+    if(e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      enviarPergunta();
+    }
+  }
+
+  function perguntarRapido(texto) {
+    document.getElementById('inputPergunta').value = texto;
+    enviarPergunta();
+  }
+
+  function enviarPergunta() {
+    if(carregando) return;
+    var input = document.getElementById('inputPergunta');
+    var pergunta = input.value.trim();
+    if(!pergunta) return;
+
+    var vazio = document.getElementById('vazio');
+    if(vazio) vazio.remove();
+
+    adicionarMsg(pergunta, 'usuario');
+    input.value = '';
+    input.style.height = 'auto';
+
+    carregando = true;
+    document.getElementById('btnEnviar').disabled = true;
+    document.getElementById('digitandoIA').style.display = 'block';
+    scrollBottom();
+
+    // Contexto familiar
+    var contexto = '';
+    if(usuario) contexto = 'Usuário: ' + usuario.nome + ', relação: ' + (usuario.relacao || 'familiar');
+
+    fetch('/api/ia/perguntar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pergunta: pergunta, contexto: contexto })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      document.getElementById('digitandoIA').style.display = 'none';
+      carregando = false;
+      document.getElementById('btnEnviar').disabled = false;
+      if(r.ok) {
+        adicionarMsg(r.resposta, 'ia');
+      } else {
+        adicionarMsg('❌ Erro: ' + (r.erro || 'Tente novamente.'), 'ia');
+      }
+    })
+    .catch(function(e){
+      document.getElementById('digitandoIA').style.display = 'none';
+      carregando = false;
+      document.getElementById('btnEnviar').disabled = false;
+      adicionarMsg('❌ Erro de conexão. Verifique sua internet.', 'ia');
+    });
+  }
+
+  function adicionarMsg(texto, tipo) {
+    var cont = document.getElementById('mensagens');
+    var div = document.createElement('div');
+    div.className = 'msg ' + tipo;
+
+    var autor = tipo === 'usuario'
+      ? (usuario ? usuario.nome : 'Você')
+      : '🤖 Assistente de Saúde';
+
+    var html = '<div class="msg-autor">' + autor + '</div>' +
+      '<div class="msg-balao">' + texto.replace(/\n/g, '<br>') + '</div>';
+
+    if(tipo === 'ia') {
+      html += '<div class="msg-aviso">⚠️ Consulte sempre um médico para diagnóstico e tratamento.</div>';
+    }
+
+    div.innerHTML = html;
+    cont.appendChild(div);
+    scrollBottom();
+  }
+
+  function scrollBottom() {
+    var cont = document.getElementById('mensagens');
+    setTimeout(function(){ cont.scrollTop = cont.scrollHeight; }, 100);
+  }
+</script>
+</body>
+</html>

@@ -342,6 +342,43 @@ app.post('/api/vacinas/salvar', async (req, res) => {
   } catch(e) { res.json({ ok: false, erro: e.message }); }
 });
 
+
+// ===== ASSISTENTE IA GEMINI =====
+app.post('/api/ia/perguntar', async (req, res) => {
+  try {
+    const { pergunta, contexto } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+    if(!apiKey) return res.json({ ok: false, erro: 'API key não configurada' });
+
+    const prompt = `Você é um assistente de saúde familiar do app Cuidar, desenvolvido para famílias brasileiras.
+Responda sempre em português brasileiro, de forma clara, carinhosa e acessível.
+Você pode pesquisar e responder sobre saúde, medicamentos, cuidado de idosos, crianças, primeiros socorros e bem-estar.
+IMPORTANTE: Sempre termine com "Consulte sempre um médico para diagnóstico e tratamento."
+
+${contexto ? 'Contexto familiar: ' + contexto : ''}
+
+Pergunta: ${pergunta}`;
+
+    const response = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+        })
+      }
+    );
+
+    const data = await response.json();
+    const texto = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Não consegui responder. Tente novamente.';
+    res.json({ ok: true, resposta: texto });
+  } catch(e) {
+    res.json({ ok: false, erro: e.message });
+  }
+});
+
 // ===== SOCKET.IO =====
 io.on('connection', (socket) => {
   console.log('Conectado:', socket.id);
