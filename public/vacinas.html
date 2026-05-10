@@ -307,6 +307,24 @@
       doses: doses
     });
     localStorage.setItem('vacinas', JSON.stringify(vacinas));
+    // Salvar no banco
+    var familiaId = localStorage.getItem('familiaId') || '';
+    if(familiaId) {
+      fetch('/api/vacinas/salvar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          familia_id: familiaId,
+          nome: nome,
+          data: data,
+          doses: parseInt(document.getElementById('vDoses').value) || 1,
+          status: 'Aplicada',
+          obs: document.getElementById('vDesc').value.trim()
+        })
+      }).then(function(r){ return r.json(); })
+      .then(function(r){ console.log('Vacina no banco:', r); })
+      .catch(function(e){ console.log('Erro banco:', e); });
+    }
     fecharModal();
     renderizar();
   }

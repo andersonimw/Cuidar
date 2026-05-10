@@ -507,6 +507,28 @@ function salvarMed() {
   };
   meds.push(med);
   localStorage.setItem('medicamentos',JSON.stringify(meds));
+  // Salvar no banco
+  var familiaId = localStorage.getItem('familiaId') || '';
+  if(familiaId) {
+    fetch('/api/medicamentos/salvar', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        familia_id: familiaId,
+        nome: med.nome,
+        dosagem: med.dosagem,
+        horarios: med.horarios,
+        via: med.via,
+        estoque: med.estoque,
+        alerta_estoque: med.alertaEstoque,
+        validade: med.validade,
+        armazenamento: med.armazenamento,
+        obs: med.obs
+      })
+    }).then(function(r){ return r.json(); })
+    .then(function(r){ console.log('Med no banco:', r); })
+    .catch(function(e){ console.log('Erro banco:', e); });
+  }
   document.getElementById('medNome').value='';
   document.getElementById('medDosagem').value='';
   document.getElementById('medEstoque').value='';

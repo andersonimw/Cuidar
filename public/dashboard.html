@@ -330,6 +330,25 @@
     if (!dados[tipo]) dados[tipo] = [];
     dados[tipo].push(registro);
     salvarDados();
+    // Salvar no banco
+    var familiaId = localStorage.getItem('familiaId') || '';
+    if(familiaId) {
+      var valor = tipo === 'pressao' ? registro.sistolica + '/' + registro.diastolica : String(registro.valor);
+      fetch('/api/sinais/salvar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          familia_id: familiaId,
+          tipo: tipo,
+          valor: valor,
+          data: agora.toLocaleDateString('pt-BR'),
+          hora: agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+          obs: obs
+        })
+      }).then(function(r){ return r.json(); })
+      .then(function(r){ console.log('Sinal no banco:', r); })
+      .catch(function(e){ console.log('Erro banco:', e); });
+    }
     fecharModal();
     renderizar();
   }
