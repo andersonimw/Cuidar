@@ -168,11 +168,27 @@
   }
 
   function excluir(i) {
-    if (!confirm('Excluir este registro?')) return;
+    var reg = registros[i];
+    if(!reg) return;
+    if(!confirm("Excluir este registro?")) return;
+    var dbId = reg.dbId || null;
     registros.splice(i, 1);
     localStorage.setItem(_chaveDiario, JSON.stringify(registros));
+    if(dbId) {
+      fetch("/api/sinais/excluir", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id: dbId })
+      });
+    }
     renderizar();
   }
+
+
+
+
+
+
 
   function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
   function fecharModal() {
@@ -220,7 +236,29 @@
     renderizar();
   }
 
-  renderizar();
+  function carregarDoBANCO() {
+    var familiaId = localStorage.getItem("familiaId") || "";
+    if(!familiaId) { renderizar(); return; }
+    fetch("/api/sinais/" + familiaId)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      registros = [];
+      if(r.ok && r.sinais && r.sinais.length > 0) {
+        r.sinais.filter(function(s){ return s.tipo === "Diário de Saúde"; }).forEach(function(s) {
+          registros.push({
+            dbId: s.id,
+            data: s.data,
+            hora: s.hora || "",
+            obs: s.obs || "",
+            valor: s.valor || ""
+          });
+        });
+        localStorage.setItem(_chaveDiario, JSON.stringify(registros));
+      }
+      renderizar();
+    }).catch(function(){ renderizar(); });
+  }
+  carregarDoBANCO();
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>

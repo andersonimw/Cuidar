@@ -332,6 +332,13 @@ app.post('/api/sinais/salvar', async (req, res) => {
     );
     res.json({ ok: true, sinal: r.rows[0] });
   } catch(e) { res.json({ ok: false, erro: e.message }); }
+app.post('/api/sinais/excluir', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM sinais_vitais WHERE id=$1', [req.body.id]);
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
 });
 
 // VACINAS

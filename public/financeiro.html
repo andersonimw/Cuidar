@@ -266,11 +266,27 @@
   }
 
   function excluir(i) {
-    if (!confirm('Excluir este lançamento?')) return;
+    var gasto = gastos[i];
+    if(!gasto) return;
+    if(!confirm("Excluir este lançamento?")) return;
+    var dbId = gasto.dbId || null;
     gastos.splice(i, 1);
     localStorage.setItem(_chaveFinanceiro, JSON.stringify(gastos));
+    if(dbId) {
+      fetch("/api/gastos/excluir", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id: dbId })
+      });
+    }
     renderizar();
   }
+
+
+
+
+
+
 
   function abrirModal() { document.getElementById('modalBg').classList.add('ativo'); }
   function fecharModal() {
@@ -319,7 +335,30 @@
     renderizar();
   }
 
-  renderizar();
+  function carregarDoBANCO() {
+    var familiaId = localStorage.getItem("familiaId") || "";
+    if(!familiaId) { renderizar(); return; }
+    fetch("/api/gastos/" + familiaId)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      gastos = [];
+      if(r.ok && r.gastos && r.gastos.length > 0) {
+        r.gastos.forEach(function(g) {
+          gastos.push({
+            dbId: g.id,
+            desc: g.descricao,
+            valor: g.valor,
+            categoria: g.categoria,
+            responsavel: g.responsavel,
+            data: g.data
+          });
+        });
+        localStorage.setItem(_chaveFinanceiro, JSON.stringify(gastos));
+      }
+      renderizar();
+    }).catch(function(){ renderizar(); });
+  }
+  carregarDoBANCO();
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>

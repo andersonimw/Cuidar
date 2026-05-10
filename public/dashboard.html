@@ -281,11 +281,26 @@
   }
 
   function excluirMedicao(tipo, i) {
-    if (!confirm('Excluir esta medição?')) return;
-    dados[tipo].splice(i, 1);
+    if(!confirm("Excluir esta medição?")) return;
+    var item = dados[tipo] ? dados[tipo][i] : null;
+    var dbId = item ? (item.dbId || null) : null;
+    if(dados[tipo]) dados[tipo].splice(i, 1);
     salvarDados();
+    if(dbId) {
+      fetch("/api/sinais/excluir", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id: dbId })
+      });
+    }
     renderizar();
   }
+
+
+
+
+
+
 
   function mostrarCampos() {
     var tipo = document.getElementById('mTipo').value;
@@ -354,7 +369,31 @@
     renderizar();
   }
 
-  renderizar();
+  function carregarDoBANCO() {
+    var familiaId = localStorage.getItem("familiaId") || "";
+    if(!familiaId) { renderizar(); return; }
+    fetch("/api/sinais/" + familiaId)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(r.ok && r.sinais && r.sinais.length > 0) {
+        dados = { pressao:[], glicemia:[], peso:[], oxigenio:[], temperatura:[], frequencia:[] };
+        r.sinais.forEach(function(s) {
+          var tipo = s.tipo;
+          if(!dados[tipo]) dados[tipo] = [];
+          dados[tipo].push({
+            dbId: s.id,
+            valor: s.valor,
+            data: s.data,
+            hora: s.hora || "",
+            obs: s.obs || ""
+          });
+        });
+        salvarDados();
+      }
+      renderizar();
+    }).catch(function(){ renderizar(); });
+  }
+  carregarDoBANCO();
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>
