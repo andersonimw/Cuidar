@@ -37,8 +37,11 @@ async function criarTabelas() {
         admin BOOLEAN DEFAULT false,
         foto TEXT,
         data_nascimento DATE,
+        id_medico VARCHAR(20) UNIQUE,
         criado_em TIMESTAMP DEFAULT NOW()
       );
+      -- Adicionar coluna se não existir
+      ALTER TABLE membros ADD COLUMN IF NOT EXISTS id_medico VARCHAR(20) UNIQUE;
 
       CREATE TABLE IF NOT EXISTS medicamentos (
         id SERIAL PRIMARY KEY,
@@ -159,9 +162,17 @@ app.get('/api/familia/:codigo', async (req, res) => {
 app.post('/api/membros/salvar', async (req, res) => {
   try {
     const { familia_id, nome, relacao, tipo, tel, admin, foto, data_nascimento } = req.body;
+    // Gerar ID médico único
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const prefix = nome.replace(/[^a-zA-Z]/g,'').toUpperCase().substring(0,3) || 'MBR';
+    let idMedico = prefix + '-';
+    for(let i=0; i<5; i++) idMedico += chars.charAt(Math.floor(Math.random()*chars.length));
+    // Verificar unicidade
+    const existe = await pool.query('SELECT id FROM membros WHERE id_medico=$1', [idMedico]);
+    if(existe.rows.length > 0) idMedico = prefix + '-' + Date.now().toString(36).toUpperCase();
     const r = await pool.query(
-      'INSERT INTO membros (familia_id,nome,relacao,tipo,tel,admin,foto,data_nascimento) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
-      [familia_id, nome, relacao, tipo||'adulto', tel, admin||false, foto, data_nascimento]
+      'INSERT INTO membros (familia_id,nome,relacao,tipo,tel,admin,foto,data_nascimento,id_medico) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+      [familia_id, nome, relacao, tipo||'adulto', tel, admin||false, foto, data_nascimento, idMedico]
     );
     res.json({ ok: true, membro: r.rows[0] });
   } catch(e) { res.json({ ok: false, erro: e.message }); }
@@ -387,30 +398,63 @@ Pergunta: ${pergunta}`;
 app.get('/api/medico/:id', async (req, res) => {
   try {
     const id = req.params.id.toUpperCase();
-    // Busca família pelo ID médico ou código familiar
-    const familia = await pool.query(
-      'SELECT * FROM familias WHERE codigo=$1', [id]
+
+    // Primeiro tenta buscar por ID do membro
+    const membroResult = await pool.query(
+      'SELECT * FROM membros WHERE id_medico=$1', [id]
     );
-    if(familia.rows.length === 0) {
-      return res.json({ ok: false, erro: 'ID não encontrado' });
+
+    let familiaId, membroId, nomePaciente, tipoAcesso;
+
+    if(membroResult.rows.length > 0) {
+      // Acesso por ID do membro específico
+      const membro = membroResult.rows[0];
+      familiaId = membro.familia_id;
+      membroId = membro.id;
+      nomePaciente = membro.nome;
+      tipoAcesso = 'membro';
+    } else {
+      // Tenta buscar por código familiar
+      const familiaResult = await pool.query(
+        'SELECT * FROM familias WHERE codigo=$1', [id]
+      );
+      if(familiaResult.rows.length === 0) {
+        return res.json({ ok: false, erro: 'ID não encontrado. Verifique o código.' });
+      }
+      familiaId = familiaResult.rows[0].codigo;
+      membroId = null;
+      nomePaciente = familiaResult.rows[0].nome;
+      tipoAcesso = 'familia';
     }
-    const familiaId = familia.rows[0].codigo;
-    // Busca dados médicos
-    const meds = await pool.query(
-      'SELECT * FROM medicamentos WHERE familia_id=$1 AND ativo=true', [familiaId]
-    );
-    const sinais = await pool.query(
-      'SELECT * FROM sinais_vitais WHERE familia_id=$1 ORDER BY criado_em DESC LIMIT 20', [familiaId]
-    );
+
+    // Busca dados médicos filtrados por membro se existir
+    const medsQuery = membroId
+      ? 'SELECT * FROM medicamentos WHERE familia_id=$1 AND membro_id=$2 AND ativo=true'
+      : 'SELECT * FROM medicamentos WHERE familia_id=$1 AND ativo=true';
+    const medsParams = membroId ? [familiaId, membroId] : [familiaId];
+
+    const sinaisQuery = membroId
+      ? 'SELECT * FROM sinais_vitais WHERE familia_id=$1 AND membro_id=$2 ORDER BY criado_em DESC LIMIT 20'
+      : 'SELECT * FROM sinais_vitais WHERE familia_id=$1 ORDER BY criado_em DESC LIMIT 20';
+    const sinaisParams = membroId ? [familiaId, membroId] : [familiaId];
+
+    const vacinasQuery = membroId
+      ? 'SELECT * FROM vacinas WHERE familia_id=$1 AND membro_id=$2 ORDER BY criado_em DESC'
+      : 'SELECT * FROM vacinas WHERE familia_id=$1 ORDER BY criado_em DESC';
+    const vacinasParams = membroId ? [familiaId, membroId] : [familiaId];
+
+    const meds = await pool.query(medsQuery, medsParams);
+    const sinais = await pool.query(sinaisQuery, sinaisParams);
+    const vacinas = await pool.query(vacinasQuery, vacinasParams);
     const eventos = await pool.query(
       'SELECT * FROM eventos WHERE familia_id=$1 ORDER BY data DESC LIMIT 10', [familiaId]
     );
-    const vacinas = await pool.query(
-      'SELECT * FROM vacinas WHERE familia_id=$1 ORDER BY criado_em DESC', [familiaId]
-    );
+
     res.json({
       ok: true,
-      familia: familia.rows[0],
+      familia: { nome: nomePaciente, codigo: id },
+      membro: membroId ? membroResult.rows[0] : null,
+      tipoAcesso: tipoAcesso,
       meds: meds.rows,
       sinais: sinais.rows,
       eventos: eventos.rows,

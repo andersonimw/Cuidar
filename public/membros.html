@@ -279,13 +279,22 @@
           admin: false
         })
       }).then(function(r){ return r.json(); })
-      .then(function(r){ console.log('Membro no banco:', r); })
+      .then(function(r){
+        if(r.ok && r.membro && r.membro.id_medico) {
+          // Salvar ID médico no perfil local
+          perfil.idMedico = r.membro.id_medico;
+          perfil.membroIdBanco = r.membro.id;
+          perfis[perfis.length-1] = perfil;
+          localStorage.setItem('perfisFamily', JSON.stringify(perfis));
+          renderizar();
+        }
+      })
       .catch(function(e){ console.log('Erro:', e); });
     }
 
     fecharModal();
     renderizar();
-    alert('✅ ' + nome + ' adicionado com sucesso!');
+    alert('✅ ' + nome + ' adicionado!\nAguarde alguns segundos e reabra esta tela para ver o ID médico gerado.');
   }
 
   renderizar();
