@@ -517,6 +517,7 @@ function salvarMed() {
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         familia_id: familiaId,
+        membro_id: getMembroId(),
         nome: med.nome,
         dosagem: med.dosagem,
         horarios: med.horarios,
