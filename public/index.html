@@ -4,11 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cuidar</title>
-<script>
-if(!localStorage.getItem("usuarioCuidar")){
-window.location.replace("cadastro.html");
-}
-</script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: sans-serif; background:#f0f4f8; color:#333; }
@@ -32,6 +27,8 @@ window.location.replace("cadastro.html");
   .card.destaque { background:#e8f5e9; }
   .card.vermelho { background:#ffebee; }
   .card.vermelho h2 { color:#c62828; }
+  .card.cinza { background:#f5f5f5; }
+  .card.cinza h2 { color:#555; }
   .secao-titulo { padding:8px 16px 4px; font-size:0.78em; font-weight:bold;
                   color:#888; text-transform:uppercase; letter-spacing:0.08em; }
   footer { text-align:center; padding:20px; color:#aaa; font-size:0.8em; }
@@ -132,6 +129,7 @@ window.location.replace("cadastro.html");
     <p>Cuide de quem cuida</p>
   </button>
 </div>
+
 <div class="secao-titulo">⚙️ Sistema</div>
 <div class="grid">
   <button class="card vermelho" onclick="window.location='emergencia.html'">
@@ -144,10 +142,29 @@ window.location.replace("cadastro.html");
     <h2>Acesso</h2>
     <p>ID familiar e médico</p>
   </button>
+  <button class="card cinza" onclick="reiniciarApp()">
+    <div class="icon">🔄</div>
+    <h2>Reiniciar App</h2>
+    <p>Apagar dados e recomeçar</p>
+  </button>
 </div>
 
 <footer>Cuidar © 2026 — Feito com amor 💚</footer>
 
 <script src="notificacoes.js"></script>
+<script>
+  // Verificar cadastro
+  if(!localStorage.getItem('usuarioCuidar')){
+    window.location.replace('cadastro.html');
+  }
+
+  function reiniciarApp() {
+    if(confirm('⚠️ ATENÇÃO\n\nAo reiniciar o app TODOS os dados serão apagados permanentemente:\n\n• Medicamentos e histórico\n• Cadastro familiar\n• Financeiro\n• Documentos e fotos\n• Todos os registros\n\nEsta ação NÃO pode ser desfeita.\n\nDeseja continuar?')) {
+      localStorage.clear();
+      alert('✅ Dados apagados! O app vai reiniciar.');
+      window.location.replace('cadastro.html');
+    }
+  }
+</script>
 </body>
 </html>
