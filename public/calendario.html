@@ -426,6 +426,24 @@
     }
     eventos.push(ev);
     localStorage.setItem('calendario', JSON.stringify(eventos));
+    // Salvar no banco
+    var familiaId = localStorage.getItem('familiaId') || '';
+    if(familiaId) {
+      fetch('/api/eventos/salvar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          familia_id: familiaId,
+          titulo: nome,
+          data: data,
+          hora: ev.hora || '',
+          tipo: tipo,
+          obs: ev.obs || ''
+        })
+      }).then(function(r){ return r.json(); })
+      .then(function(r){ console.log('Evento no banco:', r); })
+      .catch(function(e){ console.log('Erro banco:', e); });
+    }
     diaSelecionado = data;
     fecharModal();
     renderCalendario();
