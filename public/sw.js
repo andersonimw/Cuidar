@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cdplus-v1';
+const CACHE_NAME = 'cdplus-v3';
 const URLS_CACHE = [
   '/', '/index.html', '/cadastro.html', '/medicamentos.html',
   '/calendario.html', '/dashboard.html', '/vacinas.html',
@@ -47,13 +47,11 @@ self.addEventListener('fetch', function(e) {
 
 self.addEventListener('push', function(e) {
   var data = e.data ? e.data.json() : {};
-  var titulo = data.titulo || 'CD+ Cuidado Digital';
-  var corpo = data.corpo || 'Você tem um lembrete.';
   e.waitUntil(
-    self.registration.showNotification(titulo, {
-      body: corpo,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
+    self.registration.showNotification(data.titulo || 'CD+', {
+      body: data.corpo || 'Você tem um lembrete.',
+      icon: '/icons/icon.svg',
+      badge: '/icons/icon.svg',
       vibrate: [200, 100, 200],
       tag: data.tag || 'cdplus',
       requireInteraction: data.importante || false
@@ -71,32 +69,44 @@ self.addEventListener('notificationclick', function(e) {
   );
 });
 
+// Recebe medicamentos do app
+var medicamentos = [];
+var ultimaVerificacao = '';
+
 self.addEventListener('message', function(e) {
-  if(e.data && e.data.tipo === 'agendarMedicamento') {
-    var med = e.data.med;
-    var horarios = med.horarios || [];
-    horarios.forEach(function(horario) {
-      agendarAlarme(med, horario);
-    });
+  if(e.data && e.data.tipo === 'atualizarMeds') {
+    medicamentos = e.data.meds || [];
+    console.log('CD+ SW: ' + medicamentos.length + ' medicamentos agendados');
   }
 });
 
-function agendarAlarme(med, horario) {
-  var partes = horario.split(':');
+// Verifica alarmes a cada minuto via periodicsync ou keepalive
+function verificarAlarmes() {
   var agora = new Date();
-  var alarme = new Date();
-  alarme.setHours(parseInt(partes[0]), parseInt(partes[1]), 0, 0);
-  if(alarme <= agora) alarme.setDate(alarme.getDate() + 1);
-  var diff = alarme.getTime() - agora.getTime();
-  setTimeout(function() {
-    self.registration.showNotification('💊 Hora do remédio!', {
-      body: med.nome + (med.dosagem ? ' — ' + med.dosagem : ''),
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
-      vibrate: [500, 200, 500, 200, 500],
-      tag: 'med_' + med.id + '_' + horario,
-      requireInteraction: true
+  var horaAtual = agora.getHours().toString().padStart(2,'0') + ':' + agora.getMinutes().toString().padStart(2,'0');
+  
+  if(horaAtual === ultimaVerificacao) return;
+  ultimaVerificacao = horaAtual;
+
+  medicamentos.forEach(function(med) {
+    if(!med.ativo || !med.horarios) return;
+    med.horarios.forEach(function(horario) {
+      if(horario === horaAtual) {
+        self.registration.showNotification('💊 Hora do remédio!', {
+          body: med.nome + (med.dosagem ? '\nDose: ' + med.dosagem : ''),
+          icon: '/icons/icon.svg',
+          badge: '/icons/icon.svg',
+          vibrate: [500, 200, 500, 200, 500],
+          tag: 'med_' + med.id + '_' + horario,
+          requireInteraction: true
+        });
+      }
     });
-    agendarAlarme(med, horario);
-  }, diff);
+  });
 }
+
+// Periodic Background Sync (Android Chrome)
+self.addEventListener('periodicsync', function(e) {
+  if(e.tag === 'verificar-alarmes') {
+    e.waitUntil(verificarAlarmes());
+  }
