@@ -296,6 +296,24 @@
       timestamp: agora.getTime()
     });
     localStorage.setItem('financeiro', JSON.stringify(gastos));
+    // Salvar no banco
+    var familiaId = localStorage.getItem('familiaId') || '';
+    if(familiaId) {
+      fetch('/api/gastos/salvar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          familia_id: familiaId,
+          descricao: desc,
+          valor: parseFloat(valor),
+          categoria: cat,
+          responsavel: pago,
+          data: agora.toLocaleDateString('pt-BR')
+        })
+      }).then(function(r){ return r.json(); })
+      .then(function(r){ console.log('Gasto no banco:', r); })
+      .catch(function(e){ console.log('Erro banco:', e); });
+    }
     fecharModal();
     renderizar();
   }
