@@ -263,8 +263,10 @@
 </div>
 
 <script src="interacoes.js"></script>
+<script src="perfil_ativo.js"></script>
 <script>
-var meds = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+var _chaveMeds = getChave('medicamentos');
+var meds = JSON.parse(localStorage.getItem(_chaveMeds) || '[]');
 var historico = JSON.parse(localStorage.getItem('historicoMeds') || '[]');
 var avisos = JSON.parse(localStorage.getItem('avisosEnviados') || '[]');
 var familiar = JSON.parse(localStorage.getItem('familiarMeds') || 'null');
@@ -506,7 +508,7 @@ function salvarMed() {
     ativo:true
   };
   meds.push(med);
-  localStorage.setItem('medicamentos',JSON.stringify(meds));
+  localStorage.setItem(_chaveMeds,JSON.stringify(meds));
   // Salvar no banco
   var familiaId = localStorage.getItem('familiaId') || '';
   if(familiaId) {
@@ -597,7 +599,7 @@ function tomarDose(id) {
     motivo:'', obs:''
   });
   if(med.estoque>0) med.estoque--;
-  localStorage.setItem('medicamentos',JSON.stringify(meds));
+  localStorage.setItem(_chaveMeds,JSON.stringify(meds));
   localStorage.setItem('historicoMeds',JSON.stringify(historico));
   // Som de confirmação
   try {
@@ -702,7 +704,7 @@ function renderAvisos() {
 function excluirMed(id) {
   if(!confirm('Excluir este medicamento?')) return;
   meds=meds.filter(function(m){return m.id!==id;});
-  localStorage.setItem('medicamentos',JSON.stringify(meds));
+  localStorage.setItem(_chaveMeds,JSON.stringify(meds));
   renderLista();
 }
 

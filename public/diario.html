@@ -108,7 +108,8 @@
 </div>
 
 <script>
-  var registros = JSON.parse(localStorage.getItem('diario') || '[]');
+  var _chaveDiario = getChave('diario');
+  var registros = JSON.parse(localStorage.getItem(_chaveDiario) || '[]');
   var humorSelecionado = '';
   var escalas = { apetite:'', sono:'', dor:'', mobilidade:'' };
 
@@ -169,7 +170,7 @@
   function excluir(i) {
     if (!confirm('Excluir este registro?')) return;
     registros.splice(i, 1);
-    localStorage.setItem('diario', JSON.stringify(registros));
+    localStorage.setItem(_chaveDiario, JSON.stringify(registros));
     renderizar();
   }
 
@@ -196,7 +197,7 @@
       autor: 'Familiar'
     };
     registros.push(registro);
-    localStorage.setItem('diario', JSON.stringify(registros));
+    localStorage.setItem(_chaveDiario, JSON.stringify(registros));
     // Salvar no banco como sinal vital
     var familiaId = localStorage.getItem('familiaId') || '';
     if(familiaId) {
@@ -223,5 +224,6 @@
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>
+<script src="perfil_ativo.js"></script>
 </body>
 </html>

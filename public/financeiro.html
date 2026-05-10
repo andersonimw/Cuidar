@@ -140,7 +140,8 @@
 </div>
 
 <script>
-  var gastos = JSON.parse(localStorage.getItem('financeiro') || '[]');
+  var _chaveFinanceiro = getChave('financeiro');
+  var gastos = JSON.parse(localStorage.getItem(_chaveFinanceiro) || '[]');
   var abaAtual = 'gastos';
 
   var catEmojis = {
@@ -267,7 +268,7 @@
   function excluir(i) {
     if (!confirm('Excluir este lançamento?')) return;
     gastos.splice(i, 1);
-    localStorage.setItem('financeiro', JSON.stringify(gastos));
+    localStorage.setItem(_chaveFinanceiro, JSON.stringify(gastos));
     renderizar();
   }
 
@@ -295,7 +296,7 @@
       data: agora.toLocaleDateString('pt-BR'),
       timestamp: agora.getTime()
     });
-    localStorage.setItem('financeiro', JSON.stringify(gastos));
+    localStorage.setItem(_chaveFinanceiro, JSON.stringify(gastos));
     // Salvar no banco
     var familiaId = localStorage.getItem('familiaId') || '';
     if(familiaId) {
@@ -322,5 +323,6 @@
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>
+<script src="perfil_ativo.js"></script>
 </body>
 </html>

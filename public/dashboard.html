@@ -161,7 +161,8 @@
 </div>
 
 <script>
-  var dados = JSON.parse(localStorage.getItem('dashboard') || '{"pressao":[],"glicemia":[],"peso":[],"oxigenio":[],"temperatura":[],"frequencia":[]}');
+  var _chaveDashboard = getChave('dashboard');
+  var dados = JSON.parse(localStorage.getItem(_chaveDashboard) || '{"pressao":[],"glicemia":[],"peso":[],"oxigenio":[],"temperatura":[],"frequencia":[]}');
   var abaAtual = 'resumo';
 
   var referencias = {
@@ -175,7 +176,7 @@
 
   var icones = { pressao:'❤️', glicemia:'🩸', peso:'⚖️', oxigenio:'💨', temperatura:'🌡️', frequencia:'💓' };
 
-  function salvarDados() { localStorage.setItem('dashboard', JSON.stringify(dados)); }
+  function salvarDados() { localStorage.setItem(_chaveDashboard, JSON.stringify(dados)); }
 
   function setAba(aba, btn) {
     abaAtual = aba;
@@ -357,5 +358,6 @@
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>
+<script src="perfil_ativo.js"></script>
 </body>
 </html>

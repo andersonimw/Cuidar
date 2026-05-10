@@ -110,12 +110,13 @@
 <script>
   var hojeISO = new Date().toISOString().split('T')[0];
   var hoje = new Date().toLocaleDateString('pt-BR');
-  var dados = JSON.parse(localStorage.getItem('hidratacao') || '{}');
+  var _chaveHidratacao = getChave('hidratacao');
+  var dados = JSON.parse(localStorage.getItem(_chaveHidratacao) || '{}');
   var meta = parseInt(localStorage.getItem('metaHidratacao') || '2000');
 
   if (!dados[hojeISO]) dados[hojeISO] = { registros: [], total: 0 };
 
-  function salvar() { localStorage.setItem('hidratacao', JSON.stringify(dados)); }
+  function salvar() { localStorage.setItem(_chaveHidratacao, JSON.stringify(dados)); }
 
   function setMeta(valor, btn) {
     meta = valor;
@@ -227,5 +228,6 @@
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>
+<script src="perfil_ativo.js"></script>
 </body>
 </html>

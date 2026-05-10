@@ -210,12 +210,13 @@
         });
       }
     });
-    localStorage.setItem('calendario', JSON.stringify(calAtual));
+    localStorage.setItem(_chaveCalendario, JSON.stringify(calAtual));
   }
 
   migrarAgenda();
 
-  var eventos = JSON.parse(localStorage.getItem('calendario') || '[]');
+  var _chaveCalendario = getChave('calendario');
+  var eventos = JSON.parse(localStorage.getItem(_chaveCalendario) || '[]');
   var hoje = new Date();
   var hojeStr = hoje.toISOString().split('T')[0];
   var anoAtual = hoje.getFullYear();
@@ -381,7 +382,7 @@
   function excluir(i) {
     if (!confirm('Excluir "' + eventos[i].nome + '"?')) return;
     eventos.splice(i, 1);
-    localStorage.setItem('calendario', JSON.stringify(eventos));
+    localStorage.setItem(_chaveCalendario, JSON.stringify(eventos));
     renderCalendario();
   }
 
@@ -425,7 +426,7 @@
       ev.quem = document.getElementById('eQuem').value.trim();
     }
     eventos.push(ev);
-    localStorage.setItem('calendario', JSON.stringify(eventos));
+    localStorage.setItem(_chaveCalendario, JSON.stringify(eventos));
     // Salvar no banco
     var familiaId = localStorage.getItem('familiaId') || '';
     if(familiaId) {
@@ -463,5 +464,6 @@
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>
+<script src="perfil_ativo.js"></script>
 </body>
 </html>

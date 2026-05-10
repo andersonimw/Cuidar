@@ -146,7 +146,8 @@
 </div>
 
 <script>
-  var vacinas = JSON.parse(localStorage.getItem('vacinas') || '[]');
+  var _chaveVacinas = getChave('vacinas');
+  var vacinas = JSON.parse(localStorage.getItem(_chaveVacinas) || '[]');
   var perfil = JSON.parse(localStorage.getItem('perfilIdoso') || 'null');
   var abaAtual = 'todas';
 
@@ -271,14 +272,14 @@
     if (!vacinas[i].doses) vacinas[i].doses = [];
     vacinas[i].doses.push(data);
     vacinas[i].dataUltima = data;
-    localStorage.setItem('vacinas', JSON.stringify(vacinas));
+    localStorage.setItem(_chaveVacinas, JSON.stringify(vacinas));
     renderizar();
   }
 
   function excluir(i) {
     if (!confirm('Excluir ' + vacinas[i].nome + '?')) return;
     vacinas.splice(i, 1);
-    localStorage.setItem('vacinas', JSON.stringify(vacinas));
+    localStorage.setItem(_chaveVacinas, JSON.stringify(vacinas));
     renderizar();
   }
 
@@ -306,7 +307,7 @@
       local: document.getElementById('vLocal').value.trim(),
       doses: doses
     });
-    localStorage.setItem('vacinas', JSON.stringify(vacinas));
+    localStorage.setItem(_chaveVacinas, JSON.stringify(vacinas));
     // Salvar no banco
     var familiaId = localStorage.getItem('familiaId') || '';
     if(familiaId) {
@@ -339,5 +340,6 @@
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="alarme_global.js"></script>
+<script src="perfil_ativo.js"></script>
 </body>
 </html>
