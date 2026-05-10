@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Medicamentos - Cuidar</title>
+<title>Medicamentos - CD+</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:sans-serif; background:#f0f4f8; color:#333; }
@@ -11,7 +11,6 @@
   header a { color:white; text-decoration:none; font-size:1.4em; }
   header h1 { font-size:1.2em; flex:1; }
   .conteudo { padding:16px; padding-bottom:80px; }
-
   .adesao-card { background:linear-gradient(135deg,#1a237e,#283593); color:white; border-radius:20px; padding:20px; margin-bottom:16px; }
   .adesao-titulo { font-size:0.85em; opacity:0.8; margin-bottom:8px; }
   .adesao-pct { font-size:2.8em; font-weight:bold; }
@@ -27,29 +26,23 @@
   .dia-parcial { background:#ff9800; color:white; }
   .dia-vazio { background:rgba(255,255,255,0.2); color:rgba(255,255,255,0.6); }
   .dia-hoje { border:2px solid white; }
-
   .tabs { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; }
   .tabs::-webkit-scrollbar { display:none; }
   .tab { padding:10px 16px; border:none; border-radius:20px; font-size:0.85em; cursor:pointer; background:#eee; color:#555; white-space:nowrap; }
   .tab.ativo { background:#1a237e; color:white; font-weight:bold; }
-
   .card { background:white; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
   .card h2 { color:#1a237e; font-size:1em; margin-bottom:12px; }
-
   .form-group { margin-bottom:12px; }
   .form-group label { font-size:0.85em; color:#555; display:block; margin-bottom:4px; font-weight:bold; }
   .form-group input, .form-group select, .form-group textarea { width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.95em; }
   .form-group textarea { height:70px; resize:none; }
-
   .horarios-lista { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
   .horario-tag { background:#e8eaf6; color:#1a237e; padding:6px 12px; border-radius:20px; font-size:0.85em; display:flex; align-items:center; gap:6px; }
   .horario-tag button { background:none; border:none; color:#c62828; font-size:1em; cursor:pointer; }
   .horario-input { display:flex; gap:8px; }
   .horario-input input { flex:1; }
   .horario-input button { padding:10px 16px; background:#1a237e; color:white; border:none; border-radius:8px; cursor:pointer; white-space:nowrap; }
-
   .btn-principal { width:100%; padding:14px; background:#1a237e; color:white; border:none; border-radius:10px; font-size:1em; cursor:pointer; margin-top:8px; }
-
   .med-card { background:white; border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); border-left:4px solid #1a237e; }
   .med-card.critico { border-left-color:#c62828; }
   .med-card.atencao { border-left-color:#e65100; }
@@ -64,20 +57,16 @@
   .med-estoque { font-size:0.8em; margin-top:8px; padding:6px 10px; border-radius:8px; background:#f5f5f5; }
   .med-estoque.baixo { background:#fff3e0; color:#e65100; }
   .med-estoque.critico { background:#ffebee; color:#c62828; }
-  .soneca-badge { background:#e8eaf6; color:#5c6bc0; font-size:0.75em; padding:4px 10px; border-radius:20px; display:inline-block; margin-top:6px; }
-
   .historico-item { background:#f8f9fa; border-radius:10px; padding:10px 12px; margin-bottom:8px; font-size:0.85em; }
   .historico-data { font-size:0.75em; color:#888; margin-bottom:4px; }
   .historico-status { font-weight:bold; }
   .status-tomou { color:#2e7d32; }
   .status-pulou { color:#c62828; }
   .motivo-badge { display:inline-block; background:#fff3e0; color:#e65100; font-size:0.75em; padding:2px 8px; border-radius:20px; margin-top:4px; }
-
   .interacao-alerta { background:#ffebee; border-left:4px solid #c62828; padding:10px 12px; border-radius:0 8px 8px 0; margin-bottom:8px; font-size:0.85em; color:#c62828; }
   .familiar-card { background:#e8f5e9; border-left:4px solid #2e7d32; padding:12px; border-radius:0 12px 12px 0; margin-bottom:10px; }
   .familiar-card h3 { color:#2e7d32; font-size:0.9em; margin-bottom:8px; }
   .sem-dados { text-align:center; color:#bbb; padding:30px; font-size:0.9em; }
-
   .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:1000; display:flex; align-items:flex-end; justify-content:center; }
   .modal-box { background:white; border-radius:20px 20px 0 0; padding:24px; width:100%; max-width:500px; max-height:85vh; overflow-y:auto; }
   .modal-titulo { font-size:1.1em; font-weight:bold; color:#1a237e; margin-bottom:6px; text-align:center; }
@@ -89,8 +78,6 @@
   .modal-aviso { background:#fff3e0; border-left:3px solid #e65100; padding:10px; border-radius:0 8px 8px 0; font-size:0.82em; color:#e65100; margin-bottom:12px; }
   .modal-btns { display:flex; gap:10px; }
   .btn-confirmar { flex:2; padding:12px; background:#1a237e; color:white; border:none; border-radius:10px; font-size:0.95em; cursor:pointer; }
-
-  /* ALARME */
   .alarme-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(26,35,126,0.97); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center; }
   .alarme-icone { font-size:5em; animation:pulsar 1s infinite; margin-bottom:20px; }
   .alarme-titulo { color:white; font-size:1.4em; font-weight:bold; margin-bottom:10px; }
@@ -259,14 +246,15 @@
     <button class="btn-alarme-soneca" onclick="alarmeSoneca()">😴 Lembrar em 15 min</button>
     <button class="btn-alarme-pular" onclick="alarmePular()">⏭️ Vou pular essa dose</button>
   </div>
-  <div class="alarme-repeticao" id="alarmeRepeticao">🔔 Repetindo a cada 2 minutos até confirmar</div>
+  <div class="alarme-repeticao">🔔 Repetindo a cada 2 minutos até confirmar</div>
 </div>
 
 <script src="interacoes.js"></script>
 <script src="perfil_ativo.js"></script>
 <script>
+// ===== VARIÁVEIS GLOBAIS =====
 var _chaveMeds = getChave('medicamentos');
-var meds = JSON.parse(localStorage.getItem(_chaveMeds) || '[]');
+var meds = [];
 var historico = JSON.parse(localStorage.getItem('historicoMeds') || '[]');
 var avisos = JSON.parse(localStorage.getItem('avisosEnviados') || '[]');
 var familiar = JSON.parse(localStorage.getItem('familiarMeds') || 'null');
@@ -276,37 +264,372 @@ var motivoSelecionado = '';
 var sonecaTimers = {};
 var alarmeAtivo = null;
 var alarmeRepetirTimer = null;
-var alarmeAudio = null;
 var medAlarmeAtual = null;
 
-// Carregar familiar
 if(familiar) {
   document.getElementById('familiarNome').value = familiar.nome || '';
   document.getElementById('familiarTel').value = familiar.tel || '';
   mostrarFamiliarSalvo();
 }
 
+// ===== ABAS =====
+function setAba(aba, btn) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('ativo'); });
+  btn.classList.add('ativo');
+  ['lista','adicionar','historico','familiar','interacoes'].forEach(function(a){
+    document.getElementById('aba-'+a).style.display = a===aba ? '' : 'none';
+  });
+  if(aba==='lista') renderLista();
+  if(aba==='historico') renderHistorico();
+  if(aba==='interacoes') renderInteracoes();
+  if(aba==='familiar') renderAvisos();
+}
+
+// ===== ADESÃO =====
+function calcularAdesao() {
+  var agora = new Date();
+  var trintaDiasAtras = new Date(agora - 30*24*60*60*1000);
+  var tomou=0, pulou=0;
+  historico.forEach(function(h) {
+    var p = h.data.split('/');
+    if(p.length===3) {
+      var d = new Date(p[2]+'-'+p[1]+'-'+p[0]);
+      if(d>=trintaDiasAtras) {
+        if(h.status==='tomou') tomou++;
+        else if(h.status==='pulou') pulou++;
+      }
+    }
+  });
+  var total = tomou+pulou;
+  var pct = total===0 ? 0 : Math.round((tomou/total)*100);
+  document.getElementById('adesaoPct').textContent = pct+'%';
+  document.getElementById('adesaoSub').textContent = total===0
+    ? 'Nenhuma dose registrada ainda'
+    : tomou+' doses tomadas de '+total+' nos últimos 30 dias';
+  document.getElementById('adesaoBarra').style.width = pct+'%';
+  renderSemanaGrid();
+}
+
+function renderSemanaGrid() {
+  var dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var agora = new Date();
+  var html = '';
+  for(var i=6; i>=0; i--) {
+    var d = new Date(agora - i*24*60*60*1000);
+    var dStr = d.toLocaleDateString('pt-BR');
+    var tomou=0, pulou=0;
+    historico.forEach(function(h){
+      if(h.data===dStr){
+        if(h.status==='tomou') tomou++;
+        else if(h.status==='pulou') pulou++;
+      }
+    });
+    var cls='dia-vazio', label='—';
+    if(tomou>0&&pulou===0){cls='dia-tomou';label='✓';}
+    else if(pulou>0&&tomou===0){cls='dia-pulou';label='✗';}
+    else if(tomou>0&&pulou>0){cls='dia-parcial';label='~';}
+    var hoje = i===0 ? ' dia-hoje' : '';
+    html += '<div class="semana-dia"><div class="dia-nome">'+dias[d.getDay()]+'</div><div class="dia-circulo '+cls+hoje+'">'+label+'</div></div>';
+  }
+  document.getElementById('semanaGrid').innerHTML = html;
+}
+
+// ===== HORÁRIOS =====
+function adicionarHorario() {
+  var h = document.getElementById('horarioInput').value;
+  if(!h){ alert('Selecione um horário.'); return; }
+  if(horariosSelecionados.indexOf(h)!==-1){ alert('Horário já adicionado.'); return; }
+  horariosSelecionados.push(h);
+  renderHorariosTags();
+  document.getElementById('horarioInput').value = '';
+}
+
+function renderHorariosTags() {
+  document.getElementById('horariosTags').innerHTML = horariosSelecionados.map(function(h,i){
+    return '<div class="horario-tag">'+h+'<button onclick="removerHorario('+i+')">×</button></div>';
+  }).join('');
+}
+
+function removerHorario(i) {
+  horariosSelecionados.splice(i,1);
+  renderHorariosTags();
+}
+
+// ===== SALVAR MEDICAMENTO =====
+function salvarMed() {
+  var nome = document.getElementById('medNome').value.trim();
+  if(!nome){ alert('Digite o nome do medicamento.'); return; }
+  var familiaId = localStorage.getItem('familiaId') || '';
+  if(!familiaId){ alert('Sem família vinculada.'); return; }
+
+  var dadosMed = {
+    familia_id: familiaId,
+    membro_id: getMembroId(),
+    nome: nome,
+    dosagem: document.getElementById('medDosagem').value.trim(),
+    horarios: horariosSelecionados.slice(),
+    via: document.getElementById('medVia').value,
+    estoque: parseInt(document.getElementById('medEstoque').value)||0,
+    alerta_estoque: parseInt(document.getElementById('medAlertaEstoque').value)||10,
+    validade: document.getElementById('medValidade').value,
+    armazenamento: document.getElementById('medArmazenamento').value,
+    obs: document.getElementById('medObs').value.trim()
+  };
+
+  fetch('/api/medicamentos/salvar', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(dadosMed)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(r){
+    if(r.ok) {
+      // Limpar formulário
+      document.getElementById('medNome').value = '';
+      document.getElementById('medDosagem').value = '';
+      document.getElementById('medEstoque').value = '';
+      document.getElementById('medValidade').value = '';
+      document.getElementById('medObs').value = '';
+      horariosSelecionados = [];
+      renderHorariosTags();
+      alert('✅ Medicamento salvo! O alarme vai tocar nos horários cadastrados.');
+      // Recarregar do banco e ir para lista
+      carregarDoBANCO(function(){
+        setAba('lista', document.querySelectorAll('.tab')[0]);
+      });
+    } else {
+      alert('Erro ao salvar. Tente novamente.');
+    }
+  })
+  .catch(function(){ alert('Erro de conexão.'); });
+}
+
+// ===== RENDERIZAR LISTA =====
+function renderLista() {
+  calcularAdesao();
+  var el = document.getElementById('listaMeds');
+  var ativos = meds.filter(function(m){ return m.ativo; });
+  if(ativos.length===0){
+    el.innerHTML = '<div class="sem-dados">Nenhum medicamento cadastrado.<br>Toque em "Adicionar" para começar.</div>';
+    return;
+  }
+  var hoje = new Date().toISOString().split('T')[0];
+  el.innerHTML = ativos.map(function(m){
+    var cls='', alertas=[];
+    if(m.validade&&m.validade<hoje){cls='critico';alertas.push('🚨 VENCIDO!');}
+    else if(m.estoque>0&&m.estoque<=m.alertaEstoque){cls='atencao';alertas.push('⚠️ Estoque baixo: '+m.estoque+' unid.');}
+    var estoqueHtml = '';
+    if(m.estoque>=0){
+      var ecls = m.estoque<=m.alertaEstoque ? (m.estoque<=3?'critico':'baixo') : '';
+      estoqueHtml = '<div class="med-estoque '+ecls+'">📦 Estoque: '+m.estoque+' unid. | Alerta com: '+m.alertaEstoque+'</div>';
+    }
+    return '<div class="med-card '+cls+'">'+
+      '<div class="med-nome">💊 '+m.nome+'</div>'+
+      '<div class="med-info">'+
+        (m.dosagem?'Dose: '+m.dosagem+' | ':'')+
+        'Via: '+m.via+
+        (m.validade?' | Val: '+m.validade.split('-').reverse().join('/'):'')+'<br>'+
+        (m.armazenamento?'🌡️ '+m.armazenamento:'')+'<br>'+
+        (m.obs?'📝 '+m.obs:'')+'<br>'+
+        alertas.join(' ')+
+      '</div>'+
+      '<div class="med-horarios">'+
+        (m.horarios&&m.horarios.length
+          ? m.horarios.map(function(h){return '<span class="med-horario-tag">🔔 '+h+'</span>';}).join('')
+          : '<span style="color:#aaa;font-size:0.8em">Sem horário definido</span>')+
+      '</div>'+
+      estoqueHtml+
+      '<div class="med-acoes" style="margin-top:10px">'+
+        '<button class="btn-tomar" onclick="tomarDose('+m.id+')">✅ Tomou</button>'+
+        '<button class="btn-pular" onclick="abrirModalPulo('+m.id+')">⏭️ Pulou</button>'+
+        '<button class="btn-soneca" onclick="ativarSonecaManual('+m.id+')">😴 +15min</button>'+
+      '</div>'+
+      '<div style="margin-top:8px">'+
+        '<button onclick="excluirMed('+m.id+')" style="width:100%;padding:8px;background:#c62828;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82em">🗑️ Excluir medicamento</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// ===== TOMAR DOSE =====
+function tomarDose(id) {
+  var med = meds.find(function(m){ return m.id===id; });
+  if(!med) return;
+  var agora = new Date();
+  historico.unshift({
+    medId: id, medNome: med.nome, status: 'tomou',
+    data: agora.toLocaleDateString('pt-BR'),
+    hora: agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+    motivo: '', obs: ''
+  });
+  if(med.estoque>0) med.estoque--;
+  localStorage.setItem('historicoMeds', JSON.stringify(historico));
+  try {
+    var ctx = new(window.AudioContext||window.webkitAudioContext)();
+    var osc = ctx.createOscillator(); var g = ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.frequency.value = 880;
+    g.gain.setValueAtTime(0.2, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.5);
+    osc.start(); osc.stop(ctx.currentTime+0.5);
+  } catch(e){}
+  alert('✅ '+med.nome+' registrado como tomado!');
+  renderLista();
+}
+
+function ativarSonecaManual(id) {
+  var med = meds.find(function(m){ return m.id===id; });
+  if(!med) return;
+  alert('😴 Soneca ativada! Você será lembrado em 15 minutos.');
+  setTimeout(function(){ dispararAlarme(med,'manual'); }, 15*60*1000);
+}
+
+// ===== EXCLUIR =====
+function excluirMed(id) {
+  if(!confirm('Excluir este medicamento?')) return;
+  var med = meds.find(function(m){ return m.id===id; });
+  var dbId = med ? (med.dbId || null) : null;
+  if(dbId) {
+    fetch('/api/medicamentos/excluir', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ id: dbId })
+    }).then(function(){
+      meds = meds.filter(function(m){ return m.id!==id; });
+      renderLista();
+    });
+  } else {
+    meds = meds.filter(function(m){ return m.id!==id; });
+    renderLista();
+  }
+}
+
+// ===== MODAL MOTIVO =====
+function abrirModalPulo(id) {
+  var med = meds.find(function(m){ return m.id===id; });
+  medPulandoId = id; motivoSelecionado = '';
+  document.getElementById('motivoObs').value = '';
+  document.getElementById('modalMedNome').textContent = med ? '💊 '+med.nome : '';
+  document.querySelectorAll('.motivo-btn').forEach(function(b){ b.classList.remove('sel'); });
+  document.getElementById('modalMotivo').style.display = 'flex';
+}
+
+function selMotivo(btn, motivo) {
+  document.querySelectorAll('.motivo-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  motivoSelecionado = motivo;
+}
+
+function confirmarPulo() {
+  if(!motivoSelecionado){ alert('⚠️ Selecione o motivo.'); return; }
+  var med = meds.find(function(m){ return m.id===medPulandoId; });
+  if(!med) return;
+  var agora = new Date();
+  historico.unshift({
+    medId: medPulandoId, medNome: med.nome, status: 'pulou',
+    data: agora.toLocaleDateString('pt-BR'),
+    hora: agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+    motivo: motivoSelecionado,
+    obs: document.getElementById('motivoObs').value.trim()
+  });
+  localStorage.setItem('historicoMeds', JSON.stringify(historico));
+  document.getElementById('modalMotivo').style.display = 'none';
+  avisarFamiliar(med.nome, motivoSelecionado);
+  alert('⏭️ Dose registrada!\nMotivo: '+motivoSelecionado);
+  renderLista();
+}
+
+// ===== FAMILIAR =====
+function salvarFamiliar() {
+  var nome = document.getElementById('familiarNome').value.trim();
+  var tel = document.getElementById('familiarTel').value.trim().replace(/\D/g,'');
+  if(!nome||!tel){ alert('Preencha nome e WhatsApp.'); return; }
+  familiar = {nome:nome, tel:tel};
+  localStorage.setItem('familiarMeds', JSON.stringify(familiar));
+  mostrarFamiliarSalvo();
+  alert('✅ Familiar salvo!');
+}
+
+function mostrarFamiliarSalvo() {
+  if(!familiar) return;
+  document.getElementById('familiarSalvo').style.display = 'block';
+  document.getElementById('familiarInfo').innerHTML = '👤 '+familiar.nome+'<br>📱 ('+familiar.tel.substring(0,2)+') '+familiar.tel.substring(2);
+}
+
+function avisarFamiliar(medNome, motivo) {
+  if(!familiar) return;
+  var agora = new Date();
+  var hora = agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  var data = agora.toLocaleDateString('pt-BR');
+  var msg = '🔔 *CD+ — Dose Pulada*\n\n💊 Medicamento: *'+medNome+'*\n⏭️ Motivo: '+motivo+'\n🕐 Horário: '+hora+'\n📅 Data: '+data+'\n\n_Mensagem automática do app CD+_';
+  avisos.unshift({medNome:medNome, motivo:motivo, hora:hora, data:data, familiar:familiar.nome});
+  if(avisos.length>20) avisos = avisos.slice(0,20);
+  localStorage.setItem('avisosEnviados', JSON.stringify(avisos));
+  window.open('https://wa.me/55'+familiar.tel+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function testarAviso() {
+  if(!familiar) return;
+  var msg = '🔔 *CD+ — Teste de Aviso*\n\nOlá '+familiar.nome+'! Este é um teste do sistema de aviso automático do app CD+. ✅\n\n_App CD+ — Cuidado Digital_';
+  window.open('https://wa.me/55'+familiar.tel+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function renderAvisos() {
+  mostrarFamiliarSalvo();
+  var el = document.getElementById('listaAvisos');
+  if(avisos.length===0){ el.innerHTML='<div class="sem-dados">Nenhum aviso enviado ainda.</div>'; return; }
+  el.innerHTML = avisos.slice(0,10).map(function(a){
+    return '<div class="historico-item"><div class="historico-data">'+a.data+' às '+a.hora+' → '+a.familiar+'</div><div class="status-pulou">⏭️ '+a.medNome+'</div><div class="motivo-badge">'+a.motivo+'</div></div>';
+  }).join('');
+}
+
+// ===== HISTÓRICO =====
+function renderHistorico() {
+  var el = document.getElementById('listaHistorico');
+  if(historico.length===0){ el.innerHTML='<div class="sem-dados">Nenhum registro ainda.</div>'; return; }
+  el.innerHTML = historico.slice(0,50).map(function(h){
+    var cls = h.status==='tomou' ? 'status-tomou' : 'status-pulou';
+    var icon = h.status==='tomou' ? '✅' : '⏭️';
+    return '<div class="historico-item"><div class="historico-data">'+h.data+' às '+h.hora+'</div><div class="historico-status '+cls+'">'+icon+' '+h.medNome+'</div>'+(h.motivo?'<div class="motivo-badge">'+h.motivo+'</div>':'')+(h.obs?'<div style="font-size:0.8em;color:#888;margin-top:4px">📝 '+h.obs+'</div>':'')+'</div>';
+  }).join('');
+}
+
+// ===== INTERAÇÕES =====
+function renderInteracoes() {
+  var el = document.getElementById('listaInteracoes');
+  if(meds.length<2){ el.innerHTML='<div class="sem-dados">Cadastre pelo menos 2 medicamentos para verificar interações.</div>'; return; }
+  var alertas = [];
+  if(typeof verificarInteracao==='function'){
+    for(var i=0; i<meds.length; i++){
+      for(var j=i+1; j<meds.length; j++){
+        var r = verificarInteracao(meds[i].nome, meds[j].nome);
+        if(r) alertas.push({med1:meds[i].nome, med2:meds[j].nome, risco:r});
+      }
+    }
+  }
+  if(alertas.length===0){ el.innerHTML='<div style="color:#2e7d32;text-align:center;padding:20px">✅ Nenhuma interação perigosa detectada.</div>'; return; }
+  el.innerHTML = alertas.map(function(a){ return '<div class="interacao-alerta">⚠️ <b>'+a.med1+'</b> + <b>'+a.med2+'</b><br>'+a.risco+'</div>'; }).join('');
+}
+
 // ===== SISTEMA DE ALARME =====
 function iniciarSistemaAlarme() {
   verificarAlarmes();
-  setInterval(verificarAlarmes, 30000); // verifica a cada 30 segundos
+  setInterval(verificarAlarmes, 30000);
 }
 
 function verificarAlarmes() {
-  if(alarmeAtivo) return; // já tem alarme tocando
+  if(alarmeAtivo) return;
   var agora = new Date();
-  var horaAtual = agora.getHours().toString().padStart(2,'0') + ':' + agora.getMinutes().toString().padStart(2,'0');
+  var horaAtual = agora.getHours().toString().padStart(2,'0')+':'+agora.getMinutes().toString().padStart(2,'0');
   var hojeStr = agora.toLocaleDateString('pt-BR');
-
-  meds.forEach(function(med) {
+  meds.forEach(function(med){
     if(!med.ativo || !med.horarios) return;
-    med.horarios.forEach(function(horario) {
-      if(horario === horaAtual) {
-        // Verifica se já foi confirmado hoje nesse horário
-        var jaConfirmado = historico.some(function(h) {
-          return h.medId === med.id && h.data === hojeStr && h.hora === horario && (h.status === 'tomou' || h.status === 'pulou');
+    med.horarios.forEach(function(horario){
+      if(horario===horaAtual){
+        var jaConfirmado = historico.some(function(h){
+          return h.medId===med.id && h.data===hojeStr && h.hora===horario && (h.status==='tomou'||h.status==='pulou');
         });
-        if(!jaConfirmado && !sonecaTimers[med.id+'_'+horario]) {
+        if(!jaConfirmado && !sonecaTimers[med.id+'_'+horario]){
           dispararAlarme(med, horario);
         }
       }
@@ -315,73 +638,43 @@ function verificarAlarmes() {
 }
 
 function dispararAlarme(med, horario) {
-  alarmeAtivo = { med: med, horario: horario };
+  alarmeAtivo = {med:med, horario:horario};
   medAlarmeAtual = med;
-
-  // Mostrar tela de alarme
   document.getElementById('alarmeNome').textContent = med.nome;
-  document.getElementById('alarmeDosagem').textContent = med.dosagem ? 'Dose: ' + med.dosagem + ' — ' + med.via : 'Via: ' + med.via;
-  document.getElementById('alarmeHora').textContent = '🕐 Horário: ' + horario + (med.obs ? ' | ' + med.obs : '');
+  document.getElementById('alarmeDosagem').textContent = med.dosagem ? 'Dose: '+med.dosagem+' — '+med.via : 'Via: '+med.via;
+  document.getElementById('alarmeHora').textContent = '🕐 Horário: '+horario+(med.obs?' | '+med.obs:'');
   document.getElementById('alarmeOverlay').style.display = 'flex';
-
-  // Som do alarme
   tocarSomAlarme();
-
-  // Voz falando o remédio
-  setTimeout(function() { falarRemedio(med); }, 800);
-
-  // Repetir a cada 2 minutos se não confirmar
-  alarmeRepetirTimer = setInterval(function() {
-    tocarSomAlarme();
-    falarRemedio(med);
-  }, 120000);
+  setTimeout(function(){ falarRemedio(med); }, 800);
+  alarmeRepetirTimer = setInterval(function(){ tocarSomAlarme(); falarRemedio(med); }, 120000);
 }
 
 function tocarSomAlarme() {
   try {
-    var ctx = new (window.AudioContext || window.webkitAudioContext)();
-    function beep(freq, start, dur, vol) {
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = freq;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(vol||0.3, ctx.currentTime + start);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-      osc.start(ctx.currentTime + start);
-      osc.stop(ctx.currentTime + start + dur);
+    var ctx = new(window.AudioContext||window.webkitAudioContext)();
+    function beep(freq,start,dur,vol){
+      var osc=ctx.createOscillator(); var gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value=freq; osc.type='sine';
+      gain.gain.setValueAtTime(vol||0.3, ctx.currentTime+start);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+start+dur);
+      osc.start(ctx.currentTime+start); osc.stop(ctx.currentTime+start+dur);
     }
-    // Melodia de alarme
-    beep(880, 0, 0.15, 0.4);
-    beep(880, 0.2, 0.15, 0.4);
-    beep(1046, 0.4, 0.3, 0.4);
-    beep(880, 0.8, 0.15, 0.4);
-    beep(880, 1.0, 0.15, 0.4);
-    beep(1046, 1.2, 0.3, 0.4);
-    beep(880, 1.6, 0.15, 0.4);
-    beep(880, 1.8, 0.15, 0.4);
-    beep(1175, 2.0, 0.5, 0.4);
-  } catch(e) {}
-
-  // Vibração
-  if(navigator.vibrate) {
-    navigator.vibrate([500,200,500,200,500,200,1000]);
-  }
+    beep(880,0,0.15,0.4); beep(880,0.2,0.15,0.4); beep(1046,0.4,0.3,0.4);
+    beep(880,0.8,0.15,0.4); beep(880,1.0,0.15,0.4); beep(1046,1.2,0.3,0.4);
+    beep(880,1.6,0.15,0.4); beep(880,1.8,0.15,0.4); beep(1175,2.0,0.5,0.4);
+  } catch(e){}
+  if(navigator.vibrate) navigator.vibrate([500,200,500,200,500,200,1000]);
 }
 
 function falarRemedio(med) {
   if(!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  var texto = 'Atenção! Está na hora de tomar ' + med.nome + '.';
-  if(med.dosagem) texto += ' A dose é ' + med.dosagem + '.';
+  var texto = 'Atenção! Está na hora de tomar '+med.nome+'.';
+  if(med.dosagem) texto += ' A dose é '+med.dosagem+'.';
   texto += ' Por favor tome o seu comprimido agora.';
   var fala = new SpeechSynthesisUtterance(texto);
-  fala.lang = 'pt-BR';
-  fala.rate = 0.9;
-  fala.pitch = 1;
-  fala.volume = 1;
-  // Tenta voz feminina em português
+  fala.lang='pt-BR'; fala.rate=0.9; fala.pitch=1; fala.volume=1;
   var vozes = window.speechSynthesis.getVoices();
   var vozPT = vozes.find(function(v){ return v.lang.indexOf('pt')!==-1 && v.name.indexOf('female')!==-1; })
     || vozes.find(function(v){ return v.lang.indexOf('pt')!==-1; });
@@ -390,7 +683,7 @@ function falarRemedio(med) {
 }
 
 function pararAlarme() {
-  if(alarmeRepetirTimer) { clearInterval(alarmeRepetirTimer); alarmeRepetirTimer = null; }
+  if(alarmeRepetirTimer){ clearInterval(alarmeRepetirTimer); alarmeRepetirTimer=null; }
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   if(navigator.vibrate) navigator.vibrate(0);
   document.getElementById('alarmeOverlay').style.display = 'none';
@@ -409,7 +702,7 @@ function alarmeSoneca() {
   var horario = alarmeAtivo.horario;
   var chave = med.id+'_'+horario;
   pararAlarme();
-  sonecaTimers[chave] = setTimeout(function() {
+  sonecaTimers[chave] = setTimeout(function(){
     delete sonecaTimers[chave];
     dispararAlarme(med, horario);
   }, 15*60*1000);
@@ -422,350 +715,21 @@ function alarmePular() {
   abrirModalPulo(medAlarmeAtual.id);
 }
 
-// ===== ABAS =====
-function setAba(aba, btn) {
-  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('ativo'); });
-  btn.classList.add('ativo');
-  ['lista','adicionar','historico','familiar','interacoes'].forEach(function(a){
-    document.getElementById('aba-'+a).style.display = a===aba?'':'none';
-  });
-  if(aba==='lista') renderLista();
-  if(aba==='historico') renderHistorico();
-  if(aba==='interacoes') renderInteracoes();
-  if(aba==='familiar') renderAvisos();
-}
-
-// ===== ADESÃO =====
-function calcularAdesao() {
-  var agora = new Date();
-  var trintaDiasAtras = new Date(agora - 30*24*60*60*1000);
-  var tomou=0, pulou=0;
-  historico.forEach(function(h) {
-    var p = h.data.split('/');
-    if(p.length===3) {
-      var d = new Date(p[2]+'-'+p[1]+'-'+p[0]);
-      if(d>=trintaDiasAtras) { if(h.status==='tomou') tomou++; else if(h.status==='pulou') pulou++; }
-    }
-  });
-  var total=tomou+pulou;
-  var pct=total===0?0:Math.round((tomou/total)*100);
-  document.getElementById('adesaoPct').textContent=pct+'%';
-  document.getElementById('adesaoSub').textContent=total===0?'Nenhuma dose registrada ainda':tomou+' doses tomadas de '+total+' nos últimos 30 dias';
-  document.getElementById('adesaoBarra').style.width=pct+'%';
-  renderSemanaGrid();
-}
-
-function renderSemanaGrid() {
-  var dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  var agora=new Date();
-  var html='';
-  for(var i=6;i>=0;i--) {
-    var d=new Date(agora-i*24*60*60*1000);
-    var dStr=d.toLocaleDateString('pt-BR');
-    var tomou=0,pulou=0;
-    historico.forEach(function(h){ if(h.data===dStr){ if(h.status==='tomou')tomou++; else if(h.status==='pulou')pulou++; } });
-    var cls='dia-vazio', label='—';
-    if(tomou>0&&pulou===0){cls='dia-tomou';label='✓';}
-    else if(pulou>0&&tomou===0){cls='dia-pulou';label='✗';}
-    else if(tomou>0&&pulou>0){cls='dia-parcial';label='~';}
-    var hoje=i===0?' dia-hoje':'';
-    html+='<div class="semana-dia"><div class="dia-nome">'+dias[d.getDay()]+'</div><div class="dia-circulo '+cls+hoje+'">'+label+'</div></div>';
-  }
-  document.getElementById('semanaGrid').innerHTML=html;
-}
-
-// ===== MEDICAMENTOS =====
-function adicionarHorario() {
-  var h=document.getElementById('horarioInput').value;
-  if(!h){alert('Selecione um horário.');return;}
-  if(horariosSelecionados.indexOf(h)!==-1){alert('Horário já adicionado.');return;}
-  horariosSelecionados.push(h);
-  renderHorariosTags();
-  document.getElementById('horarioInput').value='';
-}
-
-function renderHorariosTags() {
-  document.getElementById('horariosTags').innerHTML=horariosSelecionados.map(function(h,i){
-    return '<div class="horario-tag">'+h+'<button onclick="removerHorario('+i+')">×</button></div>';
-  }).join('');
-}
-
-function removerHorario(i){ horariosSelecionados.splice(i,1); renderHorariosTags(); }
-
-function salvarMed() {
-  var nome=document.getElementById('medNome').value.trim();
-  if(!nome){alert('Digite o nome do medicamento.');return;}
-  var med={
-    id:Date.now(), nome:nome,
-    dosagem:document.getElementById('medDosagem').value.trim(),
-    horarios:horariosSelecionados.slice(),
-    via:document.getElementById('medVia').value,
-    estoque:parseInt(document.getElementById('medEstoque').value)||0,
-    alertaEstoque:parseInt(document.getElementById('medAlertaEstoque').value)||10,
-    validade:document.getElementById('medValidade').value,
-    armazenamento:document.getElementById('medArmazenamento').value,
-    obs:document.getElementById('medObs').value.trim(),
-    ativo:true
-  };
-  meds.push(med);
-  localStorage.setItem(_chaveMeds,JSON.stringify(meds));
-  // Salvar no banco
+// ===== CARREGAR DO BANCO =====
+function carregarDoBANCO(callback) {
   var familiaId = localStorage.getItem('familiaId') || '';
-  if(familiaId) {
-    fetch('/api/medicamentos/salvar', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        familia_id: familiaId,
-        membro_id: getMembroId(),
-        nome: med.nome,
-        dosagem: med.dosagem,
-        horarios: med.horarios,
-        via: med.via,
-        estoque: med.estoque,
-        alerta_estoque: med.alertaEstoque,
-        validade: med.validade,
-        armazenamento: med.armazenamento,
-        obs: med.obs
-      })
-    }).then(function(r){ return r.json(); })
-    .then(function(r){ console.log('Med no banco:', r); })
-    .catch(function(e){ console.log('Erro banco:', e); });
-  }
-  document.getElementById('medNome').value='';
-  document.getElementById('medDosagem').value='';
-  document.getElementById('medEstoque').value='';
-  document.getElementById('medValidade').value='';
-  document.getElementById('medObs').value='';
-  horariosSelecionados=[];
-  renderHorariosTags();
-  alert('✅ Medicamento salvo! O alarme vai tocar nos horários cadastrados.');
-  setAba('lista',document.querySelectorAll('.tab')[0]);
-}
-
-function renderLista() {
-  calcularAdesao();
-  var el=document.getElementById('listaMeds');
-  var ativos=meds.filter(function(m){return m.ativo;});
-  if(ativos.length===0){
-    el.innerHTML='<div class="sem-dados">Nenhum medicamento cadastrado.<br>Toque em "Adicionar" para começar.</div>';
-    return;
-  }
-  var hoje=new Date().toISOString().split('T')[0];
-  el.innerHTML=ativos.map(function(m){
-    var cls='', alertas=[];
-    if(m.validade&&m.validade<hoje){cls='critico';alertas.push('🚨 VENCIDO!');}
-    else if(m.estoque>0&&m.estoque<=m.alertaEstoque){cls='atencao';alertas.push('⚠️ Estoque baixo: '+m.estoque+' unid.');}
-    var estoqueHtml='';
-    if(m.estoque>=0){
-      var ecls=m.estoque<=m.alertaEstoque?(m.estoque<=3?'critico':'baixo'):'';
-      estoqueHtml='<div class="med-estoque '+ecls+'">📦 Estoque: '+m.estoque+' unid. | Alerta com: '+m.alertaEstoque+'</div>';
-    }
-    return '<div class="med-card '+cls+'">'+
-      '<div class="med-nome">💊 '+m.nome+'</div>'+
-      '<div class="med-info">'+
-        (m.dosagem?'Dose: '+m.dosagem+' | ':'')+
-        'Via: '+m.via+
-        (m.validade?' | Val: '+m.validade.split('-').reverse().join('/'):'')+'<br>'+
-        (m.armazenamento?'🌡️ '+m.armazenamento:'')+'<br>'+
-        (m.obs?'📝 '+m.obs:'')+'<br>'+
-        alertas.join(' ')
-      +'</div>'+
-      '<div class="med-horarios">'+
-        (m.horarios&&m.horarios.length
-          ?m.horarios.map(function(h){return '<span class="med-horario-tag">🔔 '+h+'</span>';}).join('')
-          :'<span style="color:#aaa;font-size:0.8em">Sem horário definido</span>')+
-      '</div>'+
-      estoqueHtml+
-      '<div class="med-acoes" style="margin-top:10px">'+
-        '<button class="btn-tomar" onclick="tomarDose('+m.id+')">✅ Tomou</button>'+
-        '<button class="btn-pular" onclick="abrirModalPulo('+m.id+')">⏭️ Pulou</button>'+
-        '<button class="btn-soneca" onclick="ativarSonecaManual('+m.id+')">😴 +15min</button>'+
-      '</div>'+
-      '<div style="margin-top:8px">'+
-        '<button onclick="excluirMed('+m.id+')" style="width:100%;padding:8px;background:#c62828;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82em">🗑️ Excluir medicamento</button>'+
-      '</div>'+
-    '</div>';
-  }).join('');
-}
-
-function tomarDose(id) {
-  var med=meds.find(function(m){return m.id===id;});
-  if(!med) return;
-  var agora=new Date();
-  historico.unshift({
-    medId:id, medNome:med.nome, status:'tomou',
-    data:agora.toLocaleDateString('pt-BR'),
-    hora:agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
-    motivo:'', obs:''
-  });
-  if(med.estoque>0) med.estoque--;
-  localStorage.setItem(_chaveMeds,JSON.stringify(meds));
-  localStorage.setItem('historicoMeds',JSON.stringify(historico));
-  // Som de confirmação
-  try {
-    var ctx=new(window.AudioContext||window.webkitAudioContext)();
-    var osc=ctx.createOscillator(); var g=ctx.createGain();
-    osc.connect(g); g.connect(ctx.destination);
-    osc.frequency.value=880; g.gain.setValueAtTime(0.2,ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
-    osc.start(); osc.stop(ctx.currentTime+0.5);
-  } catch(e){}
-  alert('✅ '+med.nome+' registrado como tomado!');
-  renderLista();
-}
-
-function ativarSonecaManual(id) {
-  alert('😴 Soneca ativada! Você será lembrado em 15 minutos.');
-  var med=meds.find(function(m){return m.id===id;});
-  if(!med) return;
-  setTimeout(function(){
-    dispararAlarme(med,'manual');
-  }, 15*60*1000);
-}
-
-// ===== MODAL MOTIVO =====
-function abrirModalPulo(id) {
-  var med=meds.find(function(m){return m.id===id;});
-  medPulandoId=id; motivoSelecionado='';
-  document.getElementById('motivoObs').value='';
-  document.getElementById('modalMedNome').textContent=med?'💊 '+med.nome:'';
-  document.querySelectorAll('.motivo-btn').forEach(function(b){b.classList.remove('sel');});
-  document.getElementById('modalMotivo').style.display='flex';
-}
-
-function selMotivo(btn,motivo) {
-  document.querySelectorAll('.motivo-btn').forEach(function(b){b.classList.remove('sel');});
-  btn.classList.add('sel'); motivoSelecionado=motivo;
-}
-
-function confirmarPulo() {
-  if(!motivoSelecionado){alert('⚠️ Selecione o motivo. O registro é obrigatório.');return;}
-  var med=meds.find(function(m){return m.id===medPulandoId;});
-  if(!med) return;
-  var agora=new Date();
-  historico.unshift({
-    medId:medPulandoId, medNome:med.nome, status:'pulou',
-    data:agora.toLocaleDateString('pt-BR'),
-    hora:agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
-    motivo:motivoSelecionado,
-    obs:document.getElementById('motivoObs').value.trim()
-  });
-  localStorage.setItem('historicoMeds',JSON.stringify(historico));
-  document.getElementById('modalMotivo').style.display='none';
-  avisarFamiliar(med.nome,motivoSelecionado);
-  alert('⏭️ Dose registrada!\nMotivo: '+motivoSelecionado);
-  renderLista();
-}
-
-// ===== FAMILIAR =====
-function salvarFamiliar() {
-  var nome=document.getElementById('familiarNome').value.trim();
-  var tel=document.getElementById('familiarTel').value.trim().replace(/\D/g,'');
-  if(!nome||!tel){alert('Preencha nome e WhatsApp.');return;}
-  familiar={nome:nome,tel:tel};
-  localStorage.setItem('familiarMeds',JSON.stringify(familiar));
-  mostrarFamiliarSalvo();
-  alert('✅ Familiar salvo! Avisos automáticos ativados.');
-}
-
-function mostrarFamiliarSalvo() {
-  if(!familiar) return;
-  document.getElementById('familiarSalvo').style.display='block';
-  document.getElementById('familiarInfo').innerHTML='👤 '+familiar.nome+'<br>📱 ('+familiar.tel.substring(0,2)+') '+familiar.tel.substring(2);
-}
-
-function avisarFamiliar(medNome,motivo) {
-  if(!familiar) return;
-  var agora=new Date();
-  var hora=agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  var data=agora.toLocaleDateString('pt-BR');
-  var msg='🔔 *CUIDAR — Dose Pulada*\n\n💊 Medicamento: *'+medNome+'*\n⏭️ Motivo: '+motivo+'\n🕐 Horário: '+hora+'\n📅 Data: '+data+'\n\n_Mensagem automática do app Cuidar_';
-  avisos.unshift({medNome:medNome,motivo:motivo,hora:hora,data:data,familiar:familiar.nome});
-  if(avisos.length>20) avisos=avisos.slice(0,20);
-  localStorage.setItem('avisosEnviados',JSON.stringify(avisos));
-  window.open('https://wa.me/55'+familiar.tel+'?text='+encodeURIComponent(msg),'_blank');
-}
-
-function testarAviso() {
-  if(!familiar) return;
-  var msg='🔔 *CUIDAR — Teste de Aviso*\n\nOlá '+familiar.nome+'! Este é um teste do sistema de aviso automático do app Cuidar.\n\nQuando uma dose for pulada, você receberá uma mensagem como esta. ✅\n\n_App Cuidar — Cuidado Familiar Inteligente_';
-  window.open('https://wa.me/55'+familiar.tel+'?text='+encodeURIComponent(msg),'_blank');
-}
-
-function renderAvisos() {
-  mostrarFamiliarSalvo();
-  var el=document.getElementById('listaAvisos');
-  if(avisos.length===0){el.innerHTML='<div class="sem-dados">Nenhum aviso enviado ainda.</div>';return;}
-  el.innerHTML=avisos.slice(0,10).map(function(a){
-    return '<div class="historico-item"><div class="historico-data">'+a.data+' às '+a.hora+' → '+a.familiar+'</div><div class="status-pulou">⏭️ '+a.medNome+'</div><div class="motivo-badge">'+a.motivo+'</div></div>';
-  }).join('');
-}
-
-function excluirMed(id) {
-  if(!confirm("Excluir este medicamento?")) return;
-  var med = meds.find(function(m){ return m.id === id; });
-  var dbId = med ? (med.dbId || null) : null;
-  meds = meds.filter(function(m){ return m.id !== id; });
-  localStorage.setItem(_chaveMeds, JSON.stringify(meds));
-  if(dbId) {
-    fetch("/api/medicamentos/excluir", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ id: dbId })
-    });
-  }
-  renderLista();
-}
-
-
-
-
-
-
-
-function renderHistorico() {
-  var el=document.getElementById('listaHistorico');
-  if(historico.length===0){el.innerHTML='<div class="sem-dados">Nenhum registro ainda.</div>';return;}
-  el.innerHTML=historico.slice(0,50).map(function(h){
-    var cls=h.status==='tomou'?'status-tomou':'status-pulou';
-    var icon=h.status==='tomou'?'✅':'⏭️';
-    return '<div class="historico-item"><div class="historico-data">'+h.data+' às '+h.hora+'</div><div class="historico-status '+cls+'">'+icon+' '+h.medNome+'</div>'+(h.motivo?'<div class="motivo-badge">'+h.motivo+'</div>':'')+(h.obs?'<div style="font-size:0.8em;color:#888;margin-top:4px">📝 '+h.obs+'</div>':'')+'</div>';
-  }).join('');
-}
-
-function renderInteracoes() {
-  var el=document.getElementById('listaInteracoes');
-  if(meds.length<2){el.innerHTML='<div class="sem-dados">Cadastre pelo menos 2 medicamentos para verificar interações.</div>';return;}
-  var alertas=[];
-  if(typeof verificarInteracao==='function'){
-    for(var i=0;i<meds.length;i++){
-      for(var j=i+1;j<meds.length;j++){
-        var r=verificarInteracao(meds[i].nome,meds[j].nome);
-        if(r) alertas.push({med1:meds[i].nome,med2:meds[j].nome,risco:r});
-      }
-    }
-  }
-  if(alertas.length===0){el.innerHTML='<div style="color:#2e7d32;text-align:center;padding:20px">✅ Nenhuma interação perigosa detectada.</div>';return;}
-  el.innerHTML=alertas.map(function(a){return '<div class="interacao-alerta">⚠️ <b>'+a.med1+'</b> + <b>'+a.med2+'</b><br>'+a.risco+'</div>';}).join('');
-}
-
-// Iniciar sistema de alarme
-// Carregar medicamentos do banco
-function carregarDoBANCO() {
-  var familiaId = localStorage.getItem("familiaId") || "";
-  var membroAtivo = JSON.parse(localStorage.getItem("membroAtivo") || "null");
+  var membroAtivo = JSON.parse(localStorage.getItem('membroAtivo') || 'null');
   var membroId = membroAtivo ? membroAtivo.membroIdBanco : null;
-  if(!familiaId) { renderLista(); return; }
+  if(!familiaId){ renderLista(); if(callback) callback(); return; }
   var url = membroId
-    ? "/api/medicamentos/" + familiaId + "/" + membroId
-    : "/api/medicamentos/" + familiaId;
+    ? '/api/medicamentos/'+familiaId+'/'+membroId
+    : '/api/medicamentos/'+familiaId;
   fetch(url)
   .then(function(r){ return r.json(); })
   .then(function(r){
     meds = [];
-    if(r.ok && r.meds && r.meds.length > 0) {
-      r.meds.forEach(function(m) {
+    if(r.ok && r.meds && r.meds.length>0){
+      r.meds.forEach(function(m){
         meds.push({
           id: m.id,
           dbId: m.id,
@@ -781,50 +745,15 @@ function carregarDoBANCO() {
           ativo: true
         });
       });
-      localStorage.setItem(_chaveMeds, JSON.stringify(meds));
     }
     renderLista();
-  }).catch(function(){ renderLista(); });
+    if(callback) callback();
+  })
+  .catch(function(){ renderLista(); if(callback) callback(); });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// ===== INICIAR =====
+carregarDoBANCO();
 iniciarSistemaAlarme();
 </script>
 <script src="/socket.io/socket.io.js"></script>
