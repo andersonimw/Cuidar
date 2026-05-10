@@ -394,6 +394,24 @@ Pergunta: ${pergunta}`;
 });
 
 
+// ===== LISTAR MEMBROS DA FAMÍLIA PARA MÉDICO =====
+app.get('/api/familia/:codigo/membros', async (req, res) => {
+  try {
+    const codigo = req.params.codigo.toUpperCase();
+    // Busca família
+    const familia = await pool.query('SELECT * FROM familias WHERE codigo=$1', [codigo]);
+    if(familia.rows.length === 0) {
+      return res.json({ ok: false, erro: 'Família não encontrada' });
+    }
+    // Busca membros
+    const membros = await pool.query(
+      'SELECT id, nome, tipo, relacao, data_nascimento, id_medico FROM membros WHERE familia_id=$1 ORDER BY criado_em',
+      [codigo]
+    );
+    res.json({ ok: true, familia: familia.rows[0], membros: membros.rows });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
 // ===== ACESSO MÉDICO =====
 app.get('/api/medico/:id', async (req, res) => {
   try {

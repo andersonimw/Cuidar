@@ -181,28 +181,97 @@
     document.getElementById('msgErro').style.display = 'none';
     document.getElementById('formAcesso').innerHTML += '<div class="loading">🔍 Buscando dados...</div>';
 
-    fetch('/api/medico/' + id)
+    // Primeiro tenta buscar membros da família pelo código
+    fetch('/api/familia/' + id + '/membros')
       .then(function(r){ return r.json(); })
       .then(function(r){
-        // Remove loading
         var loading = document.querySelector('.loading');
         if(loading) loading.remove();
 
-        if(!r.ok) {
-          document.getElementById('msgErro').innerHTML = '<div class="erro-box">❌ ' + (r.erro || 'ID não encontrado.') + ' Verifique o código e tente novamente.</div>';
-          document.getElementById('msgErro').style.display = 'block';
+        if(r.ok && r.membros && r.membros.length > 0) {
+          // Mostra seletor de perfis
+          mostrarPerfis(r.familia, r.membros, nome);
           return;
         }
 
-        familiaIdAtual = id;
-        renderPainel(r, nome);
+        // Se não encontrou família, tenta buscar por ID de membro
+        fetch('/api/medico/' + id)
+          .then(function(r2){ return r2.json(); })
+          .then(function(r2){
+            if(!r2.ok) {
+              document.getElementById('msgErro').innerHTML = '<div class="erro-box">❌ ' + (r2.erro || 'ID não encontrado.') + '</div>';
+              document.getElementById('msgErro').style.display = 'block';
+              return;
+            }
+            familiaIdAtual = id;
+            renderPainel(r2, nome);
+          });
       })
       .catch(function(){
         var loading = document.querySelector('.loading');
         if(loading) loading.remove();
-        document.getElementById('msgErro').innerHTML = '<div class="erro-box">❌ Erro de conexão. Verifique sua internet.</div>';
+        document.getElementById('msgErro').innerHTML = '<div class="erro-box">❌ Erro de conexão.</div>';
         document.getElementById('msgErro').style.display = 'block';
       });
+  }
+
+  function mostrarPerfis(familia, membros, nomeMed) {
+    document.getElementById('formAcesso').style.display = 'none';
+    document.getElementById('msgErro').style.display = 'none';
+
+    var seletor = document.getElementById('seletorPerfis');
+    if(!seletor) {
+      seletor = document.createElement('div');
+      seletor.id = 'seletorPerfis';
+      document.querySelector('.conteudo').appendChild(seletor);
+    }
+
+    var emojis = { adulto:'👨', idoso:'👴', crianca:'👶' };
+    var membrosHtml = membros.map(function(m) {
+      return '<div onclick="selecionarMembro('' + (m.id_medico||'') + '','' + m.nome + '','' + nomeMed + '')" style="background:white;border-radius:14px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:2px solid transparent" onmouseover="this.style.borderColor='#6a1b9a'" onmouseout="this.style.borderColor='transparent'">' +
+        '<div style="font-size:2.2em">' + (emojis[m.tipo]||'👤') + '</div>' +
+        '<div style="flex:1">' +
+          '<div style="font-weight:bold;font-size:1em">' + m.nome + '</div>' +
+          '<div style="font-size:0.8em;color:#888">' + (m.relacao||m.tipo) + '</div>' +
+          (m.id_medico ? '<div style="font-size:0.75em;color:#6a1b9a;font-family:monospace;margin-top:2px">🏥 ' + m.id_medico + '</div>' : '') +
+        '</div>' +
+        '<div style="color:#6a1b9a;font-size:1.4em">→</div>' +
+      '</div>';
+    }).join('');
+
+    seletor.innerHTML =
+      '<div style="background:linear-gradient(135deg,#6a1b9a,#4a148c);color:white;padding:14px 16px;border-radius:12px;margin-bottom:16px;text-align:center">' +
+        '<div style="font-size:1.1em;font-weight:bold">' + familia.nome + '</div>' +
+        '<div style="font-size:0.8em;opacity:0.8">Selecione o paciente</div>' +
+      '</div>' +
+      '<div style="font-size:0.85em;color:#888;margin-bottom:12px">Dr(a). ' + nomeMed + ' — Selecione o perfil para acessar:</div>' +
+      membrosHtml +
+      '<button onclick="novoAcesso()" style="width:100%;padding:12px;background:#eee;color:#555;border:none;border-radius:10px;cursor:pointer;margin-top:8px">← Voltar</button>';
+
+    seletor.style.display = 'block';
+  }
+
+  function selecionarMembro(idMedico, nomePaciente, nomeMed) {
+    if(!idMedico) {
+      alert('Este membro ainda não tem ID médico gerado.');
+      return;
+    }
+    var seletor = document.getElementById('seletorPerfis');
+    if(seletor) seletor.style.display = 'none';
+
+    fetch('/api/medico/' + idMedico)
+      .then(function(r){ return r.json(); })
+      .then(function(r){
+        if(!r.ok) {
+          alert('Erro ao acessar dados: ' + r.erro);
+          return;
+        }
+        familiaIdAtual = idMedico;
+        sessionStorage.setItem('medicoFamiliaId', idMedico);
+        sessionStorage.setItem('medicoNome', nomeMed);
+        renderPainel(r, nomeMed);
+      })
+      .catch(function(){ alert('Erro de conexão.'); });
   }
 
   function renderPainel(dados, nomeMed) {
@@ -324,6 +393,8 @@
     document.getElementById('painelMedico').classList.remove('ativo');
     document.getElementById('idPaciente').value = '';
     document.getElementById('msgErro').style.display = 'none';
+    var seletor = document.getElementById('seletorPerfis');
+    if(seletor) seletor.style.display = 'none';
   }
 
   // Auto-maiúsculas no ID
