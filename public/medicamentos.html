@@ -703,11 +703,26 @@ function renderAvisos() {
 }
 
 function excluirMed(id) {
-  if(!confirm('Excluir este medicamento?')) return;
-  meds=meds.filter(function(m){return m.id!==id;});
-  localStorage.setItem(_chaveMeds,JSON.stringify(meds));
+  if(!confirm("Excluir este medicamento?")) return;
+  var med = meds.find(function(m){ return m.id === id; });
+  var dbId = med ? (med.dbId || null) : null;
+  meds = meds.filter(function(m){ return m.id !== id; });
+  localStorage.setItem(_chaveMeds, JSON.stringify(meds));
+  if(dbId) {
+    fetch("/api/medicamentos/excluir", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ id: dbId })
+    });
+  }
   renderLista();
 }
+
+
+
+
+
+
 
 function renderHistorico() {
   var el=document.getElementById('listaHistorico');
