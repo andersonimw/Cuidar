@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acesso Médico - Cuidar</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:sans-serif; background:#f0f4f8; color:#333; min-height:100vh; }
+  header { background:linear-gradient(135deg,#6a1b9a,#4a148c); color:white; padding:20px; text-align:center; }
+  header h1 { font-size:1.4em; margin-bottom:4px; }
+  header p { font-size:0.85em; opacity:0.85; }
+  .conteudo { padding:20px; padding-bottom:40px; max-width:600px; margin:0 auto; }
+
+  .card { background:white; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .card h2 { color:#6a1b9a; font-size:1em; margin-bottom:14px; }
+
+  .form-group { margin-bottom:12px; }
+  .form-group label { font-size:0.85em; color:#666; display:block; margin-bottom:4px; font-weight:bold; }
+  .form-group input { width:100%; padding:12px; border:1.5px solid #ddd; border-radius:10px; font-size:1em; outline:none; }
+  .form-group input:focus { border-color:#6a1b9a; }
+  .id-input { text-transform:uppercase; letter-spacing:3px; font-family:monospace; font-size:1.2em; text-align:center; }
+
+  .btn-acessar { width:100%; padding:16px; background:linear-gradient(135deg,#6a1b9a,#4a148c); color:white; border:none; border-radius:12px; font-size:1em; font-weight:bold; cursor:pointer; }
+  .btn-salvar-obs { width:100%; padding:14px; background:#6a1b9a; color:white; border:none; border-radius:10px; font-size:0.95em; cursor:pointer; margin-top:8px; }
+
+  .erro-box { background:#ffebee; border-left:4px solid #c62828; padding:12px 16px; border-radius:0 10px 10px 0; font-size:0.88em; color:#c62828; margin-bottom:16px; }
+  .sucesso-box { background:#e8f5e9; border-left:4px solid #2e7d32; padding:12px 16px; border-radius:0 10px 10px 0; font-size:0.88em; color:#2e7d32; margin-bottom:16px; }
+  .aviso-box { background:#fff3e0; border-left:4px solid #e65100; padding:12px 16px; border-radius:0 10px 10px 0; font-size:0.85em; color:#e65100; margin-bottom:16px; }
+
+  .painel { display:none; }
+  .painel.ativo { display:block; }
+
+  .secao { background:#f8f9fa; border-radius:12px; padding:14px; margin-bottom:12px; }
+  .secao h3 { font-size:0.9em; color:#6a1b9a; margin-bottom:10px; font-weight:bold; }
+  .linha { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid #eee; font-size:0.85em; }
+  .linha:last-child { border-bottom:none; }
+  .linha-label { color:#555; }
+  .linha-valor { font-weight:bold; color:#333; }
+
+  .obs-item { background:#f3e5f5; border-radius:10px; padding:10px 12px; margin-bottom:8px; }
+  .obs-texto { font-size:0.88em; color:#333; }
+  .obs-meta { font-size:0.75em; color:#888; margin-top:4px; }
+
+  .sem-dados { color:#aaa; font-size:0.85em; text-align:center; padding:10px; }
+
+  .obs-area { width:100%; padding:12px; border:1.5px solid #ddd; border-radius:10px; font-size:0.9em; height:90px; resize:none; outline:none; margin-top:8px; }
+  .obs-area:focus { border-color:#6a1b9a; }
+
+  .familia-badge { background:linear-gradient(135deg,#6a1b9a,#4a148c); color:white; padding:12px 16px; border-radius:12px; text-align:center; margin-bottom:16px; }
+  .familia-nome { font-size:1.2em; font-weight:bold; }
+  .familia-id { font-size:0.8em; opacity:0.8; margin-top:4px; font-family:monospace; letter-spacing:2px; }
+
+  .loading { text-align:center; padding:30px; color:#888; font-size:0.9em; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>👨‍⚕️ Acesso Médico</h1>
+  <p>Cuidar — Cuidado Familiar Inteligente</p>
+</header>
+
+<div class="conteudo">
+
+  <!-- FORMULÁRIO DE ACESSO -->
+  <div id="formAcesso">
+    <div class="aviso-box">
+      🔐 Esta área é exclusiva para profissionais de saúde autorizados. Solicite o ID ao paciente ou familiar.
+    </div>
+
+    <div class="card">
+      <h2>👨‍⚕️ Identificação do Médico</h2>
+      <div class="form-group">
+        <label>Seu nome completo</label>
+        <input type="text" id="nomeMedico" placeholder="Dr. Carlos Souza">
+      </div>
+      <div class="form-group">
+        <label>CRM (opcional)</label>
+        <input type="text" id="crmMedico" placeholder="Ex: CRM-SP 123456">
+      </div>
+      <div class="form-group">
+        <label>ID do paciente</label>
+        <input type="text" id="idPaciente" class="id-input" placeholder="BARRO9103" maxlength="20">
+      </div>
+      <button class="btn-acessar" onclick="acessar()">🔍 Acessar dados do paciente</button>
+    </div>
+
+    <div class="card">
+      <h2>ℹ️ Como funciona</h2>
+      <div style="font-size:0.85em;color:#555;line-height:1.8">
+        <p>1. Solicite o ID ao paciente ou familiar</p>
+        <p>2. Digite o ID no campo acima</p>
+        <p>3. Acesse medicamentos, sinais vitais e histórico</p>
+        <p>4. Adicione observações clínicas visíveis para a família</p>
+        <br>
+        <p style="color:#6a1b9a">🔒 Você terá acesso apenas aos dados clínicos — chat familiar e financeiro são privados.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENSAGEM DE ERRO -->
+  <div id="msgErro" style="display:none"></div>
+
+  <!-- PAINEL MÉDICO -->
+  <div class="painel" id="painelMedico">
+
+    <div class="familia-badge">
+      <div class="familia-nome" id="familiaNome">--</div>
+      <div class="familia-id" id="familiaIdExibe">--</div>
+    </div>
+
+    <div class="sucesso-box" id="msgSucesso"></div>
+
+    <!-- MEDICAMENTOS -->
+    <div class="secao">
+      <h3>💊 Medicamentos em uso</h3>
+      <div id="listaMeds"></div>
+    </div>
+
+    <!-- SINAIS VITAIS -->
+    <div class="secao">
+      <h3>📊 Sinais vitais recentes</h3>
+      <div id="listaSinais"></div>
+    </div>
+
+    <!-- VACINAS -->
+    <div class="secao">
+      <h3>💉 Vacinas</h3>
+      <div id="listaVacinas"></div>
+    </div>
+
+    <!-- AGENDA -->
+    <div class="secao">
+      <h3>📅 Consultas e eventos recentes</h3>
+      <div id="listaEventos"></div>
+    </div>
+
+    <!-- OBSERVAÇÕES MÉDICAS -->
+    <div class="card">
+      <h2>📝 Observações médicas</h2>
+      <div id="listaObs"></div>
+      <textarea class="obs-area" id="novaObs" placeholder="Digite sua observação clínica aqui..."></textarea>
+      <button class="btn-salvar-obs" onclick="salvarObs()">💾 Salvar observação</button>
+    </div>
+
+    <button onclick="novoAcesso()" style="width:100%;padding:12px;background:#eee;color:#555;border:none;border-radius:10px;cursor:pointer;font-size:0.9em;margin-top:8px">← Acessar outro paciente</button>
+
+  </div>
+
+</div>
+
+<script>
+  var familiaIdAtual = '';
+  var nomeMedicoAtual = '';
+
+  function acessar() {
+    var nome = document.getElementById('nomeMedico').value.trim();
+    var id = document.getElementById('idPaciente').value.trim().toUpperCase();
+    if(!nome){ alert('Digite seu nome.'); return; }
+    if(!id){ alert('Digite o ID do paciente.'); return; }
+
+    nomeMedicoAtual = nome;
+    document.getElementById('msgErro').style.display = 'none';
+    document.getElementById('formAcesso').innerHTML += '<div class="loading">🔍 Buscando dados...</div>';
+
+    fetch('/api/medico/' + id)
+      .then(function(r){ return r.json(); })
+      .then(function(r){
+        // Remove loading
+        var loading = document.querySelector('.loading');
+        if(loading) loading.remove();
+
+        if(!r.ok) {
+          document.getElementById('msgErro').innerHTML = '<div class="erro-box">❌ ' + (r.erro || 'ID não encontrado.') + ' Verifique o código e tente novamente.</div>';
+          document.getElementById('msgErro').style.display = 'block';
+          return;
+        }
+
+        familiaIdAtual = id;
+        renderPainel(r, nome);
+      })
+      .catch(function(){
+        var loading = document.querySelector('.loading');
+        if(loading) loading.remove();
+        document.getElementById('msgErro').innerHTML = '<div class="erro-box">❌ Erro de conexão. Verifique sua internet.</div>';
+        document.getElementById('msgErro').style.display = 'block';
+      });
+  }
+
+  function renderPainel(dados, nomeMed) {
+    document.getElementById('formAcesso').style.display = 'none';
+    document.getElementById('painelMedico').classList.add('ativo');
+
+    document.getElementById('familiaNome').textContent = dados.familia.nome || 'Família';
+    document.getElementById('familiaIdExibe').textContent = 'ID: ' + dados.familia.codigo;
+    document.getElementById('msgSucesso').textContent = '✅ Acesso autorizado — Dr(a). ' + nomeMed;
+
+    // MEDICAMENTOS
+    var elMeds = document.getElementById('listaMeds');
+    if(!dados.meds || dados.meds.length === 0) {
+      elMeds.innerHTML = '<div class="sem-dados">Nenhum medicamento cadastrado.</div>';
+    } else {
+      elMeds.innerHTML = dados.meds.map(function(m) {
+        var horarios = m.horarios ? JSON.parse(m.horarios).join(', ') : '--';
+        return '<div class="linha">' +
+          '<span class="linha-label">💊 ' + m.nome + '</span>' +
+          '<span class="linha-valor">' + (m.dosagem||'') + ' · ' + horarios + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    // SINAIS VITAIS
+    var elSinais = document.getElementById('listaSinais');
+    if(!dados.sinais || dados.sinais.length === 0) {
+      elSinais.innerHTML = '<div class="sem-dados">Nenhum sinal vital registrado.</div>';
+    } else {
+      elSinais.innerHTML = dados.sinais.slice(0,10).map(function(s) {
+        return '<div class="linha">' +
+          '<span class="linha-label">' + s.tipo + '</span>' +
+          '<span class="linha-valor">' + s.valor + ' · ' + (s.data||'') + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    // VACINAS
+    var elVacinas = document.getElementById('listaVacinas');
+    if(!dados.vacinas || dados.vacinas.length === 0) {
+      elVacinas.innerHTML = '<div class="sem-dados">Nenhuma vacina registrada.</div>';
+    } else {
+      elVacinas.innerHTML = dados.vacinas.map(function(v) {
+        return '<div class="linha">' +
+          '<span class="linha-label">💉 ' + v.nome + '</span>' +
+          '<span class="linha-valor">' + (v.status||'') + ' · ' + (v.data||'') + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    // EVENTOS
+    var elEventos = document.getElementById('listaEventos');
+    var eventosFiltrados = dados.eventos.filter(function(e){ return e.tipo !== 'medico'; });
+    if(eventosFiltrados.length === 0) {
+      elEventos.innerHTML = '<div class="sem-dados">Nenhum evento registrado.</div>';
+    } else {
+      elEventos.innerHTML = eventosFiltrados.map(function(e) {
+        return '<div class="linha">' +
+          '<span class="linha-label">📅 ' + e.titulo + '</span>' +
+          '<span class="linha-valor">' + (e.data||'') + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    // OBSERVAÇÕES MÉDICAS
+    var obsEventos = dados.eventos.filter(function(e){ return e.tipo === 'medico'; });
+    renderObs(obsEventos);
+  }
+
+  function renderObs(obs) {
+    var el = document.getElementById('listaObs');
+    if(!obs || obs.length === 0) {
+      el.innerHTML = '<div class="sem-dados">Nenhuma observação ainda.</div>';
+      return;
+    }
+    el.innerHTML = obs.map(function(o) {
+      return '<div class="obs-item">' +
+        '<div class="obs-texto">' + o.obs + '</div>' +
+        '<div class="obs-meta">' + o.titulo + ' — ' + (o.data||'') + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function salvarObs() {
+    var texto = document.getElementById('novaObs').value.trim();
+    if(!texto){ alert('Digite a observação.'); return; }
+    if(!familiaIdAtual){ alert('Nenhum paciente acessado.'); return; }
+
+    fetch('/api/medico/observacao', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        familia_id: familiaIdAtual,
+        medico: nomeMedicoAtual,
+        texto: texto
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(r.ok) {
+        document.getElementById('novaObs').value = '';
+        alert('✅ Observação salva! A família poderá ver no app.');
+        // Atualiza lista local
+        var el = document.getElementById('listaObs');
+        var agora = new Date().toLocaleDateString('pt-BR');
+        el.innerHTML = '<div class="obs-item"><div class="obs-texto">' + texto + '</div><div class="obs-meta">Dr(a). ' + nomeMedicoAtual + ' — ' + agora + '</div></div>' + el.innerHTML;
+      } else {
+        alert('Erro ao salvar: ' + r.erro);
+      }
+    })
+    .catch(function(){ alert('Erro de conexão.'); });
+  }
+
+  function novoAcesso() {
+    familiaIdAtual = '';
+    document.getElementById('formAcesso').style.display = 'block';
+    document.getElementById('painelMedico').classList.remove('ativo');
+    document.getElementById('idPaciente').value = '';
+    document.getElementById('msgErro').style.display = 'none';
+  }
+
+  // Auto-maiúsculas no ID
+  document.getElementById('idPaciente') && document.getElementById('idPaciente').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+  });
+</script>
+</body>
+</html>

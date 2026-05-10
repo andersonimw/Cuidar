@@ -382,6 +382,55 @@ Pergunta: ${pergunta}`;
   }
 });
 
+
+// ===== ACESSO MÉDICO =====
+app.get('/api/medico/:id', async (req, res) => {
+  try {
+    const id = req.params.id.toUpperCase();
+    // Busca família pelo ID médico ou código familiar
+    const familia = await pool.query(
+      'SELECT * FROM familias WHERE codigo=$1', [id]
+    );
+    if(familia.rows.length === 0) {
+      return res.json({ ok: false, erro: 'ID não encontrado' });
+    }
+    const familiaId = familia.rows[0].codigo;
+    // Busca dados médicos
+    const meds = await pool.query(
+      'SELECT * FROM medicamentos WHERE familia_id=$1 AND ativo=true', [familiaId]
+    );
+    const sinais = await pool.query(
+      'SELECT * FROM sinais_vitais WHERE familia_id=$1 ORDER BY criado_em DESC LIMIT 20', [familiaId]
+    );
+    const eventos = await pool.query(
+      'SELECT * FROM eventos WHERE familia_id=$1 ORDER BY data DESC LIMIT 10', [familiaId]
+    );
+    const vacinas = await pool.query(
+      'SELECT * FROM vacinas WHERE familia_id=$1 ORDER BY criado_em DESC', [familiaId]
+    );
+    res.json({
+      ok: true,
+      familia: familia.rows[0],
+      meds: meds.rows,
+      sinais: sinais.rows,
+      eventos: eventos.rows,
+      vacinas: vacinas.rows
+    });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
+app.post('/api/medico/observacao', async (req, res) => {
+  try {
+    const { familia_id, medico, texto } = req.body;
+    // Salva observação médica nos eventos
+    const r = await pool.query(
+      'INSERT INTO eventos (familia_id, titulo, tipo, obs) VALUES ($1,$2,$3,$4) RETURNING *',
+      [familia_id, 'Observação médica — ' + medico, 'medico', texto]
+    );
+    res.json({ ok: true, evento: r.rows[0] });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
 // ===== SOCKET.IO =====
 io.on('connection', (socket) => {
   console.log('Conectado:', socket.id);
