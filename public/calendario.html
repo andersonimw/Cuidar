@@ -381,11 +381,27 @@
   }
 
   function excluir(i) {
-    if (!confirm('Excluir "' + eventos[i].nome + '"?')) return;
+    var ev = eventos[i];
+    if (!ev) return;
+    if (!confirm("Excluir \"" + ev.nome + "\"?")) return;
+    var dbId = ev.dbId || null;
     eventos.splice(i, 1);
     localStorage.setItem(_chaveCalendario, JSON.stringify(eventos));
+    if(dbId) {
+      fetch("/api/eventos/excluir", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id: dbId })
+      });
+    }
     renderCalendario();
   }
+
+
+
+
+
+
 
   function toggleCamposConsulta() {
     var tipo = document.getElementById('eTipo').value;
@@ -466,25 +482,46 @@
     fetch("/api/eventos/" + familiaId)
     .then(function(r){ return r.json(); })
     .then(function(r){
+      eventos = [];
       if(r.ok && r.eventos && r.eventos.length > 0) {
         r.eventos.forEach(function(e) {
-          var existe = eventos.find(function(x){ return x.dbId === e.id; });
-          if(!existe) {
-            eventos.push({
-              dbId: e.id,
-              nome: e.titulo,
-              tipo: e.tipo || "consulta",
-              data: e.data,
-              hora: e.hora || "",
-              obs: e.obs || ""
-            });
-          }
+          eventos.push({
+            dbId: e.id,
+            nome: e.titulo,
+            tipo: e.tipo || "consulta",
+            data: e.data,
+            hora: e.hora || "",
+            obs: e.obs || ""
+          });
         });
         localStorage.setItem(_chaveCalendario, JSON.stringify(eventos));
       }
       renderCalendario();
     }).catch(function(){ renderCalendario(); });
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   carregarDoBANCO();
 </script>
