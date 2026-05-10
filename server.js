@@ -372,8 +372,11 @@ Pergunta: ${pergunta}`;
     );
 
     const data = await response.json();
-    const texto = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Não consegui responder. Tente novamente.';
-    res.json({ ok: true, resposta: texto });
+    console.log('Gemini response:', JSON.stringify(data));
+    const texto = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                  data.error?.message ||
+                  'Não consegui responder. Tente novamente.';
+    res.json({ ok: true, resposta: texto, debug: data.error || null });
   } catch(e) {
     res.json({ ok: false, erro: e.message });
   }
