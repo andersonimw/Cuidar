@@ -322,9 +322,77 @@
     }).catch(function(){});
   }
 
-  // Chamar ao abrir a tela
-  gerarIdsMedicos();
-  renderizar();
+  // Carregar membros do banco ao abrir
+  function carregarMembrosDB() {
+    var familiaId = localStorage.getItem('familiaId') || '';
+    if(!familiaId) return;
+
+    // Primeiro gera IDs médicos para quem não tem
+    fetch('/api/membros/gerar-id-medico', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ familia_id: familiaId })
+    }).then(function(r){ return r.json(); }).catch(function(){});
+
+    // Carrega membros do banco
+    fetch('/api/membros/' + familiaId)
+      .then(function(r){ return r.json(); })
+      .then(function(r){
+        if(!r.ok || !r.membros) return;
+        // Sincronizar perfis locais com banco
+        var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+        var perfisAtualizados = [];
+        // Adiciona perfil principal do usuário
+        if(usuario) {
+          var perfilPrincipal = perfis.find(function(p){ return p.principal; });
+          if(!perfilPrincipal) {
+            perfilPrincipal = {
+              id: 'usuario_principal',
+              nome: usuario.nome,
+              tipo: usuario.tipo || 'adulto',
+              relacao: usuario.relacao || 'Admin',
+              principal: true
+            };
+          }
+          // Busca ID médico do banco para o usuário principal
+          var membroBanco = r.membros.find(function(m){
+            return m.nome === usuario.nome;
+          });
+          if(membroBanco) {
+            perfilPrincipal.idMedico = membroBanco.id_medico;
+            perfilPrincipal.membroIdBanco = membroBanco.id;
+          }
+          perfisAtualizados.push(perfilPrincipal);
+        }
+        // Adiciona outros membros do banco
+        r.membros.forEach(function(m) {
+          if(usuario && m.nome === usuario.nome) return; // pula o principal
+          var perfilExistente = perfis.find(function(p){
+            return p.membroIdBanco === m.id || p.nome === m.nome;
+          });
+          if(perfilExistente) {
+            perfilExistente.idMedico = m.id_medico;
+            perfilExistente.membroIdBanco = m.id;
+            perfisAtualizados.push(perfilExistente);
+          } else {
+            perfisAtualizados.push({
+              id: 'membro_' + m.id,
+              nome: m.nome,
+              tipo: m.tipo || 'adulto',
+              relacao: m.relacao || '',
+              idMedico: m.id_medico,
+              membroIdBanco: m.id,
+              principal: false
+            });
+          }
+        });
+        perfis = perfisAtualizados;
+        localStorage.setItem('perfisFamily', JSON.stringify(perfis));
+        renderizar();
+      }).catch(function(){ renderizar(); });
+  }
+
+  carregarMembrosDB();
 </script>
 </body>
 </html>
