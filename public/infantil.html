@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuidar Kids</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:sans-serif; background:linear-gradient(135deg,#667eea,#764ba2); min-height:100vh; }
+
+  header { padding:20px; text-align:center; color:white; }
+  .header-nome { font-size:1.4em; font-weight:bold; margin-bottom:4px; }
+  .header-sub { font-size:0.9em; opacity:0.85; }
+  .avatar { font-size:4em; margin-bottom:8px; }
+
+  .pontos-card { background:rgba(255,255,255,0.2); border-radius:20px; padding:16px;
+                 margin:0 16px 20px; text-align:center; color:white; }
+  .pontos-num { font-size:2.5em; font-weight:bold; }
+  .pontos-label { font-size:0.85em; opacity:0.85; }
+  .conquistas { display:flex; gap:8px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+  .conquista { background:rgba(255,255,255,0.2); border-radius:20px; padding:4px 12px;
+               font-size:0.8em; color:white; }
+
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 16px 16px; }
+  .card { background:white; border-radius:20px; padding:20px; text-align:center;
+          cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.1); transition:transform 0.1s; }
+  .card:active { transform:scale(0.95); }
+  .card .icon { font-size:2.8em; margin-bottom:8px; }
+  .card .nome { font-size:0.95em; font-weight:bold; color:#333; }
+  .card .desc { font-size:0.75em; color:#888; margin-top:4px; }
+  .card .progresso { background:#f0f0f0; border-radius:20px; height:8px; margin-top:10px; overflow:hidden; }
+  .card .barra { height:8px; border-radius:20px; transition:width 0.5s; }
+  .card.agua .barra { background:linear-gradient(90deg,#4fc3f7,#0288d1); }
+  .card.comida .barra { background:linear-gradient(90deg,#a5d6a7,#2e7d32); }
+  .card.sono .barra { background:linear-gradient(90deg,#ce93d8,#7b1fa2); }
+  .card.humor .barra { background:linear-gradient(90deg,#ffe082,#f57f17); }
+  .card-full { grid-column:1/-1; }
+
+  .sos-btn { background:linear-gradient(135deg,#ff5252,#c62828); color:white; border:none;
+             border-radius:20px; padding:20px; width:100%; font-size:1.1em; font-weight:bold;
+             cursor:pointer; box-shadow:0 4px 15px rgba(198,40,40,0.4); }
+
+  /* MODAIS */
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+           background:rgba(0,0,0,0.5); z-index:100; align-items:flex-end; justify-content:center; }
+  .modal.ativo { display:flex; }
+  .modal-box { background:white; border-radius:24px 24px 0 0; padding:24px; width:100%;
+               max-height:85vh; overflow-y:auto; }
+  .modal-titulo { font-size:1.2em; font-weight:bold; text-align:center; margin-bottom:16px; }
+
+  /* ÁGUA */
+  .copos-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+  .copo { font-size:2.5em; text-align:center; cursor:pointer; padding:8px;
+          border-radius:12px; border:2px solid #eee; transition:all 0.2s; }
+  .copo.cheio { background:#e3f2fd; border-color:#0288d1; }
+
+  /* COMIDA */
+  .alimentos-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+  .alimento { font-size:2em; text-align:center; padding:12px; border-radius:12px;
+              border:2px solid #eee; cursor:pointer; transition:all 0.2s; }
+  .alimento.sel { background:#e8f5e9; border-color:#2e7d32; }
+
+  /* HUMOR */
+  .humor-grid { display:flex; gap:12px; justify-content:center; margin-bottom:16px; flex-wrap:wrap; }
+  .humor-btn { font-size:2.5em; padding:12px; border:3px solid #eee; border-radius:16px;
+               cursor:pointer; transition:all 0.2s; background:white; }
+  .humor-btn.sel { border-color:#f57f17; background:#fff8e1; transform:scale(1.1); }
+
+  /* SONO */
+  .sono-grid { display:flex; gap:10px; justify-content:center; margin-bottom:16px; flex-wrap:wrap; }
+  .sono-btn { padding:12px 16px; border:2px solid #eee; border-radius:12px; cursor:pointer;
+              font-size:0.9em; background:white; transition:all 0.2s; }
+  .sono-btn.sel { border-color:#7b1fa2; background:#f3e5f5; color:#7b1fa2; font-weight:bold; }
+
+  .btn-salvar { width:100%; padding:16px; background:linear-gradient(135deg,#667eea,#764ba2);
+                color:white; border:none; border-radius:14px; font-size:1em; font-weight:bold;
+                cursor:pointer; margin-top:8px; }
+  .btn-fechar { width:100%; padding:12px; background:#eee; color:#555; border:none;
+                border-radius:14px; font-size:0.95em; cursor:pointer; margin-top:8px; }
+
+  /* CHAT */
+  .chat-msgs { height:250px; overflow-y:auto; background:#f5f5f5; border-radius:12px;
+               padding:12px; margin-bottom:12px; }
+  .chat-input { display:flex; gap:8px; }
+  .chat-input input { flex:1; padding:12px; border:1px solid #ddd; border-radius:20px; font-size:0.95em; }
+  .chat-input button { padding:12px 16px; background:linear-gradient(135deg,#667eea,#764ba2);
+                       color:white; border:none; border-radius:20px; cursor:pointer; }
+  .msg-kids { margin-bottom:8px; font-size:0.9em; }
+  .msg-kids.minha { text-align:right; }
+  .msg-kids .balao { display:inline-block; padding:8px 14px; border-radius:16px; max-width:80%; }
+  .msg-kids.minha .balao { background:#667eea; color:white; }
+  .msg-kids.outra .balao { background:white; color:#333; box-shadow:0 1px 4px rgba(0,0,0,0.1); }
+  .msg-kids .autor { font-size:0.75em; color:#888; margin-bottom:2px; }
+
+  /* TELA EMERGÊNCIA */
+  .emerg-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                   background:rgba(198,40,40,0.97); z-index:999; flex-direction:column;
+                   align-items:center; justify-content:center; color:white; text-align:center; padding:30px; }
+  .emerg-overlay.ativo { display:flex; }
+
+  footer { text-align:center; padding:20px; color:rgba(255,255,255,0.6); font-size:0.8em; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="avatar" id="avatarEmoji">😊</div>
+  <div class="header-nome" id="headerNome">Olá!</div>
+  <div class="header-sub">Como você está hoje?</div>
+</header>
+
+<div class="pontos-card">
+  <div class="pontos-num" id="pontosNum">0</div>
+  <div class="pontos-label">⭐ pontos hoje</div>
+  <div class="conquistas" id="conquistasLista"></div>
+</div>
+
+<div class="grid">
+
+  <!-- ÁGUA -->
+  <div class="card agua" onclick="abrirModal('agua')">
+    <div class="icon">💧</div>
+    <div class="nome">Água</div>
+    <div class="desc" id="aguaDesc">0 de 6 copos</div>
+    <div class="progresso"><div class="barra" id="aguaBarra" style="width:0%"></div></div>
+  </div>
+
+  <!-- COMIDA -->
+  <div class="card comida" onclick="abrirModal('comida')">
+    <div class="icon">🍎</div>
+    <div class="nome">Alimentação</div>
+    <div class="desc" id="comidaDesc">Toque para registrar</div>
+    <div class="progresso"><div class="barra" id="comidaBarra" style="width:0%"></div></div>
+  </div>
+
+  <!-- HUMOR -->
+  <div class="card humor" onclick="abrirModal('humor')">
+    <div class="icon" id="humorIcon">😊</div>
+    <div class="nome">Meu humor</div>
+    <div class="desc" id="humorDesc">Como estou me sentindo</div>
+  </div>
+
+  <!-- SONO -->
+  <div class="card sono" onclick="abrirModal('sono')">
+    <div class="icon">😴</div>
+    <div class="nome">Sono</div>
+    <div class="desc" id="sonoDesc">Como dormi?</div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="card card-full" onclick="abrirModal('chat')">
+    <div class="icon">💬</div>
+    <div class="nome">Chat com a família</div>
+    <div class="desc">Falar com papai, mamãe e todos</div>
+  </div>
+
+  <!-- EMERGÊNCIA -->
+  <div class="card-full" style="padding:0 0 16px">
+    <button class="sos-btn" onclick="ativarEmergencia()">
+      🆘 PRECISO DE AJUDA!
+    </button>
+  </div>
+
+</div>
+
+<footer>Cuidar Kids 💜</footer>
+
+<!-- MODAL ÁGUA -->
+<div class="modal" id="modal-agua">
+  <div class="modal-box">
+    <div class="modal-titulo">💧 Quantos copos de água?</div>
+    <div class="copos-grid" id="coposGrid"></div>
+    <button class="btn-salvar" onclick="salvarAgua()">✅ Salvar</button>
+    <button class="btn-fechar" onclick="fecharModal('agua')">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL COMIDA -->
+<div class="modal" id="modal-comida">
+  <div class="modal-box">
+    <div class="modal-titulo">🍎 O que você comeu hoje?</div>
+    <div class="alimentos-grid" id="alimentosGrid"></div>
+    <button class="btn-salvar" onclick="salvarComida()">✅ Salvar</button>
+    <button class="btn-fechar" onclick="fecharModal('comida')">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL HUMOR -->
+<div class="modal" id="modal-humor">
+  <div class="modal-box">
+    <div class="modal-titulo">😊 Como você está se sentindo?</div>
+    <div class="humor-grid">
+      <button class="humor-btn" onclick="selHumor(this,'😄','Muito feliz')">😄</button>
+      <button class="humor-btn" onclick="selHumor(this,'🙂','Feliz')">🙂</button>
+      <button class="humor-btn" onclick="selHumor(this,'😐','Normal')">😐</button>
+      <button class="humor-btn" onclick="selHumor(this,'😔','Triste')">😔</button>
+      <button class="humor-btn" onclick="selHumor(this,'😤','Bravo')">😤</button>
+      <button class="humor-btn" onclick="selHumor(this,'😰','Com medo')">😰</button>
+      <button class="humor-btn" onclick="selHumor(this,'🤒','Doente')">🤒</button>
+      <button class="humor-btn" onclick="selHumor(this,'😴','Cansado')">😴</button>
+    </div>
+    <button class="btn-salvar" onclick="salvarHumor()">✅ Salvar</button>
+    <button class="btn-fechar" onclick="fecharModal('humor')">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL SONO -->
+<div class="modal" id="modal-sono">
+  <div class="modal-box">
+    <div class="modal-titulo">😴 Como você dormiu?</div>
+    <div class="sono-grid">
+      <button class="sono-btn" onclick="selSono(this,'Muito bem 😄')">😄 Muito bem</button>
+      <button class="sono-btn" onclick="selSono(this,'Bem 🙂')">🙂 Bem</button>
+      <button class="sono-btn" onclick="selSono(this,'Mais ou menos 😐')">😐 Mais ou menos</button>
+      <button class="sono-btn" onclick="selSono(this,'Mal 😔')">😔 Mal</button>
+      <button class="sono-btn" onclick="selSono(this,'Pesadelo 😰')">😰 Tive pesadelo</button>
+    </div>
+    <button class="btn-salvar" onclick="salvarSono()">✅ Salvar</button>
+    <button class="btn-fechar" onclick="fecharModal('sono')">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL CHAT -->
+<div class="modal" id="modal-chat">
+  <div class="modal-box">
+    <div class="modal-titulo">💬 Chat com a família</div>
+    <div class="chat-msgs" id="chatMsgs"></div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Digite uma mensagem..." onkeydown="if(event.key==='Enter')enviarMsgKids()">
+      <button onclick="enviarMsgKids()">➤</button>
+    </div>
+    <button class="btn-fechar" onclick="fecharModal('chat')">Fechar</button>
+  </div>
+</div>
+
+<!-- EMERGÊNCIA -->
+<div class="emerg-overlay" id="emergOverlay">
+  <div style="font-size:5em;animation:pulsar 0.5s infinite alternate">🆘</div>
+  <h2 style="font-size:1.8em;margin:16px 0 8px">PEDINDO AJUDA!</h2>
+  <p style="opacity:0.9;margin-bottom:24px">Sua família foi avisada!<br>Fique onde está.</p>
+  <button onclick="fecharEmerg()" style="background:white;color:#c62828;border:none;border-radius:50px;padding:16px 32px;font-size:1em;font-weight:bold;cursor:pointer">✅ Estou bem agora</button>
+</div>
+
+<style>
+@keyframes pulsar{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+</style>
+
+<script src="alarme_global.js"></script>
+<script>
+  var socket = io();
+  var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+  var familiaId = localStorage.getItem('familiaId') || '';
+  var familiaNome = localStorage.getItem('familiaNome') || '';
+  var hojeISO = new Date().toISOString().split('T')[0];
+  var dadosHoje = JSON.parse(localStorage.getItem('kids_'+hojeISO) || '{}');
+
+  // Header
+  if(usuario) {
+    var hora = new Date().getHours();
+    var sauda = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+    document.getElementById('headerNome').textContent = sauda + ', ' + usuario.nome.split(' ')[0] + '! 💜';
+  }
+
+  // Socket
+  socket.on('connect', function() {
+    if(familiaId && usuario) {
+      socket.emit('entrarFamilia', { familiaId: familiaId, nome: usuario.nome });
+    }
+  });
+
+  socket.on('mensagem', function(dados) {
+    adicionarMsgChat(dados, false);
+  });
+
+  // ===== PONTOS =====
+  var pontos = dadosHoje.pontos || 0;
+  var conquistas = dadosHoje.conquistas || [];
+
+  function atualizarPontos() {
+    document.getElementById('pontosNum').textContent = pontos;
+    var cl = document.getElementById('conquistasLista');
+    cl.innerHTML = conquistas.map(function(c){ return '<span class="conquista">' + c + '</span>'; }).join('');
+    dadosHoje.pontos = pontos;
+    dadosHoje.conquistas = conquistas;
+    localStorage.setItem('kids_'+hojeISO, JSON.stringify(dadosHoje));
+  }
+
+  function ganharPontos(qtd, conquista) {
+    pontos += qtd;
+    if(conquista && conquistas.indexOf(conquista) === -1) conquistas.push(conquista);
+    atualizarPontos();
+  }
+
+  // ===== ÁGUA =====
+  var coposAgua = dadosHoje.copos || 0;
+  var metaCopos = 6;
+
+  function renderCopos() {
+    var grid = document.getElementById('coposGrid');
+    grid.innerHTML = '';
+    for(var i = 1; i <= metaCopos; i++) {
+      var div = document.createElement('div');
+      div.className = 'copo' + (i <= coposAgua ? ' cheio' : '');
+      div.textContent = i <= coposAgua ? '💧' : '🥛';
+      div.onclick = (function(num){ return function(){ coposAgua = num; renderCopos(); }; })(i);
+      grid.appendChild(div);
+    }
+  }
+
+  function salvarAgua() {
+    dadosHoje.copos = coposAgua;
+    localStorage.setItem('kids_'+hojeISO, JSON.stringify(dadosHoje));
+    var pct = Math.round((coposAgua/metaCopos)*100);
+    document.getElementById('aguaDesc').textContent = coposAgua + ' de ' + metaCopos + ' copos';
+    document.getElementById('aguaBarra').style.width = Math.min(pct,100) + '%';
+    if(coposAgua >= metaCopos) ganharPontos(20, '💧 Hidratado!');
+    else ganharPontos(coposAgua * 2, null);
+    fecharModal('agua');
+    alert('✅ ' + coposAgua + ' copos registrados! ' + (coposAgua >= metaCopos ? '🏆 Meta atingida!' : ''));
+  }
+
+  // ===== COMIDA =====
+  var alimentos = ['🍎','🍊','🍌','🥦','🥕','🍇','🍓','🥑','🥗','🍱','🥩','🐟','🥛','🧀','🍳'];
+  var alimentosSel = dadosHoje.alimentos || [];
+
+  function renderAlimentos() {
+    var grid = document.getElementById('alimentosGrid');
+    grid.innerHTML = alimentos.map(function(a) {
+      return '<div class="alimento' + (alimentosSel.indexOf(a) !== -1 ? ' sel' : '') + '" onclick="toggleAlimento(this,\'' + a + '\')">' + a + '</div>';
+    }).join('');
+  }
+
+  function toggleAlimento(el, a) {
+    var idx = alimentosSel.indexOf(a);
+    if(idx === -1) { alimentosSel.push(a); el.classList.add('sel'); }
+    else { alimentosSel.splice(idx,1); el.classList.remove('sel'); }
+  }
+
+  function salvarComida() {
+    dadosHoje.alimentos = alimentosSel;
+    localStorage.setItem('kids_'+hojeISO, JSON.stringify(dadosHoje));
+    var pct = Math.min(Math.round((alimentosSel.length/5)*100), 100);
+    document.getElementById('comidaDesc').textContent = alimentosSel.length + ' alimentos';
+    document.getElementById('comidaBarra').style.width = pct + '%';
+    if(alimentosSel.length >= 5) ganharPontos(20, '🍎 Comeu bem!');
+    else ganharPontos(alimentosSel.length * 3, null);
+    fecharModal('comida');
+    alert('✅ Alimentação registrada! ' + alimentosSel.join(' '));
+  }
+
+  // ===== HUMOR =====
+  var humorSel = dadosHoje.humor || '';
+  var humorLabel = dadosHoje.humorLabel || '';
+
+  function selHumor(btn, emoji, label) {
+    document.querySelectorAll('.humor-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel');
+    humorSel = emoji; humorLabel = label;
+  }
+
+  function salvarHumor() {
+    if(!humorSel){ alert('Escolha como você está se sentindo!'); return; }
+    dadosHoje.humor = humorSel; dadosHoje.humorLabel = humorLabel;
+    localStorage.setItem('kids_'+hojeISO, JSON.stringify(dadosHoje));
+    document.getElementById('humorIcon').textContent = humorSel;
+    document.getElementById('humorDesc').textContent = humorLabel;
+    ganharPontos(10, '😊 Humor registrado!');
+    fecharModal('humor');
+    alert('✅ Humor registrado: ' + humorSel + ' ' + humorLabel);
+  }
+
+  // ===== SONO =====
+  var sonoSel = dadosHoje.sono || '';
+
+  function selSono(btn, val) {
+    document.querySelectorAll('.sono-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel'); sonoSel = val;
+  }
+
+  function salvarSono() {
+    if(!sonoSel){ alert('Como você dormiu?'); return; }
+    dadosHoje.sono = sonoSel;
+    localStorage.setItem('kids_'+hojeISO, JSON.stringify(dadosHoje));
+    document.getElementById('sonoDesc').textContent = sonoSel;
+    ganharPontos(10, '😴 Sono registrado!');
+    fecharModal('sono');
+    alert('✅ Sono registrado!');
+  }
+
+  // ===== CHAT =====
+  function adicionarMsgChat(dados, minha) {
+    var cont = document.getElementById('chatMsgs');
+    var div = document.createElement('div');
+    div.className = 'msg-kids ' + (minha ? 'minha' : 'outra');
+    div.innerHTML = (!minha ? '<div class="autor">' + dados.nome + '</div>' : '') +
+      '<div class="balao">' + dados.texto + '</div>';
+    cont.appendChild(div);
+    cont.scrollTop = cont.scrollHeight;
+  }
+
+  function enviarMsgKids() {
+    var input = document.getElementById('chatInput');
+    var texto = input.value.trim();
+    if(!texto || !usuario) return;
+    var dados = {
+      nome: usuario.nome,
+      texto: texto,
+      categoria: 'Geral',
+      familiaId: familiaId,
+      hora: new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+    };
+    socket.emit('mensagem', dados);
+    adicionarMsgChat(dados, true);
+    input.value = '';
+  }
+
+  // ===== EMERGÊNCIA =====
+  function ativarEmergencia() {
+    document.getElementById('emergOverlay').classList.add('ativo');
+    socket.emit('emergencia', {
+      nome: usuario ? usuario.nome : 'Criança',
+      tipo: '🆘 Precisa de ajuda',
+      familia: familiaNome,
+      familiaId: familiaId
+    });
+    try {
+      var ctx = new(window.AudioContext||window.webkitAudioContext)();
+      [880,660,880,660].forEach(function(f,i){
+        var o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.frequency.value=f;
+        var t=ctx.currentTime+i*0.22;
+        g.gain.setValueAtTime(0.5,t);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+        o.start(t);o.stop(t+0.22);
+      });
+    } catch(e){}
+    if(navigator.vibrate) navigator.vibrate([500,200,500,200,1000]);
+  }
+
+  function fecharEmerg() {
+    document.getElementById('emergOverlay').classList.remove('ativo');
+  }
+
+  // ===== MODAIS =====
+  function abrirModal(id) {
+    if(id==='agua') renderCopos();
+    if(id==='comida') renderAlimentos();
+    document.getElementById('modal-'+id).classList.add('ativo');
+  }
+
+  function fecharModal(id) {
+    document.getElementById('modal-'+id).classList.remove('ativo');
+  }
+
+  // Inicializar dados salvos
+  if(dadosHoje.copos) {
+    coposAgua = dadosHoje.copos;
+    document.getElementById('aguaDesc').textContent = coposAgua + ' de ' + metaCopos + ' copos';
+    document.getElementById('aguaBarra').style.width = Math.min(Math.round((coposAgua/metaCopos)*100),100) + '%';
+  }
+  if(dadosHoje.alimentos) {
+    alimentosSel = dadosHoje.alimentos;
+    document.getElementById('comidaDesc').textContent = alimentosSel.length + ' alimentos';
+    document.getElementById('comidaBarra').style.width = Math.min(Math.round((alimentosSel.length/5)*100),100) + '%';
+  }
+  if(dadosHoje.humor) {
+    document.getElementById('humorIcon').textContent = dadosHoje.humor;
+    document.getElementById('humorDesc').textContent = dadosHoje.humorLabel;
+  }
+  if(dadosHoje.sono) {
+    document.getElementById('sonoDesc').textContent = dadosHoje.sono;
+  }
+
+  atualizarPontos();
+</script>
+</body>
+</html>
