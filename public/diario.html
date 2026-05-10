@@ -197,6 +197,24 @@
     };
     registros.push(registro);
     localStorage.setItem('diario', JSON.stringify(registros));
+    // Salvar no banco como sinal vital
+    var familiaId = localStorage.getItem('familiaId') || '';
+    if(familiaId) {
+      fetch('/api/sinais/salvar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          familia_id: familiaId,
+          tipo: 'Diário de Saúde',
+          valor: registro.humor + ' | Dor:' + registro.dor + ' | Sono:' + registro.sono,
+          data: hoje,
+          hora: new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+          obs: registro.obs
+        })
+      }).then(function(r){ return r.json(); })
+      .then(function(r){ console.log('Diário no banco:', r); })
+      .catch(function(e){ console.log('Erro banco:', e); });
+    }
     fecharModal();
     renderizar();
   }
