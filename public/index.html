@@ -240,32 +240,45 @@
   if("serviceWorker" in navigator && "PushManager" in window) {
     navigator.serviceWorker.register("/sw.js").then(function(reg) {
       console.log("CD+ SW registrado:", reg.scope);
-      // Pedir permissão de notificação
-      if(Notification.permission === "default") {
-        Notification.requestPermission();
-      }
-      // Registrar inscrição push
-      if(Notification.permission === "granted") {
+      function registrarPush() {
         var vapidKey = "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA";
         var convertedKey = urlBase64ToUint8Array(vapidKey);
-        reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: convertedKey
-        }).then(function(sub) {
-          var membroAtivo = JSON.parse(localStorage.getItem("membroAtivo") || "null");
-          var familiaId = localStorage.getItem("familiaId") || "";
-          if(membroAtivo && familiaId) {
-            fetch("/api/push/subscribe", {
-              method: "POST",
-              headers: {"Content-Type":"application/json"},
-              body: JSON.stringify({
-                membro_id: membroAtivo.membroIdBanco,
-                familia_id: familiaId,
-                subscription: sub
-              })
-            });
+        reg.pushManager.getSubscription().then(function(existingSub) {
+          if(existingSub) {
+            salvarSubscription(existingSub);
+            return;
           }
+          return reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedKey
+          }).then(function(sub) {
+            salvarSubscription(sub);
+          });
         }).catch(function(e){ console.log("Push sub erro:", e); });
+      }
+      function salvarSubscription(sub) {
+        var membroAtivo = JSON.parse(localStorage.getItem("membroAtivo") || "null");
+        var familiaId = localStorage.getItem("familiaId") || "";
+        if(membroAtivo && familiaId && membroAtivo.membroIdBanco) {
+          fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+              membro_id: membroAtivo.membroIdBanco,
+              familia_id: familiaId,
+              subscription: sub
+            })
+          }).then(function(r){ return r.json(); })
+          .then(function(r){ console.log("Push inscrito:", r); })
+          .catch(function(e){ console.log("Push salvar erro:", e); });
+        }
+      }
+      if(Notification.permission === "granted") {
+        registrarPush();
+      } else if(Notification.permission === "default") {
+        Notification.requestPermission().then(function(p) {
+          if(p === "granted") registrarPush();
+        });
       }
     }).catch(function(e) { console.log("SW erro:", e); });
   }
@@ -278,6 +291,47 @@
     for(var i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
     return outputArray;
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
