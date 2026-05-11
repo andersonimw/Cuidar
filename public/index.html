@@ -308,15 +308,15 @@
         var convertedKey = urlBase64ToUint8Array(vapidKey);
         reg.pushManager.getSubscription().then(function(existingSub) {
           if(existingSub) {
-            salvarSubscription(existingSub);
-            return;
+            return existingSub.unsubscribe();
           }
+        }).then(function() {
           return reg.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: convertedKey
-          }).then(function(sub) {
-            salvarSubscription(sub);
           });
+        }).then(function(sub) {
+          salvarSubscription(sub);
         }).catch(function(e){ console.log("Push sub erro:", e); });
       }
       function salvarSubscription(sub) {

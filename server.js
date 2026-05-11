@@ -617,6 +617,10 @@ setInterval(async function() {
           console.log("Push enviado para membro", row.sub_membro_id, "med:", row.nome);
         } catch(e) {
           console.log("Erro push:", e.message);
+          if(e.statusCode === 410 || e.statusCode === 404) {
+            await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [row.sub_membro_id]);
+            console.log("Inscricao invalida removida para membro", row.sub_membro_id);
+          }
         }
       }
     }
