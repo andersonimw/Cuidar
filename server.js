@@ -643,7 +643,10 @@ setInterval(async function() {
               horario: horario,
               med_id: row.id
             });
-            await webpush.sendNotification(JSON.parse(row.subscription), payload);
+            await webpush.sendNotification(JSON.parse(row.subscription), payload, {
+              urgency: 'high',
+              TTL: 60
+            });
             alertasAtivos[chave] = true;
             console.log("Push enviado:", row.nome, horario, "membro", row.sub_membro_id);
           } catch(e) {
