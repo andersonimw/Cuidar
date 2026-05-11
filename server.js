@@ -625,6 +625,23 @@ setInterval(async function() {
 });
 
 // ===== PUSH NOTIFICATIONS =====
+app.get("/api/push/status", async (req, res) => {
+  try {
+    var agora = new Date();
+    var horaUTC = agora.getUTCHours().toString().padStart(2,"0") + ":" + agora.getUTCMinutes().toString().padStart(2,"0");
+    var horaBR = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).substring(0,5);
+    var meds = await pool.query("SELECT m.id, m.nome, m.horarios, m.membro_id FROM medicamentos m JOIN push_subscriptions ps ON m.membro_id = ps.membro_id WHERE m.ativo = true");
+    var subs = await pool.query("SELECT membro_id, familia_id FROM push_subscriptions");
+    res.json({
+      ok: true,
+      hora_utc: horaUTC,
+      hora_brasil: horaBR,
+      inscricoes: subs.rows.length,
+      medicamentos_monitorados: meds.rows.map(function(m){ return { id: m.id, nome: m.nome, horarios: m.horarios, membro_id: m.membro_id }; })
+    });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
 app.get("/api/push/testar/:membroId", async (req, res) => {
   try {
     const subs = await pool.query("SELECT subscription FROM push_subscriptions WHERE membro_id=$1", [req.params.membroId]);
