@@ -495,7 +495,7 @@
     document.getElementById('scannerContainer').style.display = 'none';
   }
 
-  function registrarPushAposLogin() {
+  function registrarPushAposLogin(callback) {
     if(!("serviceWorker" in navigator) || !("PushManager" in window)) return;
     var membroAtivo = JSON.parse(localStorage.getItem("membroAtivo") || "null");
     var familiaId = localStorage.getItem("familiaId") || "";
@@ -521,9 +521,9 @@
               subscription: sub
             })
           }).then(function(r){ return r.json(); })
-          .then(function(r){ console.log("Push registrado:", r); })
+          .then(function(r){ console.log("Push registrado:", r); if(callback) callback(); })
           .catch(function(e){ console.log("Push salvar erro:", e); });
-        }).catch(function(e){ console.log("Push subscribe erro:", e); });
+        }).catch(function(e){ console.log("Push subscribe erro:", e); if(callback) callback(); });
       }
       reg.pushManager.getSubscription().then(function(existing) {
         if(existing) {
@@ -535,30 +535,28 @@
     });
   }
 
-  function entrarNoApp() {
+  function irParaApp() {
     var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+    if(usuario && usuario.tipo === 'crianca') {
+      window.location.href = 'infantil.html';
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+
+  function entrarNoApp() {
     if(Notification.permission === "granted") {
-      registrarPushAposLogin();
-      if(usuario && usuario.tipo === 'crianca') {
-        window.location.href = 'infantil.html';
-      } else {
-        window.location.href = 'index.html';
-      }
+      registrarPushAposLogin(irParaApp);
     } else if(Notification.permission === "default") {
       Notification.requestPermission().then(function(p) {
-        if(p === "granted") registrarPushAposLogin();
-        if(usuario && usuario.tipo === 'crianca') {
-          window.location.href = 'infantil.html';
+        if(p === "granted") {
+          registrarPushAposLogin(irParaApp);
         } else {
-          window.location.href = 'index.html';
+          irParaApp();
         }
       });
     } else {
-      if(usuario && usuario.tipo === 'crianca') {
-        window.location.href = 'infantil.html';
-      } else {
-        window.location.href = 'index.html';
-      }
+      irParaApp();
     }
   }
 </script>
