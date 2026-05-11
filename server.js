@@ -607,7 +607,11 @@ setInterval(async function() {
           var payload = JSON.stringify({
             titulo: "💊 Hora do remédio!",
             corpo: row.nome + (row.dosagem ? " — " + row.dosagem : "") + " (" + horaAtual + ")",
-            tag: "med_" + row.id + "_" + horaAtual
+            tag: "med_" + row.id + "_" + horaAtual,
+            med_nome: row.nome,
+            med_dosagem: row.dosagem || "",
+            horario: horaAtual,
+            med_id: row.id
           });
           await webpush.sendNotification(JSON.parse(row.subscription), payload);
           console.log("Push enviado para membro", row.sub_membro_id, "med:", row.nome);
