@@ -673,6 +673,14 @@ app.get("/api/push/check/:membroId", async (req, res) => {
 });
 
 
+// Limpar inscrição push por membro
+app.delete("/api/push/limpar/:membroId", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [req.params.membroId]);
+    res.json({ ok: true, msg: "inscricao removida" });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
 // Salvar inscrição push
 app.post("/api/push/subscribe", async (req, res) => {
   try {
