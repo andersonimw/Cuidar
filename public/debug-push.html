@@ -4,29 +4,52 @@
 <body style="font-family:monospace;padding:20px;background:#111;color:#0f0;font-size:14px">
 <h2>🔍 Debug Push</h2>
 <div id="log"></div>
+<button onclick="forcarRegistro()" style="margin-top:20px;padding:15px;background:#4caf50;color:#fff;border:none;border-radius:10px;font-size:1em;cursor:pointer">▶ Forçar registro push</button>
 <script>
 function log(msg) {
-  document.getElementById('log').innerHTML += '<div>' + msg + '</div>';
+  document.getElementById('log').innerHTML += '<div>' + new Date().toLocaleTimeString() + ' — ' + msg + '</div>';
 }
-
-log('SW suportado: ' + ('serviceWorker' in navigator));
-log('Push suportado: ' + ('PushManager' in window));
-log('Notificacao permission: ' + Notification.permission);
 
 var membroAtivo = JSON.parse(localStorage.getItem('membroAtivo') || 'null');
 var familiaId = localStorage.getItem('familiaId') || '';
-log('membroAtivo: ' + JSON.stringify(membroAtivo));
-log('familiaId: ' + familiaId);
 log('membroIdBanco: ' + (membroAtivo ? membroAtivo.membroIdBanco : 'NULL'));
+log('familiaId: ' + familiaId);
+log('permission: ' + Notification.permission);
 
-if('serviceWorker' in navigator) {
+function forcarRegistro() {
+  log('Iniciando registro...');
+  if(!membroAtivo || !membroAtivo.membroIdBanco) { log('ERRO: sem membroIdBanco'); return; }
   navigator.serviceWorker.ready.then(function(reg) {
-    log('SW ready: OK');
-    reg.pushManager.getSubscription().then(function(sub) {
-      log('Subscription existente: ' + (sub ? 'SIM' : 'NAO'));
-    });
-  }).catch(function(e) {
-    log('SW ready ERRO: ' + e);
+    log('SW ready OK');
+    var vapidKey = "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA";
+    var padding = "=".repeat((4 - vapidKey.length % 4) % 4);
+    var base64 = (vapidKey + padding).replace(/-/g, "+").replace(/_/g, "/");
+    var rawData = window.atob(base64);
+    var key = new Uint8Array(rawData.length);
+    for(var i = 0; i < rawData.length; ++i) { key[i] = rawData.charCodeAt(i); }
+    reg.pushManager.getSubscription().then(function(existing) {
+      if(existing) {
+        log('Cancelando subscription antiga...');
+        return existing.unsubscribe().then(function() { return null; });
+      }
+      return null;
+    }).then(function() {
+      log('Criando nova subscription...');
+      return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+    }).then(function(sub) {
+      log('Subscription criada! Salvando no banco...');
+      return fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          membro_id: membroAtivo.membroIdBanco,
+          familia_id: familiaId,
+          subscription: sub
+        })
+      });
+    }).then(function(r) { return r.json(); })
+    .then(function(r) { log('Banco respondeu: ' + JSON.stringify(r)); })
+    .catch(function(e) { log('ERRO: ' + e); });
   });
 }
 </script>
