@@ -546,14 +546,14 @@
 
   function entrarNoApp() {
     if(Notification.permission === "granted") {
-      registrarPushAposLogin(irParaApp);
+      registrarPushAposLogin(null);
     } else if(Notification.permission === "default") {
       Notification.requestPermission().then(function(p) {
-        if(p === "granted") {
-          registrarPushAposLogin(irParaApp);
-        } else {
-          irParaApp();
-        }
+        if(p === "granted") registrarPushAposLogin(null);
+      });
+    }
+    setTimeout(irParaApp, 300);
+  }
       });
     } else {
       irParaApp();
