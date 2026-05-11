@@ -545,25 +545,15 @@
   }
 
   function entrarNoApp() {
-    var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
-    if(Notification.permission === "default") {
+    if(Notification.permission === "granted") {
+      registrarPushAposLogin(irParaApp);
+    } else if(Notification.permission === "default") {
       Notification.requestPermission().then(function(p) {
-        if(usuario && usuario.tipo === 'crianca') {
-          window.location.href = 'infantil.html';
+        if(p === "granted") {
+          registrarPushAposLogin(irParaApp);
         } else {
-          window.location.href = 'index.html';
+          irParaApp();
         }
-      });
-    } else {
-      if(usuario && usuario.tipo === 'crianca') {
-        window.location.href = 'infantil.html';
-      } else {
-        window.location.href = 'index.html';
-      }
-    }
-  }
-    setTimeout(irParaApp, 300);
-  }
       });
     } else {
       irParaApp();
