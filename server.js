@@ -625,6 +625,13 @@ setInterval(async function() {
 });
 
 // ===== PUSH NOTIFICATIONS =====
+app.get("/api/push/check/:membroId", async (req, res) => {
+  try {
+    const r = await pool.query("SELECT id, membro_id, familia_id, criado_em FROM push_subscriptions WHERE membro_id=$1", [req.params.membroId]);
+    res.json({ ok: true, total: r.rows.length, dados: r.rows });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
 
 // Salvar inscrição push
 app.post("/api/push/subscribe", async (req, res) => {
