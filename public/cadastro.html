@@ -545,13 +545,23 @@
   }
 
   function entrarNoApp() {
-    if(Notification.permission === "granted") {
-      registrarPushAposLogin(null);
-    } else if(Notification.permission === "default") {
+    var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+    if(Notification.permission === "default") {
       Notification.requestPermission().then(function(p) {
-        if(p === "granted") registrarPushAposLogin(null);
+        if(usuario && usuario.tipo === 'crianca') {
+          window.location.href = 'infantil.html';
+        } else {
+          window.location.href = 'index.html';
+        }
       });
+    } else {
+      if(usuario && usuario.tipo === 'crianca') {
+        window.location.href = 'infantil.html';
+      } else {
+        window.location.href = 'index.html';
+      }
     }
+  }
     setTimeout(irParaApp, 300);
   }
       });
