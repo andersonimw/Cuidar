@@ -594,7 +594,7 @@ io.on('connection', (socket) => {
 setInterval(async function() {
   try {
     var agora = new Date();
-    var horaAtual = agora.getHours().toString().padStart(2,"0") + ":" + agora.getMinutes().toString().padStart(2,"0");
+    var horaAtual = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).substring(0,5);
     // Busca todos medicamentos com esse horário
     var meds = await pool.query(
       "SELECT m.*, ps.subscription, ps.membro_id as sub_membro_id FROM medicamentos m JOIN push_subscriptions ps ON m.membro_id = ps.membro_id WHERE m.ativo = true"
