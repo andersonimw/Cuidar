@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Debug Push</title></head>
+<body style="font-family:monospace;padding:20px;background:#111;color:#0f0;font-size:14px">
+<h2>🔍 Debug Push</h2>
+<div id="log"></div>
+<script>
+function log(msg) {
+  document.getElementById('log').innerHTML += '<div>' + msg + '</div>';
+}
+
+log('SW suportado: ' + ('serviceWorker' in navigator));
+log('Push suportado: ' + ('PushManager' in window));
+log('Notificacao permission: ' + Notification.permission);
+
+var membroAtivo = JSON.parse(localStorage.getItem('membroAtivo') || 'null');
+var familiaId = localStorage.getItem('familiaId') || '';
+log('membroAtivo: ' + JSON.stringify(membroAtivo));
+log('familiaId: ' + familiaId);
+log('membroIdBanco: ' + (membroAtivo ? membroAtivo.membroIdBanco : 'NULL'));
+
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(function(reg) {
+    log('SW ready: OK');
+    reg.pushManager.getSubscription().then(function(sub) {
+      log('Subscription existente: ' + (sub ? 'SIM' : 'NAO'));
+    });
+  }).catch(function(e) {
+    log('SW ready ERRO: ' + e);
+  });
+}
+</script>
+</body>
+</html>

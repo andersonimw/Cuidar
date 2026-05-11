@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cdplus-v6';
+const CACHE_NAME = 'cdplus-v7';
 
 self.addEventListener('install', function(e) {
   self.skipWaiting();
