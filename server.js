@@ -591,36 +591,71 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Desconectado:', socket.id);
 // ===== AGENDADOR DE PUSH DE MEDICAMENTOS =====
+// Guarda quais alertas já foram disparados: chave = med_id + horario
+var alertasAtivos = {};
+
 setInterval(async function() {
   try {
     var agora = new Date();
     var horaAtual = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).substring(0,5);
-    // Busca todos medicamentos com esse horário
+    var dataHoje = agora.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
     var meds = await pool.query(
       "SELECT m.*, ps.subscription, ps.membro_id as sub_membro_id FROM medicamentos m JOIN push_subscriptions ps ON m.membro_id = ps.membro_id WHERE m.ativo = true"
     );
+
     for(var row of meds.rows) {
       var horarios = [];
       try { horarios = JSON.parse(row.horarios); } catch(e) {}
-      if(horarios.includes(horaAtual)) {
-        try {
-          var payload = JSON.stringify({
-            titulo: "💊 Hora do remédio!",
-            corpo: row.nome + (row.dosagem ? " — " + row.dosagem : "") + " (" + horaAtual + ")",
-            tag: "med_" + row.id + "_" + horaAtual,
-            med_nome: row.nome,
-            med_dosagem: row.dosagem || "",
-            horario: horaAtual,
-            med_id: row.id
-          });
-          await webpush.sendNotification(JSON.parse(row.subscription), payload);
-          console.log("Push enviado para membro", row.sub_membro_id, "med:", row.nome);
-        } catch(e) {
-          console.log("Erro push:", e.message);
-          if(e.statusCode === 410 || e.statusCode === 404) {
-            await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [row.sub_membro_id]);
-            console.log("Inscricao invalida removida para membro", row.sub_membro_id);
+
+      for(var horario of horarios) {
+        if(!horario) continue;
+        var chave = row.id + "_" + horario;
+
+        // Verifica se o horário já passou (dentro de janela de 30 minutos)
+        var [hH, hM] = horario.split(":").map(Number);
+        var [aH, aM] = horaAtual.split(":").map(Number);
+        var minutosProgramado = hH * 60 + hM;
+        var minutosAgora = aH * 60 + aM;
+        var diff = minutosAgora - minutosProgramado;
+
+        // Dispara se está dentro da janela de 0 a 30 minutos após o horário
+        if(diff >= 0 && diff <= 30) {
+          // Verifica se já confirmou hoje
+          var confirmou = await pool.query(
+            "SELECT id FROM historico_meds WHERE med_id=$1 AND hora=$2 AND data=$3 AND status='tomou'",
+            [row.id, horario, dataHoje]
+          );
+          if(confirmou.rows.length > 0) {
+            // Já confirmou — limpa alerta ativo
+            delete alertasAtivos[chave];
+            continue;
           }
+
+          // Envia push
+          try {
+            var payload = JSON.stringify({
+              titulo: "💊 Hora do remédio!",
+              corpo: "⏰ " + row.nome + (row.dosagem ? " — Dose: " + row.dosagem : "") + " | " + horario,
+              tag: "med_" + chave,
+              med_nome: row.nome,
+              med_dosagem: row.dosagem || "",
+              horario: horario,
+              med_id: row.id
+            });
+            await webpush.sendNotification(JSON.parse(row.subscription), payload);
+            alertasAtivos[chave] = true;
+            console.log("Push enviado:", row.nome, horario, "membro", row.sub_membro_id);
+          } catch(e) {
+            console.log("Erro push:", e.message);
+            if(e.statusCode === 410 || e.statusCode === 404) {
+              await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [row.sub_membro_id]);
+              console.log("Inscricao invalida removida para membro", row.sub_membro_id);
+            }
+          }
+        } else {
+          // Fora da janela — limpa alerta
+          delete alertasAtivos[chave];
         }
       }
     }
