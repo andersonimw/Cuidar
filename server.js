@@ -625,6 +625,21 @@ setInterval(async function() {
 });
 
 // ===== PUSH NOTIFICATIONS =====
+app.get("/api/push/testar/:membroId", async (req, res) => {
+  try {
+    const subs = await pool.query("SELECT subscription FROM push_subscriptions WHERE membro_id=$1", [req.params.membroId]);
+    if(subs.rows.length === 0) return res.json({ ok: false, erro: "Sem inscricao" });
+    const payload = JSON.stringify({
+      titulo: "💊 Teste CD+",
+      corpo: "Push notification funcionando!",
+      tag: "teste"
+    });
+    const sub = JSON.parse(subs.rows[0].subscription);
+    await webpush.sendNotification(sub, payload);
+    res.json({ ok: true, msg: "Push enviado!" });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
 app.get("/api/push/check/:membroId", async (req, res) => {
   try {
     const r = await pool.query("SELECT id, membro_id, familia_id, criado_em FROM push_subscriptions WHERE membro_id=$1", [req.params.membroId]);
