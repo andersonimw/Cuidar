@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Push Test</title></head>
+<body style="font-family:sans-serif;padding:20px;background:#111;color:white">
+<h2>CD+ Push Test</h2>
+<div id="log" style="font-size:0.85em;line-height:2"></div>
+<button onclick="testar()" style="margin-top:20px;padding:16px 32px;background:#00e676;color:#000;border:none;border-radius:12px;font-size:1em;font-weight:bold;cursor:pointer">Registrar Push</button>
+<script>
+var log = document.getElementById('log');
+function add(msg) { log.innerHTML += '<div>▸ ' + msg + '</div>'; }
+
+function urlBase64ToUint8Array(base64String) {
+  var padding = "=".repeat((4 - base64String.length % 4) % 4);
+  var base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  var rawData = window.atob(base64);
+  var outputArray = new Uint8Array(rawData.length);
+  for(var i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
+  return outputArray;
+}
+
+function testar() {
+  add('Iniciando...');
+  add('SW suportado: ' + ('serviceWorker' in navigator));
+  add('Push suportado: ' + ('PushManager' in window));
+  add('Notificação: ' + Notification.permission);
+
+  var membroAtivo = JSON.parse(localStorage.getItem('membroAtivo') || 'null');
+  var familiaId = localStorage.getItem('familiaId') || '';
+  add('Membro: ' + (membroAtivo ? membroAtivo.nome + ' id=' + membroAtivo.membroIdBanco : 'null'));
+  add('FamiliaId: ' + familiaId);
+
+  if(!('serviceWorker' in navigator)) { add('❌ SW não suportado'); return; }
+
+  navigator.serviceWorker.register('/sw.js').then(function(reg) {
+    add('✅ SW registrado');
+    Notification.requestPermission().then(function(p) {
+      add('Permissão: ' + p);
+      if(p !== 'granted') { add('❌ Permissão negada'); return; }
+      var vapidKey = 'BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA';
+      reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey)
+      }).then(function(sub) {
+        add('✅ Inscrição criada');
+        if(!membroAtivo || !familiaId) { add('❌ Sem membro/família no localStorage'); return; }
+        fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            membro_id: membroAtivo.membroIdBanco,
+            familia_id: familiaId,
+            subscription: sub
+          })
+        }).then(function(r){ return r.json(); })
+        .then(function(r){ add('Banco: ' + JSON.stringify(r)); })
+        .catch(function(e){ add('❌ Erro banco: ' + e.message); });
+      }).catch(function(e){ add('❌ Subscribe erro: ' + e.message); });
+    });
+  }).catch(function(e){ add('❌ SW erro: ' + e.message); });
+}
+
+add('Página carregada');
+add('Notificação atual: ' + Notification.permission);
+</script>
+</body>
+</html>
