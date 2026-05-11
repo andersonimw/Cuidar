@@ -24,3 +24,31 @@ self.addEventListener('fetch', function(e) {
     return caches.match(e.request);
   }));
 });
+
+// PUSH NOTIFICATIONS
+self.addEventListener('push', function(e) {
+  var data = {};
+  try { data = e.data.json(); } catch(err) {}
+  var titulo = data.titulo || 'CD+ Cuidado Digital';
+  var corpo = data.corpo || 'Você tem um lembrete.';
+  e.waitUntil(
+    self.registration.showNotification(titulo, {
+      body: corpo,
+      icon: '/icons/icon.svg',
+      badge: '/icons/icon.svg',
+      vibrate: [500,200,500,200,500],
+      tag: data.tag || 'cdplus',
+      requireInteraction: true
+    })
+  );
+});
+
+self.addEventListener('notificationclick', function(e) {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type:'window', includeUncontrolled:true }).then(function(list) {
+      if(list.length > 0) return list[0].focus();
+      return clients.openWindow('/');
+    })
+  );
+});

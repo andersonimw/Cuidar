@@ -2,6 +2,13 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const { Pool } = require('pg');
+const webpush = require("web-push");
+
+webpush.setVapidDetails(
+  "mailto:cdplus@cuidar.app",
+  "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA",
+  "8AXcbSgj-kXZweZ7q_He6FWcelIyheY9NlZYkNVorXw"
+);
 
 const app = express();
 const server = http.createServer(app);
@@ -115,6 +122,14 @@ async function criarTabelas() {
         data VARCHAR(20),
         hora VARCHAR(10),
         obs TEXT,
+        criado_em TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id SERIAL PRIMARY KEY,
+        membro_id INTEGER,
+        familia_id VARCHAR(20),
+        subscription TEXT,
         criado_em TIMESTAMP DEFAULT NOW()
       );
 
@@ -575,7 +590,72 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Desconectado:', socket.id);
+// ===== AGENDADOR DE PUSH DE MEDICAMENTOS =====
+setInterval(async function() {
+  try {
+    var agora = new Date();
+    var horaAtual = agora.getHours().toString().padStart(2,"0") + ":" + agora.getMinutes().toString().padStart(2,"0");
+    // Busca todos medicamentos com esse horário
+    var meds = await pool.query(
+      "SELECT m.*, ps.subscription, ps.membro_id as sub_membro_id FROM medicamentos m JOIN push_subscriptions ps ON m.membro_id = ps.membro_id WHERE m.ativo = true"
+    );
+    for(var row of meds.rows) {
+      var horarios = [];
+      try { horarios = JSON.parse(row.horarios); } catch(e) {}
+      if(horarios.includes(horaAtual)) {
+        try {
+          var payload = JSON.stringify({
+            titulo: "💊 Hora do remédio!",
+            corpo: row.nome + (row.dosagem ? " — " + row.dosagem : "") + " (" + horaAtual + ")",
+            tag: "med_" + row.id + "_" + horaAtual
+          });
+          await webpush.sendNotification(JSON.parse(row.subscription), payload);
+          console.log("Push enviado para membro", row.sub_membro_id, "med:", row.nome);
+        } catch(e) {
+          console.log("Erro push:", e.message);
+        }
+      }
+    }
+  } catch(e) {
+    console.log("Erro agendador push:", e.message);
+  }
+}, 60000);
+
   });
+});
+
+// ===== PUSH NOTIFICATIONS =====
+
+// Salvar inscrição push
+app.post("/api/push/subscribe", async (req, res) => {
+  try {
+    const { membro_id, familia_id, subscription } = req.body;
+    await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [membro_id]);
+    await pool.query("INSERT INTO push_subscriptions (membro_id, familia_id, subscription) VALUES ($1,$2,$3)", [membro_id, familia_id, JSON.stringify(subscription)]);
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
+// Rota que o SW chama para disparar push de medicamentos
+app.post("/api/push/disparar", async (req, res) => {
+  try {
+    const { membro_id, med_nome, med_dosagem, horario } = req.body;
+    const subs = await pool.query("SELECT subscription FROM push_subscriptions WHERE membro_id=$1", [membro_id]);
+    if(subs.rows.length === 0) return res.json({ ok: false, erro: "Sem inscrição" });
+    const payload = JSON.stringify({
+      titulo: "💊 Hora do remédio!",
+      corpo: med_nome + (med_dosagem ? " — " + med_dosagem : "") + " (" + horario + ")",
+      tag: "med_" + membro_id + "_" + horario
+    });
+    const sub = JSON.parse(subs.rows[0].subscription);
+    await webpush.sendNotification(sub, payload);
+    res.json({ ok: true });
+  } catch(e) { res.json({ ok: false, erro: e.message }); }
+});
+
+// Chave pública VAPID para o frontend
+app.get("/api/push/vapid-public-key", (req, res) => {
+  res.json({ key: "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA" });
 });
 
 const PORT = process.env.PORT || 3000;
