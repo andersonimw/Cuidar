@@ -16,10 +16,20 @@ log('membroIdBanco: ' + (membroAtivo ? membroAtivo.membroIdBanco : 'NULL'));
 log('familiaId: ' + familiaId);
 log('permission: ' + Notification.permission);
 
+// Registra o SW primeiro
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(function(reg) {
+    log('SW registrado: ' + reg.scope);
+  }).catch(function(e) {
+    log('SW erro: ' + e);
+  });
+}
+
 function forcarRegistro() {
   log('Iniciando registro...');
   if(!membroAtivo || !membroAtivo.membroIdBanco) { log('ERRO: sem membroIdBanco'); return; }
-  navigator.serviceWorker.ready.then(function(reg) {
+  
+  navigator.serviceWorker.register('/sw.js').then(function(reg) {
     log('SW ready OK');
     var vapidKey = "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA";
     var padding = "=".repeat((4 - vapidKey.length % 4) % 4);
@@ -27,9 +37,10 @@ function forcarRegistro() {
     var rawData = window.atob(base64);
     var key = new Uint8Array(rawData.length);
     for(var i = 0; i < rawData.length; ++i) { key[i] = rawData.charCodeAt(i); }
+
     reg.pushManager.getSubscription().then(function(existing) {
       if(existing) {
-        log('Cancelando subscription antiga...');
+        log('Cancelando antiga...');
         return existing.unsubscribe().then(function() { return null; });
       }
       return null;
@@ -48,7 +59,7 @@ function forcarRegistro() {
         })
       });
     }).then(function(r) { return r.json(); })
-    .then(function(r) { log('Banco respondeu: ' + JSON.stringify(r)); })
+    .then(function(r) { log('Banco: ' + JSON.stringify(r)); })
     .catch(function(e) { log('ERRO: ' + e); });
   });
 }
