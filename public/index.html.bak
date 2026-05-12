@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VDA+</title>
+<title>CD+</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#00e676">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="VDA+">
+<meta name="apple-mobile-web-app-title" content="CD+">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -43,7 +43,7 @@
 <body>
 
 <header>
-  <h1>💚 VDA+</h1>
+  <h1>💚 Cuidar</h1>
   <p>Cuidado familiar inteligente</p>
 </header>
 
@@ -174,7 +174,7 @@
   </button>
 </div>
 
-<footer>VDA+ © 2026 — Feito com amor 💚</footer>
+<footer>Cuidar © 2026 — Feito com amor 💚</footer>
 
 <script src="notificacoes.js"></script>
 <script>
@@ -302,24 +302,19 @@
   }
   if("serviceWorker" in navigator && "PushManager" in window) {
     navigator.serviceWorker.register("/sw.js").then(function(reg) {
-      console.log("VDA+ SW registrado:", reg.scope);
+      console.log("CD+ SW registrado:", reg.scope);
       function registrarPush() {
         var vapidKey = "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA";
         var convertedKey = urlBase64ToUint8Array(vapidKey);
         reg.pushManager.getSubscription().then(function(existingSub) {
           if(existingSub) {
-            return existingSub.unsubscribe().then(function() {
-              return reg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: convertedKey
-              });
-            });
-          } else {
-            return reg.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: convertedKey
-            });
+            return existingSub.unsubscribe();
           }
+        }).then(function() {
+          return reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedKey
+          });
         }).then(function(sub) {
           salvarSubscription(sub);
         }).catch(function(e){ console.log("Push sub erro:", e); });

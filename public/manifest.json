@@ -1,7 +1,7 @@
 {
-  "name": "CD+ Cuidado Digital",
-  "short_name": "CD+",
-  "description": "Cuidado familiar inteligente",
+  "name": "VDA+ Vida Digital Assistida",
+  "short_name": "VDA+",
+  "description": "Vida Digital Assistida",
   "id": "cdplus-cuidado-digital",
   "start_url": "/",
   "display": "standalone",

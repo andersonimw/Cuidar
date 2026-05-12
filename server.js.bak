@@ -390,7 +390,7 @@ app.post('/api/ia/perguntar', async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
     if(!apiKey) return res.json({ ok: false, erro: 'API key não configurada' });
 
-    const prompt = `Você é um assistente de saúde familiar do app VDA+, desenvolvido para famílias brasileiras.
+    const prompt = `Você é um assistente de saúde familiar do app Cuidar, desenvolvido para famílias brasileiras.
 Responda sempre em português brasileiro, de forma clara, carinhosa e acessível.
 Você pode pesquisar e responder sobre saúde, medicamentos, cuidado de idosos, crianças, primeiros socorros e bem-estar.
 IMPORTANTE: Sempre termine com "Consulte sempre um médico para diagnóstico e tratamento."
@@ -591,74 +591,36 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Desconectado:', socket.id);
 // ===== AGENDADOR DE PUSH DE MEDICAMENTOS =====
-// Guarda quais alertas já foram disparados: chave = med_id + horario
-var alertasAtivos = {};
-
 setInterval(async function() {
   try {
     var agora = new Date();
     var horaAtual = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).substring(0,5);
-    var dataHoje = agora.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-
+    // Busca todos medicamentos com esse horário
     var meds = await pool.query(
       "SELECT m.*, ps.subscription, ps.membro_id as sub_membro_id FROM medicamentos m JOIN push_subscriptions ps ON m.membro_id = ps.membro_id WHERE m.ativo = true"
     );
-
     for(var row of meds.rows) {
       var horarios = [];
       try { horarios = JSON.parse(row.horarios); } catch(e) {}
-
-      for(var horario of horarios) {
-        if(!horario) continue;
-        var chave = row.id + "_" + horario;
-
-        // Verifica se o horário já passou (dentro de janela de 30 minutos)
-        var [hH, hM] = horario.split(":").map(Number);
-        var [aH, aM] = horaAtual.split(":").map(Number);
-        var minutosProgramado = hH * 60 + hM;
-        var minutosAgora = aH * 60 + aM;
-        var diff = minutosAgora - minutosProgramado;
-
-        // Dispara se está dentro da janela de 0 a 30 minutos após o horário
-        if(diff >= 0 && diff <= 30) {
-          // Verifica se já confirmou hoje
-          var confirmou = await pool.query(
-            "SELECT id FROM historico_meds WHERE med_id=$1 AND hora=$2 AND data=$3 AND status='tomou'",
-            [row.id, horario, dataHoje]
-          );
-          if(confirmou.rows.length > 0) {
-            // Já confirmou — limpa alerta ativo
-            delete alertasAtivos[chave];
-            continue;
+      if(horarios.includes(horaAtual)) {
+        try {
+          var payload = JSON.stringify({
+            titulo: "💊 Hora do remédio!",
+            corpo: row.nome + (row.dosagem ? " — " + row.dosagem : "") + " (" + horaAtual + ")",
+            tag: "med_" + row.id + "_" + horaAtual,
+            med_nome: row.nome,
+            med_dosagem: row.dosagem || "",
+            horario: horaAtual,
+            med_id: row.id
+          });
+          await webpush.sendNotification(JSON.parse(row.subscription), payload);
+          console.log("Push enviado para membro", row.sub_membro_id, "med:", row.nome);
+        } catch(e) {
+          console.log("Erro push:", e.message);
+          if(e.statusCode === 410 || e.statusCode === 404) {
+            await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [row.sub_membro_id]);
+            console.log("Inscricao invalida removida para membro", row.sub_membro_id);
           }
-
-          // Envia push
-          try {
-            var payload = JSON.stringify({
-              titulo: "💊 Hora do remédio!",
-              corpo: "⏰ " + row.nome + (row.dosagem ? " — Dose: " + row.dosagem : "") + " | " + horario,
-              tag: "med_" + chave,
-              med_nome: row.nome,
-              med_dosagem: row.dosagem || "",
-              horario: horario,
-              med_id: row.id
-            });
-            await webpush.sendNotification(JSON.parse(row.subscription), payload, {
-              urgency: 'high',
-              TTL: 60
-            });
-            alertasAtivos[chave] = true;
-            console.log("Push enviado:", row.nome, horario, "membro", row.sub_membro_id);
-          } catch(e) {
-            console.log("Erro push:", e.message);
-            if(e.statusCode === 410 || e.statusCode === 404) {
-              await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [row.sub_membro_id]);
-              console.log("Inscricao invalida removida para membro", row.sub_membro_id);
-            }
-          }
-        } else {
-          // Fora da janela — limpa alerta
-          delete alertasAtivos[chave];
         }
       }
     }
@@ -693,7 +655,7 @@ app.get("/api/push/testar/:membroId", async (req, res) => {
     const subs = await pool.query("SELECT subscription FROM push_subscriptions WHERE membro_id=$1", [req.params.membroId]);
     if(subs.rows.length === 0) return res.json({ ok: false, erro: "Sem inscricao" });
     const payload = JSON.stringify({
-      titulo: "💊 Teste VDA+",
+      titulo: "💊 Teste CD+",
       corpo: "Push notification funcionando!",
       tag: "teste"
     });
@@ -710,14 +672,6 @@ app.get("/api/push/check/:membroId", async (req, res) => {
   } catch(e) { res.json({ ok: false, erro: e.message }); }
 });
 
-
-// Limpar inscrição push por membro
-app.delete("/api/push/limpar/:membroId", async (req, res) => {
-  try {
-    await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [req.params.membroId]);
-    res.json({ ok: true, msg: "inscricao removida" });
-  } catch(e) { res.json({ ok: false, erro: e.message }); }
-});
 
 // Salvar inscrição push
 app.post("/api/push/subscribe", async (req, res) => {
@@ -752,4 +706,4 @@ app.get("/api/push/vapid-public-key", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log('VDA+ rodando na porta', PORT));
+server.listen(PORT, () => console.log('Cuidar rodando na porta', PORT));

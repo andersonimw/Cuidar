@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadastro - VDA+</title>
+<title>Cadastro - Cuidar</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -77,7 +77,7 @@
 
 <div class="logo">
   <div class="icon">💚</div>
-  <h1>VDA+</h1>
+  <h1>Cuidar</h1>
   <p>Cuidado Familiar Inteligente</p>
 </div>
 
@@ -364,7 +364,7 @@
 
   function compartilharCodigo() {
     var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || '{}');
-    var msg = '💚 *VDA+ — Convite Familiar*\n\nOlá! ' + usuario.nome + ' convidou você para a *' + usuario.familia + '*\n\n📲 Código da família: *' + codigoGerado + '*\n\n1. Abra o app VDA+\n2. Toque em "Entrar em família"\n3. Digite: *' + codigoGerado + '*\n\n_VDA+ — Vida Digital Assistida_';
+    var msg = '💚 *Cuidar App — Convite Familiar*\n\nOlá! ' + usuario.nome + ' convidou você para a *' + usuario.familia + '*\n\n📲 Código da família: *' + codigoGerado + '*\n\n1. Abra o app Cuidar\n2. Toque em "Entrar em família"\n3. Digite: *' + codigoGerado + '*\n\n_App Cuidar — Cuidado Familiar Inteligente_';
     if(navigator.share) navigator.share({ text: msg });
     else window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
   }
@@ -500,7 +500,7 @@
     var membroAtivo = JSON.parse(localStorage.getItem("membroAtivo") || "null");
     var familiaId = localStorage.getItem("familiaId") || "";
     if(!membroAtivo || !familiaId || !membroAtivo.membroIdBanco) return;
-    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+    navigator.serviceWorker.ready.then(function(reg) {
       var vapidKey = "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA";
       var padding = "=".repeat((4 - vapidKey.length % 4) % 4);
       var base64 = (vapidKey + padding).replace(/-/g, "+").replace(/_/g, "/");
