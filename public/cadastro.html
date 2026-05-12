@@ -500,7 +500,7 @@
     var membroAtivo = JSON.parse(localStorage.getItem("membroAtivo") || "null");
     var familiaId = localStorage.getItem("familiaId") || "";
     if(!membroAtivo || !familiaId || !membroAtivo.membroIdBanco) return;
-    navigator.serviceWorker.ready.then(function(reg) {
+    navigator.serviceWorker.register('/sw.js').then(function(reg) {
       var vapidKey = "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA";
       var padding = "=".repeat((4 - vapidKey.length % 4) % 4);
       var base64 = (vapidKey + padding).replace(/-/g, "+").replace(/_/g, "/");
