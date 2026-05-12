@@ -573,13 +573,25 @@
 
 <script>
 var installPrompt = null;
+
+// Mostra banner sempre se nao estiver instalado
+function verificarInstalacao() {
+  var isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(!isInstalled) {
+    var banner = document.getElementById('install-banner');
+    if(banner) banner.style.display = 'flex';
+  }
+}
+
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   installPrompt = e;
   var banner = document.getElementById('install-banner');
-  if(banner) {
-    banner.style.display = 'flex';
-  }
+  if(banner) banner.style.display = 'flex';
+});
+
+window.addEventListener('load', function() {
+  setTimeout(verificarInstalacao, 1000);
 });
 
 document.getElementById('btn-instalar') && document.getElementById('btn-instalar').addEventListener('click', function() {
