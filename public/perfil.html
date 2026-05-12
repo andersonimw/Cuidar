@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Perfil - Cuidar</title>
+<title>Perfil - VDA+</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: sans-serif; background:#f0f4f8; color:#333; }
@@ -402,7 +402,7 @@
       '\n⚠️ ' + (perfil.alergias||'—') + '\n🏥 ' + (perfil.doencas||'—') +
       '\n💳 ' + (perfil.plano||'—') + ' | ' + (perfil.carteirinha||'—') +
       '\n👨‍⚕️ ' + (perfil.medico||'—') + '\n🏠 ' + (perfil.endereco||'—');
-    if (navigator.share) navigator.share({title:'Perfil Cuidar', text:t});
+    if (navigator.share) navigator.share({title:'Perfil VDA+', text:t});
     else if (navigator.clipboard) navigator.clipboard.writeText(t).then(function() { alert('✅ Copiado!'); });
   }
 
@@ -532,7 +532,7 @@
       var c = contatos[0];
       var nome = (perfil&&perfil.nome) ? perfil.nome : 'Idoso';
       var hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-      var msg = encodeURIComponent('🆘 EMERGÊNCIA - CUIDAR APP\n\n' + nome + ' precisa de ajuda!\nHorário: ' + hora);
+      var msg = encodeURIComponent('🆘 EMERGÊNCIA - VDA+ APP\n\n' + nome + ' precisa de ajuda!\nHorário: ' + hora);
       setTimeout(function() { window.open('https://wa.me/55' + c.tel.replace(/\D/g,'') + '?text=' + msg,'_blank'); }, 1000);
     }
   }

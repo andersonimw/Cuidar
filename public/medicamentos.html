@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Medicamentos - CD+</title>
+<title>Medicamentos - VDA+</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:sans-serif; background:#f0f4f8; color:#333; }
@@ -561,7 +561,7 @@ function avisarFamiliar(medNome, motivo) {
   var agora = new Date();
   var hora = agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   var data = agora.toLocaleDateString('pt-BR');
-  var msg = '🔔 *CD+ — Dose Pulada*\n\n💊 Medicamento: *'+medNome+'*\n⏭️ Motivo: '+motivo+'\n🕐 Horário: '+hora+'\n📅 Data: '+data+'\n\n_Mensagem automática do app CD+_';
+  var msg = '🔔 *VDA+ — Dose Pulada*\n\n💊 Medicamento: *'+medNome+'*\n⏭️ Motivo: '+motivo+'\n🕐 Horário: '+hora+'\n📅 Data: '+data+'\n\n_Mensagem automática do app VDA+_';
   avisos.unshift({medNome:medNome, motivo:motivo, hora:hora, data:data, familiar:familiar.nome});
   if(avisos.length>20) avisos = avisos.slice(0,20);
   localStorage.setItem('avisosEnviados', JSON.stringify(avisos));
@@ -570,7 +570,7 @@ function avisarFamiliar(medNome, motivo) {
 
 function testarAviso() {
   if(!familiar) return;
-  var msg = '🔔 *CD+ — Teste de Aviso*\n\nOlá '+familiar.nome+'! Este é um teste do sistema de aviso automático do app CD+. ✅\n\n_App CD+ — Cuidado Digital_';
+  var msg = '🔔 *VDA+ — Teste de Aviso*\n\nOlá '+familiar.nome+'! Este é um teste do sistema de aviso automático do app VDA+. ✅\n\n_App VDA+ — Vida Digital Assistida_';
   window.open('https://wa.me/55'+familiar.tel+'?text='+encodeURIComponent(msg),'_blank');
 }
 

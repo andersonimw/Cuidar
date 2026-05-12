@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acesso - Cuidar</title>
+<title>Acesso - VDA+</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: sans-serif; background:#f0f4f8; color:#333; min-height:100vh; }
@@ -97,7 +97,7 @@
       <h2>🆔 ID da Família</h2>
       <div class="id-display">
         <div class="id-codigo" id="exibeId">—</div>
-        <div class="id-label">Código único da sua família no Cuidar</div>
+        <div class="id-label">Código único da sua família no VDA+</div>
       </div>
       <div id="semId">
         <p style="font-size:0.88em;color:#888;margin-bottom:12px">
@@ -225,7 +225,7 @@
       <div style="font-size:0.88em;color:#555;line-height:1.8">
         <p>1. Você cria o ID da família neste módulo</p>
         <p>2. Compartilha o ID com o médico via WhatsApp</p>
-        <p>3. O médico abre o app Cuidar e digita o ID</p>
+        <p>3. O médico abre o app VDA+ e digita o ID</p>
         <p>4. Ele acessa apenas os dados clínicos do paciente</p>
         <p>5. Pode adicionar observações médicas visíveis para a família</p>
         <br>
@@ -305,11 +305,11 @@
     var idoso = JSON.parse(localStorage.getItem('perfilIdoso') || '{}');
     var nomeIdoso = idoso.nome || 'paciente';
     var msg = encodeURIComponent(
-      '🏥 *CUIDAR APP — Acesso Médico*\n\n' +
-      'Olá! Compartilho o ID de acesso ao app Cuidar para acompanhar os dados do(a) ' + nomeIdoso + '.\n\n' +
+      '🏥 *VDA+ APP — Acesso Médico*\n\n' +
+      'Olá! Compartilho o ID de acesso ao app VDA+ para acompanhar os dados do(a) ' + nomeIdoso + '.\n\n' +
       '🆔 *ID de acesso:* ' + familiaId + '\n\n' +
-      'Abra o app Cuidar → Acesso e Identidade → Acesso do Médico → Digite o ID acima.\n\n' +
-      '_App Cuidar — Cuidado Familiar Inteligente_'
+      'Abra o app VDA+ → Acesso e Identidade → Acesso do Médico → Digite o ID acima.\n\n' +
+      '_App VDA+ — Vida Digital Assistida_'
     );
     window.open('https://wa.me/?text=' + msg, '_blank');
   }

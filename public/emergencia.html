@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Emergência - Cuidar</title>
+<title>Emergência - VDA+</title>
 <script src="/socket.io/socket.io.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -545,7 +545,7 @@
             '⚠️ Ocorrência: *' + tipoSelecionado + '*\n' +
             '🕐 Horário: ' + hora + '\n\n' +
             'Por favor entre em contato ou acesse o local imediatamente!\n\n' +
-            '_Alerta automático — app Cuidar_';
+            '_Alerta automático — app VDA+_';
           window.open('https://wa.me/55' + c.tel.replace(/\D/g,'') + '?text=' + encodeURIComponent(msg), '_blank');
           btn.innerHTML = '✅ ' + c.nome + ' — WhatsApp aberto';
           btn.classList.add('enviado');
@@ -578,7 +578,7 @@
     if(!cont){ alert('Nenhum contato cadastrado.'); return; }
     var nome = usuario ? usuario.nome : 'Familiar';
     var hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    var msg = '🚨 *EMERGÊNCIA — CUIDAR APP*\n\n⚠️ Situação: *' + tipo + '*\n👤 ' + nome + '\n🕐 ' + hora + '\n\n_App Cuidar_';
+    var msg = '🚨 *EMERGÊNCIA — VDA+ APP*\n\n⚠️ Situação: *' + tipo + '*\n👤 ' + nome + '\n🕐 ' + hora + '\n\n_App VDA+_';
     window.open('https://wa.me/55' + cont.tel.replace(/\D/g,'') + '?text=' + encodeURIComponent(msg), '_blank');
   }
 

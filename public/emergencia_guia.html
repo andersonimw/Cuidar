@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guia de Emergências - Cuidar</title>
+<title>Guia de Emergências - VDA+</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:sans-serif; background:#f0f4f8; color:#333; }
@@ -486,7 +486,7 @@
     else if(contatos.length > 0) tel = contatos[0].tel.replace(/\D/g,'');
     if(!tel){ alert('Nenhum familiar cadastrado. Cadastre em Medicamentos ou Emergência.'); return; }
     var hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    var msg = '🚨 *EMERGÊNCIA — CUIDAR APP*\n\n⚠️ Situação: *' + tipo + '*\n🕐 Horário: ' + hora + '\n\nPreciso de ajuda agora!\n\n_Mensagem automática do app Cuidar_';
+    var msg = '🚨 *EMERGÊNCIA — VDA+ APP*\n\n⚠️ Situação: *' + tipo + '*\n🕐 Horário: ' + hora + '\n\nPreciso de ajuda agora!\n\n_Mensagem automática do app VDA+_';
     window.open('https://wa.me/55'+tel.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
   }
 </script>
