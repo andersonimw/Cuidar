@@ -44,7 +44,26 @@
 
 <header>
   <h1>💚 VDA+</h1>
-  <p>Cuidado familiar inteligente</p>
+  <p id="frase-rotativa">Cuidado Familiar Inteligente</p>
+  <script>
+    var frases = [
+      "Cuidado Familiar Inteligente",
+      "Vida com mais cuidado",
+      "Saúde em família"
+    ];
+    var i = 0;
+    setInterval(function() {
+      i = (i + 1) % frases.length;
+      var el = document.getElementById("frase-rotativa");
+      if(el) {
+        el.style.opacity = "0";
+        setTimeout(function() {
+          el.textContent = frases[i];
+          el.style.opacity = "1";
+        }, 400);
+      }
+    }, 3000);
+  </script>
 </header>
 
 <div id="seletorPerfil" style="background:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
