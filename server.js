@@ -746,6 +746,97 @@ app.post("/api/push/disparar", async (req, res) => {
   } catch(e) { res.json({ ok: false, erro: e.message }); }
 });
 
+// ===== ROTAS ADMIN =====
+const ADMIN_KEY = "vdaplus2026admin";
+
+// Listar todas as familias
+app.get("/api/admin/familias", async (req, res) => {
+  if(req.headers["x-admin-key"] !== ADMIN_KEY) return res.json({ok:false, erro:"Acesso negado"});
+  try {
+    const r = await pool.query("SELECT f.*, COUNT(m.id) as total_membros FROM familias f LEFT JOIN membros m ON m.familia_id=f.codigo GROUP BY f.id ORDER BY f.criado_em DESC");
+    res.json({ok:true, familias:r.rows});
+  } catch(e) { res.json({ok:false, erro:e.message}); }
+});
+
+// Listar todos os membros
+app.get("/api/admin/membros", async (req, res) => {
+  if(req.headers["x-admin-key"] !== ADMIN_KEY) return res.json({ok:false, erro:"Acesso negado"});
+  try {
+    const r = await pool.query("SELECT m.*, ps.id as push_id FROM membros m LEFT JOIN push_subscriptions ps ON ps.membro_id=m.id ORDER BY m.id DESC");
+    res.json({ok:true, membros:r.rows});
+  } catch(e) { res.json({ok:false, erro:e.message}); }
+});
+
+// Listar todas as inscricoes push
+app.get("/api/admin/push", async (req, res) => {
+  if(req.headers["x-admin-key"] !== ADMIN_KEY) return res.json({ok:false, erro:"Acesso negado"});
+  try {
+    const r = await pool.query("SELECT ps.*, m.nome FROM push_subscriptions ps LEFT JOIN membros m ON m.id=ps.membro_id ORDER BY ps.id DESC");
+    res.json({ok:true, inscricoes:r.rows});
+  } catch(e) { res.json({ok:false, erro:e.message}); }
+});
+
+// Listar todos os medicamentos
+app.get("/api/admin/medicamentos", async (req, res) => {
+  if(req.headers["x-admin-key"] !== ADMIN_KEY) return res.json({ok:false, erro:"Acesso negado"});
+  try {
+    const r = await pool.query("SELECT med.*, m.nome as membro_nome, m.familia_id FROM medicamentos med LEFT JOIN membros m ON m.id=med.membro_id WHERE med.ativo=true ORDER BY med.id DESC");
+    res.json({ok:true, medicamentos:r.rows});
+  } catch(e) { res.json({ok:false, erro:e.message}); }
+});
+
+// Apagar familia completa
+app.delete("/api/admin/familia/:codigo", async (req, res) => {
+  if(req.headers["x-admin-key"] !== ADMIN_KEY) return res.json({ok:false, erro:"Acesso negado"});
+  try {
+    const cod = req.params.codigo;
+    await pool.query("DELETE FROM push_subscriptions WHERE familia_id=$1", [cod]);
+    await pool.query("DELETE FROM historico_meds WHERE familia_id=$1", [cod]);
+    await pool.query("DELETE FROM medicamentos WHERE familia_id=$1", [cod]);
+    await pool.query("DELETE FROM eventos WHERE familia_id=$1", [cod]);
+    await pool.query("DELETE FROM gastos WHERE familia_id=$1", [cod]);
+    await pool.query("DELETE FROM sinais_vitais WHERE familia_id=$1", [cod]);
+    await pool.query("DELETE FROM vacinas WHERE familia_id=$1", [cod]);
+    await pool.query("DELETE FROM mensagens WHERE familia_id=$1", [cod]);
+    await pool.query("DELETE FROM membros WHERE familia_id=$1", [cod]);
+    await pool.query("DELETE FROM familias WHERE codigo=$1", [cod]);
+    res.json({ok:true, msg:"Familia apagada: "+cod});
+  } catch(e) { res.json({ok:false, erro:e.message}); }
+});
+
+// Apagar membro
+app.delete("/api/admin/membro/:id", async (req, res) => {
+  if(req.headers["x-admin-key"] !== ADMIN_KEY) return res.json({ok:false, erro:"Acesso negado"});
+  try {
+    await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [req.params.id]);
+    await pool.query("DELETE FROM medicamentos WHERE membro_id=$1", [req.params.id]);
+    await pool.query("DELETE FROM membros WHERE id=$1", [req.params.id]);
+    res.json({ok:true, msg:"Membro apagado: "+req.params.id});
+  } catch(e) { res.json({ok:false, erro:e.message}); }
+});
+
+// Apagar push de membro
+app.delete("/api/admin/push/:membroId", async (req, res) => {
+  if(req.headers["x-admin-key"] !== ADMIN_KEY) return res.json({ok:false, erro:"Acesso negado"});
+  try {
+    await pool.query("DELETE FROM push_subscriptions WHERE membro_id=$1", [req.params.membroId]);
+    res.json({ok:true, msg:"Push apagado para membro: "+req.params.membroId});
+  } catch(e) { res.json({ok:false, erro:e.message}); }
+});
+
+// Disparar push manual
+app.post("/api/admin/push/disparar", async (req, res) => {
+  if(req.headers["x-admin-key"] !== ADMIN_KEY) return res.json({ok:false, erro:"Acesso negado"});
+  try {
+    const { membro_id, titulo, corpo } = req.body;
+    const subs = await pool.query("SELECT subscription FROM push_subscriptions WHERE membro_id=$1", [membro_id]);
+    if(subs.rows.length === 0) return res.json({ok:false, erro:"Sem inscricao"});
+    const payload = JSON.stringify({ titulo: titulo||"Teste VDA+", corpo: corpo||"Mensagem de teste", tag:"admin-test" });
+    await webpush.sendNotification(JSON.parse(subs.rows[0].subscription), payload, { urgency:"high", TTL:60 });
+    res.json({ok:true, msg:"Push enviado!"});
+  } catch(e) { res.json({ok:false, erro:e.message}); }
+});
+
 // Chave pública VAPID para o frontend
 app.get("/api/push/vapid-public-key", (req, res) => {
   res.json({ key: "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA" });

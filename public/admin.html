@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VDA+ Admin</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #0a1628; color: #fff; padding: 16px; }
+h1 { color: #00e676; font-size: 22px; margin-bottom: 4px; }
+.sub { color: #aaa; font-size: 13px; margin-bottom: 16px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.tab { padding: 8px 14px; border-radius: 20px; border: 1px solid #333; background: transparent; color: #aaa; cursor: pointer; font-size: 13px; }
+.tab.active { background: #00e676; color: #000; border-color: #00e676; font-weight: bold; }
+.panel { display: none; }
+.panel.active { display: block; }
+.card { background: #0d2040; border-radius: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid #1a3a5c; }
+.card-title { font-size: 14px; font-weight: bold; color: #00e676; margin-bottom: 6px; }
+.card-info { font-size: 12px; color: #aaa; line-height: 1.8; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 6px; }
+.badge-green { background: #00e676; color: #000; }
+.badge-red { background: #f44336; color: #fff; }
+.badge-blue { background: #2196f3; color: #fff; }
+.btn { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; margin: 2px; }
+.btn-red { background: #f44336; color: #fff; }
+.btn-green { background: #00e676; color: #000; }
+.btn-blue { background: #2196f3; color: #fff; }
+.btn-orange { background: #ff9800; color: #000; }
+.input { background: #0a1628; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; width: 100%; margin-bottom: 8px; font-size: 13px; }
+.status-bar { background: #0d2040; border-radius: 10px; padding: 12px; margin-bottom: 16px; display: flex; gap: 16px; flex-wrap: wrap; }
+.stat { text-align: center; }
+.stat-num { font-size: 24px; font-weight: bold; color: #00e676; }
+.stat-label { font-size: 11px; color: #aaa; }
+.log { background: #000; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 12px; color: #00e676; max-height: 200px; overflow-y: auto; margin-top: 10px; }
+.empty { color: #555; font-size: 13px; text-align: center; padding: 20px; }
+.push-form { background: #0d2040; border-radius: 10px; padding: 12px; margin-bottom: 16px; }
+.push-form h3 { color: #00e676; font-size: 14px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<h1>🛡️ VDA+ Admin</h1>
+<p class="sub">Painel de controle e testes</p>
+
+<div class="status-bar" id="statusBar">
+  <div class="stat"><div class="stat-num" id="totalFamilias">-</div><div class="stat-label">Famílias</div></div>
+  <div class="stat"><div class="stat-num" id="totalMembros">-</div><div class="stat-label">Membros</div></div>
+  <div class="stat"><div class="stat-num" id="totalPush">-</div><div class="stat-label">Push ativos</div></div>
+  <div class="stat"><div class="stat-num" id="totalMeds">-</div><div class="stat-label">Medicamentos</div></div>
+  <div class="stat"><div class="stat-num" id="horaServidor">-</div><div class="stat-label">Hora servidor</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('familias')">👨‍👩‍👧 Famílias</button>
+  <button class="tab" onclick="switchTab('membros')">👤 Membros</button>
+  <button class="tab" onclick="switchTab('push')">🔔 Push</button>
+  <button class="tab" onclick="switchTab('meds')">💊 Medicamentos</button>
+  <button class="tab" onclick="switchTab('testes')">🧪 Testes</button>
+</div>
+
+<!-- FAMILIAS -->
+<div class="panel active" id="panel-familias">
+  <button class="btn btn-blue" onclick="carregarFamilias()" style="margin-bottom:10px;">🔄 Atualizar</button>
+  <div id="lista-familias"><div class="empty">Carregando...</div></div>
+</div>
+
+<!-- MEMBROS -->
+<div class="panel" id="panel-membros">
+  <button class="btn btn-blue" onclick="carregarMembros()" style="margin-bottom:10px;">🔄 Atualizar</button>
+  <div id="lista-membros"><div class="empty">Carregando...</div></div>
+</div>
+
+<!-- PUSH -->
+<div class="panel" id="panel-push">
+  <button class="btn btn-blue" onclick="carregarPush()" style="margin-bottom:10px;">🔄 Atualizar</button>
+  <div id="lista-push"><div class="empty">Carregando...</div></div>
+</div>
+
+<!-- MEDICAMENTOS -->
+<div class="panel" id="panel-meds">
+  <button class="btn btn-blue" onclick="carregarMeds()" style="margin-bottom:10px;">🔄 Atualizar</button>
+  <div id="lista-meds"><div class="empty">Carregando...</div></div>
+</div>
+
+<!-- TESTES -->
+<div class="panel" id="panel-testes">
+  <div class="push-form">
+    <h3>🔔 Disparar Push Manual</h3>
+    <input class="input" id="push-membro-id" placeholder="ID do membro (ex: 16)" type="number">
+    <input class="input" id="push-titulo" placeholder="Título (ex: Teste VDA+)">
+    <input class="input" id="push-corpo" placeholder="Mensagem (ex: Notificação de teste)">
+    <button class="btn btn-green" onclick="dispararPush()">▶ Disparar Push</button>
+  </div>
+  <div class="log" id="log-testes">Aguardando ações...</div>
+</div>
+
+<script>
+var ADMIN_KEY = "vdaplus2026admin";
+
+function headers() {
+  return { "Content-Type": "application/json", "x-admin-key": ADMIN_KEY };
+}
+
+function log(msg) {
+  var el = document.getElementById("log-testes");
+  var time = new Date().toLocaleTimeString("pt-BR");
+  el.innerHTML += time + " — " + msg + "\n";
+  el.scrollTop = el.scrollHeight;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+  document.querySelectorAll(".panel").forEach(function(p) { p.classList.remove("active"); });
+  document.getElementById("panel-" + tab).classList.add("active");
+  event.target.classList.add("active");
+  if(tab === "familias") carregarFamilias();
+  if(tab === "membros") carregarMembros();
+  if(tab === "push") carregarPush();
+  if(tab === "meds") carregarMeds();
+}
+
+async function carregarStatus() {
+  try {
+    var r = await fetch("/api/push/status");
+    var d = await r.json();
+    document.getElementById("horaServidor").textContent = d.hora_brasil || "-";
+    document.getElementById("totalPush").textContent = d.inscricoes || 0;
+    document.getElementById("totalMeds").textContent = d.medicamentos_monitorados ? d.medicamentos_monitorados.length : 0;
+  } catch(e) {}
+
+  try {
+    var r2 = await fetch("/api/admin/familias", { headers: headers() });
+    var d2 = await r2.json();
+    document.getElementById("totalFamilias").textContent = d2.familias ? d2.familias.length : 0;
+  } catch(e) {}
+
+  try {
+    var r3 = await fetch("/api/admin/membros", { headers: headers() });
+    var d3 = await r3.json();
+    document.getElementById("totalMembros").textContent = d3.membros ? d3.membros.length : 0;
+  } catch(e) {}
+}
+
+async function carregarFamilias() {
+  document.getElementById("lista-familias").innerHTML = "<div class='empty'>Carregando...</div>";
+  var r = await fetch("/api/admin/familias", { headers: headers() });
+  var d = await r.json();
+  if(!d.ok || !d.familias.length) { document.getElementById("lista-familias").innerHTML = "<div class='empty'>Nenhuma família</div>"; return; }
+  var html = "";
+  d.familias.forEach(function(f) {
+    var data = new Date(f.criado_em).toLocaleDateString("pt-BR");
+    html += "<div class='card'>";
+    html += "<div class='card-title'>" + f.nome + " <span class='badge badge-blue'>" + f.codigo + "</span></div>";
+    html += "<div class='card-info'>👥 " + f.total_membros + " membros | 📅 " + data + "</div>";
+    html += "<div style='margin-top:8px;'>";
+    html += "<button class='btn btn-blue' onclick='verMembros(\"" + f.codigo + "\")'>👤 Ver membros</button>";
+    html += "<button class='btn btn-red' onclick='apagarFamilia(\"" + f.codigo + "\", \"" + f.nome + "\")'>🗑️ Apagar</button>";
+    html += "</div></div>";
+  });
+  document.getElementById("lista-familias").innerHTML = html;
+}
+
+async function carregarMembros(filtroFamilia) {
+  document.getElementById("lista-membros").innerHTML = "<div class='empty'>Carregando...</div>";
+  switchTab("membros");
+  var r = await fetch("/api/admin/membros", { headers: headers() });
+  var d = await r.json();
+  if(!d.ok || !d.membros.length) { document.getElementById("lista-membros").innerHTML = "<div class='empty'>Nenhum membro</div>"; return; }
+  var membros = filtroFamilia ? d.membros.filter(function(m) { return m.familia_id === filtroFamilia; }) : d.membros;
+  var html = "";
+  membros.forEach(function(m) {
+    var pushBadge = m.push_id ? "<span class='badge badge-green'>push ✅</span>" : "<span class='badge badge-red'>sem push</span>";
+    html += "<div class='card'>";
+    html += "<div class='card-title'>" + m.nome + pushBadge + "</div>";
+    html += "<div class='card-info'>🆔 " + m.id_medico + " | 👨‍👩‍👧 " + m.familia_id + " | " + m.tipo + " | " + m.relacao + "</div>";
+    html += "<div class='card-info'>🔢 membro_id: " + m.id + "</div>";
+    html += "<div style='margin-top:8px;'>";
+    html += "<button class='btn btn-orange' onclick='testarPush(" + m.id + ", \"" + m.nome + "\")'>🔔 Testar push</button>";
+    if(m.push_id) html += "<button class='btn btn-red' onclick='apagarPushMembro(" + m.id + ")'>🗑️ Apagar push</button>";
+    html += "<button class='btn btn-red' onclick='apagarMembro(" + m.id + ", \"" + m.nome + "\")'>❌ Apagar membro</button>";
+    html += "</div></div>";
+  });
+  document.getElementById("lista-membros").innerHTML = html;
+}
+
+function verMembros(familiaId) {
+  carregarMembros(familiaId);
+}
+
+async function carregarPush() {
+  document.getElementById("lista-push").innerHTML = "<div class='empty'>Carregando...</div>";
+  var r = await fetch("/api/admin/push", { headers: headers() });
+  var d = await r.json();
+  if(!d.ok || !d.inscricoes.length) { document.getElementById("lista-push").innerHTML = "<div class='empty'>Nenhuma inscrição push</div>"; return; }
+  var html = "";
+  d.inscricoes.forEach(function(p) {
+    html += "<div class='card'>";
+    html += "<div class='card-title'>👤 " + (p.nome||"Desconhecido") + " <span class='badge badge-green'>ativo</span></div>";
+    html += "<div class='card-info'>🔢 membro_id: " + p.membro_id + " | 👨‍👩‍👧 " + p.familia_id + "</div>";
+    html += "<div style='margin-top:8px;'>";
+    html += "<button class='btn btn-orange' onclick='testarPush(" + p.membro_id + ", \"" + (p.nome||"") + "\")'>🔔 Testar</button>";
+    html += "<button class='btn btn-red' onclick='apagarPushMembro(" + p.membro_id + ")'>🗑️ Apagar</button>";
+    html += "</div></div>";
+  });
+  document.getElementById("lista-push").innerHTML = html;
+}
+
+async function carregarMeds() {
+  document.getElementById("lista-meds").innerHTML = "<div class='empty'>Carregando...</div>";
+  var r = await fetch("/api/admin/medicamentos", { headers: headers() });
+  var d = await r.json();
+  if(!d.ok || !d.medicamentos.length) { document.getElementById("lista-meds").innerHTML = "<div class='empty'>Nenhum medicamento</div>"; return; }
+  var html = "";
+  d.medicamentos.forEach(function(m) {
+    var horarios = [];
+    try { horarios = JSON.parse(m.horarios); } catch(e) {}
+    html += "<div class='card'>";
+    html += "<div class='card-title'>💊 " + m.nome + "</div>";
+    html += "<div class='card-info'>👤 " + (m.membro_nome||"?") + " | 👨‍👩‍👧 " + m.familia_id + "</div>";
+    html += "<div class='card-info'>⏰ " + (horarios.join(", ")||"sem horário") + " | 💉 " + (m.dosagem||"-") + "</div>";
+    html += "</div>";
+  });
+  document.getElementById("lista-meds").innerHTML = html;
+}
+
+async function apagarFamilia(codigo, nome) {
+  if(!confirm("Apagar família " + nome + " (" + codigo + ") e TODOS os dados? Isso não pode ser desfeito!")) return;
+  var r = await fetch("/api/admin/familia/" + codigo, { method: "DELETE", headers: headers() });
+  var d = await r.json();
+  alert(d.ok ? "✅ Família apagada!" : "❌ Erro: " + d.erro);
+  carregarFamilias();
+  carregarStatus();
+}
+
+async function apagarMembro(id, nome) {
+  if(!confirm("Apagar membro " + nome + " (id: " + id + ")?")) return;
+  var r = await fetch("/api/admin/membro/" + id, { method: "DELETE", headers: headers() });
+  var d = await r.json();
+  alert(d.ok ? "✅ Membro apagado!" : "❌ Erro: " + d.erro);
+  carregarMembros();
+  carregarStatus();
+}
+
+async function apagarPushMembro(membroId) {
+  if(!confirm("Apagar inscrição push do membro " + membroId + "?")) return;
+  var r = await fetch("/api/admin/push/" + membroId, { method: "DELETE", headers: headers() });
+  var d = await r.json();
+  alert(d.ok ? "✅ Push apagado!" : "❌ Erro: " + d.erro);
+  carregarPush();
+  carregarStatus();
+}
+
+async function testarPush(membroId, nome) {
+  log("Disparando push para " + nome + " (id: " + membroId + ")...");
+  switchTab("testes");
+  var r = await fetch("/api/admin/push/disparar", {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ membro_id: membroId, titulo: "🧪 Teste VDA+ Admin", corpo: "Push de teste para " + nome })
+  });
+  var d = await r.json();
+  log(d.ok ? "✅ Push enviado para " + nome : "❌ Erro: " + d.erro);
+}
+
+async function dispararPush() {
+  var membroId = document.getElementById("push-membro-id").value;
+  var titulo = document.getElementById("push-titulo").value || "🧪 Teste VDA+";
+  var corpo = document.getElementById("push-corpo").value || "Mensagem de teste";
+  if(!membroId) { alert("Digite o ID do membro!"); return; }
+  log("Disparando push para membro " + membroId + "...");
+  var r = await fetch("/api/admin/push/disparar", {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ membro_id: parseInt(membroId), titulo: titulo, corpo: corpo })
+  });
+  var d = await r.json();
+  log(d.ok ? "✅ " + d.msg : "❌ Erro: " + d.erro);
+}
+
+// Carrega tudo ao abrir
+carregarStatus();
+carregarFamilias();
+setInterval(carregarStatus, 30000);
+</script>
+</body>
+</html>

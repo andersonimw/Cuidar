@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VDA+</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#00e676">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VDA+">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: sans-serif; background:#f0f4f8; color:#333; }
+  header { background:#2e7d32; color:white; padding:20px; text-align:center; }
+  header h1 { font-size:2em; }
+  header p { font-size:0.95em; opacity:0.85; margin-top:4px; }
+  .resumo-btn { display:flex; align-items:center; gap:16px; margin:16px;
+                background:linear-gradient(135deg,#2e7d32,#43a047); color:white;
+                border-radius:16px; padding:18px 20px; cursor:pointer;
+                box-shadow:0 4px 12px rgba(46,125,50,0.3); border:none; width:calc(100% - 32px); }
+  .resumo-btn .icon { font-size:2em; }
+  .resumo-btn .texto h2 { font-size:1.1em; color:white; text-align:left; }
+  .resumo-btn .texto p { font-size:0.82em; color:rgba(255,255,255,0.85); text-align:left; margin-top:2px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; padding:0 16px 16px; }
+  .card { background:white; border-radius:16px; padding:20px; text-align:center;
+          box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer; transition:transform 0.1s; border:none; width:100%; }
+  .card:active { transform:scale(0.97); }
+  .card .icon { font-size:2.5em; margin-bottom:10px; }
+  .card h2 { font-size:1em; color:#2e7d32; }
+  .card p { font-size:0.78em; color:#888; margin-top:4px; }
+  .card.destaque { background:#e8f5e9; }
+  .card.vermelho { background:#ffebee; }
+  .card.vermelho h2 { color:#c62828; }
+  .card.cinza { background:#f5f5f5; }
+  .card.cinza h2 { color:#555; }
+  .secao-titulo { padding:8px 16px 4px; font-size:0.78em; font-weight:bold;
+                  color:#888; text-transform:uppercase; letter-spacing:0.08em; }
+  footer { text-align:center; padding:20px; color:#aaa; font-size:0.8em; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💚 VDA+</h1>
+  <p id="frase-rotativa">Cuidado Familiar Inteligente</p>
+  <script>
+    var frases = [
+      "Cuidado Familiar Inteligente",
+      "Vida com mais cuidado",
+      "Saúde em família"
+    ];
+    var i = 0;
+    setInterval(function() {
+      i = (i + 1) % frases.length;
+      var el = document.getElementById("frase-rotativa");
+      if(el) {
+        el.style.opacity = "0";
+        setTimeout(function() {
+          el.textContent = frases[i];
+          el.style.opacity = "1";
+        }, 400);
+      }
+    }, 3000);
+  </script>
+</header>
+
+<div id="seletorPerfil" style="background:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div id="perfilEmoji" style="font-size:1.6em">👨</div>
+    <div>
+      <div id="perfilNome" style="font-weight:bold;font-size:0.9em;color:#333">Carregando...</div>
+      <div id="perfilTipo" style="font-size:0.75em;color:#888"></div>
+    </div>
+  </div>
+  <button onclick="window.location='membros.html'" style="padding:8px 14px;background:#e8f5e9;color:#2e7d32;border:none;border-radius:20px;font-size:0.82em;cursor:pointer;font-weight:bold">👥 Perfis</button>
+</div>
+
+<button class="resumo-btn" onclick="window.location='resumo.html'">
+  <div class="icon">🌅</div>
+  <div class="texto">
+    <h2>Resumo do Dia</h2>
+    <p>Tudo que importa hoje em um lugar</p>
+  </div>
+</button>
+
+<div class="secao-titulo">🏥 Saúde</div>
+<div class="grid">
+  <button class="card" onclick="window.location='medicamentos.html'">
+    <div class="icon">💊</div>
+    <h2>Medicamentos</h2>
+    <p>Horários e confirmações</p>
+  </button>
+  <button class="card" onclick="window.location='calendario.html'">
+    <div class="icon">📅</div>
+    <h2>Agenda</h2>
+    <p>Consultas e eventos</p>
+  </button>
+  <button class="card" onclick="window.location='diario.html'">
+    <div class="icon">📓</div>
+    <h2>Diário de Saúde</h2>
+    <p>Registros diários</p>
+  </button>
+  <button class="card" onclick="window.location='dashboard.html'">
+    <div class="icon">📊</div>
+    <h2>Dashboard</h2>
+    <p>Pressão, glicemia, peso</p>
+  </button>
+  <button class="card" onclick="window.location='vacinas.html'">
+    <div class="icon">💉</div>
+    <h2>Vacinas</h2>
+    <p>Cartão de vacinação</p>
+  </button>
+  <button class="card" onclick="window.location='hidratacao.html'">
+    <div class="icon">💧</div>
+    <h2>Hidratação</h2>
+    <p>Controle de água diária</p>
+  </button>
+</div>
+
+<div class="secao-titulo">👨‍👩‍👧 Família</div>
+<div class="grid">
+  <button class="card" onclick="window.location='escala.html'">
+    <div class="icon">🔄</div>
+    <h2>Escala de Cuidado</h2>
+    <p>Divisão justa de tarefas</p>
+  </button>
+  <button class="card" onclick="window.location='chat.html'">
+    <div class="icon">💬</div>
+    <h2>Chat Familiar</h2>
+    <p>Comunicação organizada</p>
+  </button>
+  <button class="card" onclick="window.location='financeiro.html'">
+    <div class="icon">💰</div>
+    <h2>Financeiro</h2>
+    <p>Gastos do cuidado</p>
+  </button>
+  <button class="card" onclick="window.location='checklist.html'">
+    <div class="icon">✅</div>
+    <h2>Checklist</h2>
+    <p>Tarefas diárias</p>
+  </button>
+</div>
+
+<div class="secao-titulo">👤 Idoso</div>
+<div class="grid">
+  <button class="card destaque" onclick="window.location='perfil.html'">
+    <div class="icon">👤</div>
+    <h2>Perfil do Idoso</h2>
+    <p>Dados, modo idoso e documentos</p>
+  </button>
+  <button class="card destaque" onclick="window.location='relatorio.html'">
+    <div class="icon">📋</div>
+    <h2>Relatório</h2>
+    <p>Gerar para o médico</p>
+  </button>
+</div>
+
+<div class="secao-titulo">🤖 Assistente</div>
+<div class="grid">
+  <button class="card card-full" style="grid-column:1/-1;background:linear-gradient(135deg,#1a237e,#283593);color:white" onclick="window.location='assistente.html'">
+    <div class="icon">🤖</div>
+    <h2 style="color:white">Assistente de Saúde IA</h2>
+    <p style="color:rgba(255,255,255,0.8)">Tire dúvidas sobre saúde com IA</p>
+  </button>
+</div>
+<div class="secao-titulo">🧘 Cuidador</div>
+<div class="grid">
+  <button class="card" onclick="window.location='bemestar.html'">
+    <div class="icon">🧘</div>
+    <h2>Bem-estar</h2>
+    <p>Cuide de quem cuida</p>
+  </button>
+</div>
+
+<div class="secao-titulo">⚙️ Sistema</div>
+<div class="grid">
+  <button class="card vermelho" onclick="window.location='emergencia.html'">
+    <div class="icon">🚨</div>
+    <h2>Emergência</h2>
+    <p>Alertas imediatos</p>
+  </button>
+  <button class="card" onclick="window.location='acesso.html'">
+    <div class="icon">🔐</div>
+    <h2>Acesso</h2>
+    <p>ID familiar e médico</p>
+  </button>
+  <button class="card cinza" onclick="reiniciarApp()">
+    <div class="icon">🔄</div>
+    <h2>Reiniciar App</h2>
+    <p>Apagar dados e recomeçar</p>
+  </button>
+</div>
+
+<footer>VDA+ © 2026 — Feito com amor 💚</footer>
+
+<script src="notificacoes.js"></script>
+<script>
+  // Carregar perfil ativo
+  var membroAtivo = JSON.parse(localStorage.getItem('membroAtivo') || 'null');
+  var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+  if(membroAtivo) {
+    var emojis = { adulto:'👨', idoso:'👴', crianca:'👶' };
+    document.getElementById('perfilEmoji').textContent = emojis[membroAtivo.tipo] || '👨';
+    document.getElementById('perfilNome').textContent = membroAtivo.nome;
+    document.getElementById('perfilTipo').textContent = membroAtivo.relacao || membroAtivo.tipo;
+  } else if(usuario) {
+    document.getElementById('perfilNome').textContent = usuario.nome;
+    document.getElementById('perfilTipo').textContent = usuario.relacao || 'Admin';
+  }
+
+  // Verificar cadastro
+  if(!localStorage.getItem('usuarioCuidar')){
+    window.location.replace('cadastro.html');
+  }
+
+  // Carregar medicamentos do banco para o alarme global funcionar
+  (function() {
+    var familiaId = localStorage.getItem("familiaId") || "";
+    var membroAtivo = JSON.parse(localStorage.getItem("membroAtivo") || "null");
+    var membroId = membroAtivo ? membroAtivo.membroIdBanco : null;
+    if(!familiaId) return;
+    var chave = membroAtivo ? "medicamentos_" + membroAtivo.id : "medicamentos_usuario_principal";
+    var url = membroId
+      ? "/api/medicamentos/" + familiaId + "/" + membroId
+      : "/api/medicamentos/" + familiaId;
+    fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(r.ok && r.meds && r.meds.length > 0) {
+        var meds = r.meds.map(function(m){
+          return {
+            id: m.id, dbId: m.id, nome: m.nome,
+            dosagem: m.dosagem,
+            horarios: m.horarios ? JSON.parse(m.horarios) : [],
+            via: m.via, estoque: m.estoque,
+            alertaEstoque: m.alerta_estoque,
+            validade: m.validade, armazenamento: m.armazenamento,
+            obs: m.obs, ativo: true
+          };
+        });
+        localStorage.setItem(chave, JSON.stringify(meds));
+      }
+    }).catch(function(){});
+  })();
+
+  function reiniciarApp() {
+    if(confirm('⚠️ ATENÇÃO\n\nAo reiniciar o app TODOS os dados serão apagados permanentemente:\n\n• Medicamentos e histórico\n• Cadastro familiar\n• Financeiro\n• Documentos e fotos\n• Todos os registros\n\nEsta ação NÃO pode ser desfeita.\n\nDeseja continuar?')) {
+      localStorage.clear();
+      alert('✅ Dados apagados! O app vai reiniciar.');
+      window.location.replace('cadastro.html');
+    }
+  }
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="alarme_global.js"></script>
+<script>
+
+  // Listener para alarme disparado pelo SW (push em segundo plano)
+  if("serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("message", function(e) {
+      if(e.data && e.data.tipo === "alarme") {
+        var d = e.data.data || {};
+        dispararAlarmeGlobal(d.med_nome || "Medicamento", d.med_dosagem || "", d.horario || "");
+      }
+    });
+  }
+
+  function dispararAlarmeGlobal(nome, dosagem, horario) {
+    // Tocar som
+    try {
+      var ctx = new(window.AudioContext || window.webkitAudioContext)();
+      function beep(freq,start,dur,vol){
+        var osc=ctx.createOscillator(); var gain=ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value=freq; osc.type="sine";
+        gain.gain.setValueAtTime(vol||0.3, ctx.currentTime+start);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+start+dur);
+        osc.start(ctx.currentTime+start); osc.stop(ctx.currentTime+start+dur);
+      }
+      beep(880,0,0.15,0.4); beep(880,0.2,0.15,0.4); beep(1046,0.4,0.3,0.4);
+      beep(880,0.8,0.15,0.4); beep(880,1.0,0.15,0.4); beep(1046,1.2,0.3,0.4);
+      beep(880,1.6,0.15,0.4); beep(880,1.8,0.15,0.4); beep(1175,2.0,0.5,0.4);
+    } catch(e){}
+    if(navigator.vibrate) navigator.vibrate([500,200,500,200,500,200,1000]);
+    // Falar o nome
+    setTimeout(function(){
+      if(!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      var texto = "Atenção! Está na hora de tomar " + nome + ".";
+      if(dosagem) texto += " A dose é " + dosagem + ".";
+      texto += " Por favor tome o seu comprimido agora.";
+      var fala = new SpeechSynthesisUtterance(texto);
+      fala.lang="pt-BR"; fala.rate=0.9; fala.pitch=1; fala.volume=1;
+      var vozes = window.speechSynthesis.getVoices();
+      var vozPT = vozes.find(function(v){ return v.lang.indexOf("pt")!==-1; });
+      if(vozPT) fala.voice = vozPT;
+      window.speechSynthesis.speak(fala);
+    }, 800);
+    // Mostrar tela de alarme global
+    var overlay = document.getElementById("alarme_med_global");
+    if(!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "alarme_med_global";
+      overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(26,35,126,0.97);z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;";
+      document.body.appendChild(overlay);
+    }
+    overlay.innerHTML =
+      "<div style="font-size:5em;margin-bottom:20px">💊</div>"+
+      "<div style="color:white;font-size:1.4em;font-weight:bold;margin-bottom:10px">⏰ Hora do remédio!</div>"+
+      "<div style="color:#90caf9;font-size:1.8em;font-weight:bold;margin-bottom:8px">"+nome+"</div>"+
+      "<div style="color:white;font-size:1.1em;margin-bottom:8px;opacity:0.9">"+(dosagem?"Dose: "+dosagem:"")+"</div>"+
+      "<div style="color:rgba(255,255,255,0.6);font-size:0.9em;margin-bottom:30px">🕐 Horário: "+horario+"</div>"+
+      "<div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px">"+
+        "<button onclick="fecharAlarmeRemedioGlobal()" style="padding:18px;background:#4caf50;color:white;border:none;border-radius:16px;font-size:1.1em;font-weight:bold;cursor:pointer">✅ Tomei agora!</button>"+
+        "<button onclick="fecharAlarmeRemedioGlobal()" style="padding:14px;background:rgba(255,255,255,0.15);color:white;border:2px solid rgba(255,255,255,0.3);border-radius:16px;font-size:0.95em;cursor:pointer">😴 Lembrar em 15 min</button>"+
+        "<button onclick="fecharAlarmeRemedioGlobal()" style="padding:14px;background:rgba(198,40,40,0.5);color:white;border:none;border-radius:16px;font-size:0.95em;cursor:pointer">⏭️ Vou pular essa dose</button>"+
+      "</div>";
+    overlay.style.display = "flex";
+  }
+  if("serviceWorker" in navigator && "PushManager" in window) {
+    navigator.serviceWorker.register("/sw.js").then(function(reg) {
+      console.log("VDA+ SW registrado:", reg.scope);
+      function registrarPush() {
+        var vapidKey = "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA";
+        var convertedKey = urlBase64ToUint8Array(vapidKey);
+        reg.pushManager.getSubscription().then(function(existingSub) {
+          if(existingSub) {
+            return existingSub.unsubscribe().then(function() {
+              return reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: convertedKey
+              });
+            });
+          } else {
+            return reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: convertedKey
+            });
+          }
+        }).then(function(sub) {
+          salvarSubscription(sub);
+        }).catch(function(e){ console.log("Push sub erro:", e); });
+      }
+      function salvarSubscription(sub) {
+        var membroAtivo = JSON.parse(localStorage.getItem("membroAtivo") || "null");
+        var familiaId = localStorage.getItem("familiaId") || "";
+        if(membroAtivo && familiaId && membroAtivo.membroIdBanco) {
+          fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+              membro_id: membroAtivo.membroIdBanco,
+              familia_id: familiaId,
+              subscription: sub
+            })
+          }).then(function(r){ return r.json(); })
+          .then(function(r){ console.log("Push inscrito:", r); })
+          .catch(function(e){ console.log("Push salvar erro:", e); });
+        }
+      }
+      if(Notification.permission === "granted") {
+        registrarPush();
+      } else if(Notification.permission === "default") {
+        Notification.requestPermission().then(function(p) {
+          if(p === "granted") registrarPush();
+        });
+      }
+    }).catch(function(e) { console.log("SW erro:", e); });
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    var padding = "=".repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    var rawData = window.atob(base64);
+    var outputArray = new Uint8Array(rawData.length);
+    for(var i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
+    return outputArray;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

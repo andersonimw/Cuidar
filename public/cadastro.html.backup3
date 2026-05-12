@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro - VDA+</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:sans-serif; background:#1a237e; min-height:100vh;
+         display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+  .logo { text-align:center; margin-bottom:32px; }
+  .logo .icon { font-size:4em; margin-bottom:8px; }
+  .logo h1 { color:white; font-size:2em; font-weight:bold; }
+  .logo p { color:rgba(255,255,255,0.7); font-size:0.95em; margin-top:4px; }
+  .card { background:white; border-radius:24px; padding:24px; width:100%; max-width:420px; }
+  .tabs { display:flex; gap:6px; margin-bottom:24px; }
+  .tab { flex:1; padding:10px 6px; border:2px solid #e0e0e0; border-radius:12px; background:white;
+         font-size:0.78em; cursor:pointer; text-align:center; color:#555; font-weight:bold; line-height:1.3; }
+  .tab.ativo { border-color:#1a237e; background:#1a237e; color:white; }
+  .secao { display:none; }
+  .secao.ativa { display:block; }
+  .form-group { margin-bottom:14px; }
+  .form-group label { font-size:0.82em; color:#555; font-weight:bold; display:block; margin-bottom:6px; }
+  .form-group input { width:100%; padding:12px 14px; border:1.5px solid #e0e0e0;
+    border-radius:10px; font-size:0.95em; outline:none; }
+  .form-group input:focus { border-color:#1a237e; }
+  .btn-principal { width:100%; padding:16px; background:#1a237e; color:white; border:none;
+    border-radius:12px; font-size:1em; font-weight:bold; cursor:pointer; margin-top:8px; }
+  .btn-secundario { width:100%; padding:14px; background:#e8eaf6; color:#1a237e; border:none;
+    border-radius:12px; font-size:0.95em; font-weight:bold; cursor:pointer; margin-top:10px; }
+  .relacoes { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .rel-btn { padding:12px 8px; border:2px solid #e0e0e0; border-radius:10px; background:white;
+    font-size:0.85em; cursor:pointer; text-align:center; }
+  .rel-btn.sel { border-color:#1a237e; background:#e8eaf6; color:#1a237e; font-weight:bold; }
+  .tipos { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+  .tipo-btn { padding:12px 8px; border:2px solid #e0e0e0; border-radius:10px; background:white;
+    font-size:0.82em; cursor:pointer; text-align:center; }
+  .tipo-btn .ti { font-size:1.8em; display:block; margin-bottom:4px; }
+  .tipo-btn.sel { border-color:#1a237e; background:#e8eaf6; color:#1a237e; font-weight:bold; }
+  .qr-container { text-align:center; padding:16px 0; }
+  .qr-box { background:#f5f5f5; border-radius:16px; padding:20px; display:inline-block; margin-bottom:12px; }
+  .codigo { font-size:1.3em; font-weight:bold; color:#1a237e; background:#e8eaf6;
+    padding:10px 20px; border-radius:10px; letter-spacing:3px; margin-bottom:8px; display:inline-block; }
+  .id-pessoal-box { background:#e8f5e9; border-radius:16px; padding:16px; margin-bottom:16px; text-align:center; }
+  .id-pessoal-box .label { font-size:0.8em; color:#2e7d32; font-weight:bold; margin-bottom:6px; }
+  .id-pessoal-box .id { font-size:1.4em; font-weight:bold; color:#1a237e; letter-spacing:3px; }
+  .id-pessoal-box .aviso { font-size:0.75em; color:#555; margin-top:8px; line-height:1.5; }
+  .instrucao { font-size:0.82em; color:#888; line-height:1.6; margin-bottom:16px; }
+  .sucesso { text-align:center; padding:10px 0; }
+  .sucesso .icon { font-size:3.5em; margin-bottom:12px; }
+  .sucesso h2 { color:#1a237e; font-size:1.2em; margin-bottom:8px; }
+  .sucesso p { font-size:0.85em; color:#666; line-height:1.6; margin-bottom:20px; }
+  .nome-familia { font-size:1.1em; font-weight:bold; color:#1a237e; background:#e8eaf6;
+    padding:8px 16px; border-radius:10px; display:inline-block; margin-bottom:16px; }
+  .erro-box { background:#ffebee; border-left:4px solid #c62828; padding:10px 14px;
+    border-radius:0 10px 10px 0; font-size:0.85em; color:#c62828; margin-bottom:12px; }
+  .loading { text-align:center; color:#888; padding:20px; }
+  .ou { text-align:center; color:#aaa; font-size:0.85em; margin:12px 0;
+    display:flex; align-items:center; gap:8px; }
+  .ou::before, .ou::after { content:''; flex:1; height:1px; background:#eee; }
+  .codigo-manual { display:flex; gap:8px; }
+  .codigo-manual input { flex:1; padding:12px; border:1.5px solid #e0e0e0; border-radius:10px;
+    font-size:1em; letter-spacing:3px; text-transform:uppercase; outline:none; }
+  .codigo-manual button { padding:12px 16px; background:#1a237e; color:white; border:none;
+    border-radius:10px; font-size:0.9em; cursor:pointer; }
+  .scanner-area { border:2px dashed #1a237e; border-radius:16px; padding:24px; text-align:center;
+    cursor:pointer; background:#f8f9ff; margin-bottom:12px; }
+  .scanner-area .si { font-size:2.5em; margin-bottom:8px; }
+  #scannerContainer { margin-top:12px; }
+  #scannerContainer video { width:100%; border-radius:12px; }
+  .recuperar-box { background:#fff8e1; border-radius:16px; padding:20px; margin-bottom:16px; }
+  .recuperar-box p { font-size:0.85em; color:#555; line-height:1.6; margin-bottom:12px; }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <div class="icon">💚</div>
+  <h1>VDA+</h1>
+  <p>Cuidado Familiar Inteligente</p>
+</div>
+
+<div class="card">
+  <div class="tabs">
+    <button class="tab ativo" onclick="setTab('criar',this)">👨‍👩‍👧 Criar família</button>
+    <button class="tab" onclick="setTab('entrar',this)">📲 Entrar em família</button>
+    <button class="tab" onclick="setTab('recuperar',this)">🔑 Já tenho ID</button>
+  </div>
+
+  <!-- CRIAR FAMÍLIA -->
+  <div class="secao ativa" id="sec-criar">
+    <div id="passo-criar-1">
+      <div class="form-group">
+        <label>Seu nome completo *</label>
+        <input type="text" id="criarNome" placeholder="Ex: Anderson Silva">
+      </div>
+      <div class="form-group">
+        <label>Nome da família *</label>
+        <input type="text" id="criarFamilia" placeholder="Ex: Família Silva">
+      </div>
+      <div class="form-group">
+        <label>Você é</label>
+        <div class="tipos">
+          <button class="tipo-btn sel" onclick="selTipo(this,'adulto')"><span class="ti">👨</span>Adulto</button>
+          <button class="tipo-btn" onclick="selTipo(this,'idoso')"><span class="ti">👴</span>Idoso</button>
+          <button class="tipo-btn" onclick="selTipo(this,'crianca')"><span class="ti">👶</span>Criança</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Sua relação</label>
+        <div class="relacoes">
+          <button class="rel-btn" onclick="selRel(this,'Pai/Mãe')">👨‍👩‍👧 Pai/Mãe</button>
+          <button class="rel-btn" onclick="selRel(this,'Filho(a)')">👧 Filho(a)</button>
+          <button class="rel-btn" onclick="selRel(this,'Cônjuge')">💑 Cônjuge</button>
+          <button class="rel-btn" onclick="selRel(this,'Cuidador(a)')">👩‍⚕️ Cuidador(a)</button>
+          <button class="rel-btn" onclick="selRel(this,'Irmão(ã)')">🤝 Irmão(ã)</button>
+          <button class="rel-btn" onclick="selRel(this,'Outro')">👤 Outro</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>WhatsApp (com DDD)</label>
+        <input type="tel" id="criarTel" placeholder="Ex: 21999998888">
+      </div>
+      <div id="erroCriar"></div>
+      <button class="btn-principal" onclick="criarFamilia()">✨ Criar família</button>
+    </div>
+
+    <div id="passo-criar-2" style="display:none">
+      <div class="id-pessoal-box">
+        <div class="label">🔑 SEU ID PESSOAL — ANOTE AGORA</div>
+        <div class="id" id="idPessoalExibido"></div>
+        <div class="aviso">⚠️ Guarde este ID. Ele é sua chave pessoal.<br>Com ele você recupera seu acesso em qualquer celular.</div>
+      </div>
+      <div class="qr-container">
+        <p style="font-size:0.85em;color:#555;margin-bottom:8px;text-align:center">
+          Código da família para outros membros entrarem:
+        </p>
+        <div class="qr-box"><div id="qrcode"></div></div>
+        <div class="codigo" id="codigoExibido"></div>
+        <div class="instrucao">
+          📱 Compartilhe o código da família com familiares.<br>
+          Eles abrem o app → "Entrar em família" → digitam o código.
+        </div>
+      </div>
+      <button class="btn-principal" onclick="entrarNoApp()">✅ Entrar no app</button>
+      <button class="btn-secundario" onclick="compartilharCodigo()">📤 Compartilhar via WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- ENTRAR EM FAMÍLIA -->
+  <div class="secao" id="sec-entrar">
+    <div id="passo-entrar-1">
+      <div class="form-group">
+        <label>Seu nome completo *</label>
+        <input type="text" id="entrarNome" placeholder="Ex: Maria Silva">
+      </div>
+      <div class="form-group">
+        <label>Você é</label>
+        <div class="tipos">
+          <button class="tipo-btn sel" onclick="selTipoEntrar(this,'adulto')"><span class="ti">👨</span>Adulto</button>
+          <button class="tipo-btn" onclick="selTipoEntrar(this,'idoso')"><span class="ti">👴</span>Idoso</button>
+          <button class="tipo-btn" onclick="selTipoEntrar(this,'crianca')"><span class="ti">👶</span>Criança</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Sua relação</label>
+        <div class="relacoes">
+          <button class="rel-btn" onclick="selRelEntrar(this,'Pai/Mãe')">👨‍👩‍👧 Pai/Mãe</button>
+          <button class="rel-btn" onclick="selRelEntrar(this,'Filho(a)')">👧 Filho(a)</button>
+          <button class="rel-btn" onclick="selRelEntrar(this,'Cônjuge')">💑 Cônjuge</button>
+          <button class="rel-btn" onclick="selRelEntrar(this,'Cuidador(a)')">👩‍⚕️ Cuidador(a)</button>
+          <button class="rel-btn" onclick="selRelEntrar(this,'Irmão(ã)')">🤝 Irmão(ã)</button>
+          <button class="rel-btn" onclick="selRelEntrar(this,'Outro')">👤 Outro</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>WhatsApp (com DDD)</label>
+        <input type="tel" id="entrarTel" placeholder="Ex: 21999998888">
+      </div>
+      <div class="scanner-area" onclick="iniciarScanner()">
+        <div class="si">📷</div>
+        <p><b>Escanear QR Code</b> da família</p>
+      </div>
+      <div class="ou">ou digite o código da família</div>
+      <div class="codigo-manual">
+        <input type="text" id="codigoManual" placeholder="Ex: BARR9598" maxlength="12">
+        <button onclick="entrarPorCodigo()">Entrar</button>
+      </div>
+      <div id="erroEntrar" style="margin-top:10px"></div>
+      <div id="scannerContainer" style="display:none">
+        <video id="scannerVideo" autoplay playsinline></video>
+        <button onclick="pararScanner()" style="width:100%;margin-top:8px;padding:10px;background:#eee;border:none;border-radius:8px;cursor:pointer">✕ Cancelar</button>
+      </div>
+    </div>
+
+    <div id="passo-entrar-2" style="display:none">
+      <div class="sucesso">
+        <div class="icon">🎉</div>
+        <h2>Bem-vindo à família!</h2>
+        <div class="nome-familia" id="familiaEncontrada"></div>
+        <p>Você foi adicionado com sucesso.</p>
+      </div>
+      <div class="id-pessoal-box">
+        <div class="label">🔑 SEU ID PESSOAL — ANOTE AGORA</div>
+        <div class="id" id="idPessoalEntrar"></div>
+        <div class="aviso">⚠️ Guarde este ID. Com ele você recupera seu acesso em qualquer celular sem precisar pedir o código da família novamente.</div>
+      </div>
+      <button class="btn-principal" onclick="entrarNoApp()">✅ Entrar no app</button>
+    </div>
+  </div>
+
+  <!-- JÁ TENHO ID -->
+  <div class="secao" id="sec-recuperar">
+    <div class="recuperar-box">
+      <p>Digite seu <b>ID pessoal</b> (ex: AND-HP4RS) para recuperar seu acesso. O app vai te reconhecer automaticamente.</p>
+    </div>
+    <div class="form-group">
+      <label>Seu ID pessoal *</label>
+      <div class="codigo-manual">
+        <input type="text" id="idRecuperar" placeholder="Ex: AND-HP4RS" maxlength="12" style="text-transform:uppercase;letter-spacing:2px">
+        <button onclick="recuperarPorId()">Entrar</button>
+      </div>
+    </div>
+    <div id="erroRecuperar" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script>
+  var tipoSel = 'adulto';
+  var relSel = '';
+  var tipoEntrar = 'adulto';
+  var relEntrar = '';
+  var codigoGerado = '';
+  var scannerStream = null;
+  var scannerInterval = null;
+
+  window.onload = function() {
+    if(localStorage.getItem('usuarioCuidar')) {
+      window.location.href = 'index.html';
+    }
+  };
+
+  function setTab(aba, btn) {
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('ativo'); });
+    btn.classList.add('ativo');
+    document.querySelectorAll('.secao').forEach(function(s){ s.classList.remove('ativa'); });
+    document.getElementById('sec-'+aba).classList.add('ativa');
+  }
+
+  function selTipo(btn, tipo) {
+    document.querySelectorAll('#sec-criar .tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel'); tipoSel = tipo;
+  }
+  function selRel(btn, rel) {
+    document.querySelectorAll('#sec-criar .rel-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel'); relSel = rel;
+  }
+  function selTipoEntrar(btn, tipo) {
+    document.querySelectorAll('#sec-entrar .tipo-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel'); tipoEntrar = tipo;
+  }
+  function selRelEntrar(btn, rel) {
+    document.querySelectorAll('#sec-entrar .rel-btn').forEach(function(b){ b.classList.remove('sel'); });
+    btn.classList.add('sel'); relEntrar = rel;
+  }
+
+  function gerarCodigo(nome) {
+    var base = nome.replace(/[^a-zA-Z]/g,'').toUpperCase().substring(0,4);
+    if(base.length < 2) base = 'FAM';
+    var num = Math.floor(1000 + Math.random() * 9000);
+    return base + num;
+  }
+
+  function salvarSessao(dados) {
+    localStorage.setItem('usuarioCuidar', JSON.stringify(dados.usuario));
+    localStorage.setItem('familiaId', dados.familiaId);
+    localStorage.setItem('familiaNome', dados.familiaNome);
+    localStorage.setItem('membroAtivo', JSON.stringify({
+      id: 'usuario_principal',
+      membroIdBanco: dados.membroIdBanco,
+      nome: dados.usuario.nome,
+      tipo: dados.usuario.tipo,
+      relacao: dados.usuario.relacao,
+      idMedico: dados.idMedico,
+      principal: true
+    }));
+  }
+
+  function criarFamilia() {
+    var nome = document.getElementById('criarNome').value.trim();
+    var familia = document.getElementById('criarFamilia').value.trim();
+    var tel = document.getElementById('criarTel').value.trim().replace(/\D/g,'');
+    var erroEl = document.getElementById('erroCriar');
+    if(!nome){ erroEl.innerHTML='<div class="erro-box">Digite seu nome.</div>'; return; }
+    if(!familia){ erroEl.innerHTML='<div class="erro-box">Digite o nome da família.</div>'; return; }
+    erroEl.innerHTML = '<div class="loading">⏳ Criando família...</div>';
+    tentarCriarFamilia(familia, nome, tel, erroEl, 3);
+  }
+
+  function tentarCriarFamilia(familia, nome, tel, erroEl, tentativas) {
+    if(tentativas <= 0) {
+      erroEl.innerHTML = '<div class="erro-box">Erro ao criar família. Tente novamente.</div>';
+      return;
+    }
+    var codigo = gerarCodigo(familia);
+    fetch('/api/familia/criar', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ codigo: codigo, nome: familia })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r.ok) {
+        tentarCriarFamilia(familia, nome, tel, erroEl, tentativas - 1);
+        return;
+      }
+      codigoGerado = r.familia.codigo;
+      return fetch('/api/membros/salvar', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          familia_id: codigoGerado,
+          nome: nome,
+          relacao: relSel || 'Admin',
+          tipo: tipoSel,
+          tel: tel,
+          admin: true
+        })
+      })
+      .then(function(r2){ return r2.json(); })
+      .then(function(r2){
+        var membroIdBanco = r2.ok ? r2.membro.id : null;
+        var idMedico = r2.ok ? r2.membro.id_medico : null;
+        salvarSessao({
+          usuario: { nome:nome, familia:familia, familiaId:codigoGerado,
+            relacao:relSel||'Admin', tipo:tipoSel, tel:tel, admin:true,
+            membroIdBanco:membroIdBanco, idMedico:idMedico },
+          familiaId: codigoGerado, familiaNome: familia,
+          membroIdBanco: membroIdBanco, idMedico: idMedico
+        });
+        erroEl.innerHTML = '';
+        document.getElementById('idPessoalExibido').textContent = idMedico || '';
+        mostrarQR();
+      });
+    })
+    .catch(function() {
+      erroEl.innerHTML = '<div class="erro-box">❌ Erro de conexão.</div>';
+    });
+  }
+
+  function mostrarQR() {
+    document.getElementById('passo-criar-1').style.display = 'none';
+    document.getElementById('passo-criar-2').style.display = 'block';
+    document.getElementById('codigoExibido').textContent = codigoGerado;
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), {
+      text: codigoGerado, width:160, height:160,
+      colorDark:'#1a237e', colorLight:'#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+
+  function compartilharCodigo() {
+    var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || '{}');
+    var msg = '💚 *VDA+ — Convite Familiar*\n\nOlá! ' + usuario.nome + ' convidou você para a *' + usuario.familia + '*\n\n📲 Código da família: *' + codigoGerado + '*\n\n1. Abra o app VDA+\n2. Toque em "Entrar em família"\n3. Digite: *' + codigoGerado + '*\n\n_VDA+ — Vida Digital Assistida_';
+    if(navigator.share) navigator.share({ text: msg });
+    else window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
+  }
+
+  function entrarPorCodigo() {
+    var nome = document.getElementById('entrarNome').value.trim();
+    var codigo = document.getElementById('codigoManual').value.trim().toUpperCase();
+    var tel = document.getElementById('entrarTel').value.trim().replace(/\D/g,'');
+    var erroEl = document.getElementById('erroEntrar');
+    if(!nome){ erroEl.innerHTML='<div class="erro-box">Digite seu nome.</div>'; return; }
+    if(!codigo){ erroEl.innerHTML='<div class="erro-box">Digite o código da família.</div>'; return; }
+    erroEl.innerHTML = '<div class="loading">⏳ Buscando família...</div>';
+    fetch('/api/familia/' + codigo)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r.ok){
+        erroEl.innerHTML = '<div class="erro-box">❌ Família não encontrada. Verifique o código.</div>';
+        return;
+      }
+      var familiaNome = r.familia.nome;
+      return fetch('/api/membros/salvar', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          familia_id: codigo, nome: nome,
+          relacao: relEntrar || 'Familiar',
+          tipo: tipoEntrar, tel: tel, admin: false
+        })
+      })
+      .then(function(r2){ return r2.json(); })
+      .then(function(r2){
+        var membroIdBanco = r2.ok ? r2.membro.id : null;
+        var idMedico = r2.ok ? r2.membro.id_medico : null;
+        salvarSessao({
+          usuario: { nome:nome, familia:familiaNome, familiaId:codigo,
+            relacao:relEntrar||'Familiar', tipo:tipoEntrar, tel:tel, admin:false,
+            membroIdBanco:membroIdBanco, idMedico:idMedico },
+          familiaId: codigo, familiaNome: familiaNome,
+          membroIdBanco: membroIdBanco, idMedico: idMedico
+        });
+        erroEl.innerHTML = '';
+        document.getElementById('idPessoalEntrar').textContent = idMedico || '';
+        document.getElementById('familiaEncontrada').textContent = familiaNome;
+        document.getElementById('passo-entrar-1').style.display = 'none';
+        document.getElementById('passo-entrar-2').style.display = 'block';
+      });
+    })
+    .catch(function(){
+      erroEl.innerHTML = '<div class="erro-box">❌ Erro de conexão.</div>';
+    });
+  }
+
+  // RECUPERAR POR ID PESSOAL
+  function recuperarPorId() {
+    var id = document.getElementById('idRecuperar').value.trim().toUpperCase();
+    var erroEl = document.getElementById('erroRecuperar');
+    if(!id){ erroEl.innerHTML='<div class="erro-box">Digite seu ID pessoal.</div>'; return; }
+    erroEl.innerHTML = '<div class="loading">⏳ Buscando seu perfil...</div>';
+    fetch('/api/medico/' + id)
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r.ok || !r.membro){
+        erroEl.innerHTML = '<div class="erro-box">❌ ID não encontrado. Verifique e tente novamente.</div>';
+        return;
+      }
+      var membro = r.membro;
+      var familiaId = membro.familia_id;
+      // Buscar nome da família
+      return fetch('/api/familia/' + familiaId)
+      .then(function(r2){ return r2.json(); })
+      .then(function(r2){
+        var familiaNome = r2.ok ? r2.familia.nome : familiaId;
+        salvarSessao({
+          usuario: {
+            nome: membro.nome,
+            familia: familiaNome,
+            familiaId: familiaId,
+            relacao: membro.relacao || 'Familiar',
+            tipo: membro.tipo || 'adulto',
+            tel: membro.tel || '',
+            admin: membro.admin || false,
+            membroIdBanco: membro.id,
+            idMedico: membro.id_medico
+          },
+          familiaId: familiaId,
+          familiaNome: familiaNome,
+          membroIdBanco: membro.id,
+          idMedico: membro.id_medico
+        });
+        erroEl.innerHTML = '';
+        alert('✅ Bem-vindo de volta, ' + membro.nome + '!');
+        entrarNoApp();
+      });
+    })
+    .catch(function(){
+      erroEl.innerHTML = '<div class="erro-box">❌ Erro de conexão.</div>';
+    });
+  }
+
+  function iniciarScanner() {
+    var container = document.getElementById('scannerContainer');
+    var video = document.getElementById('scannerVideo');
+    container.style.display = 'block';
+    navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' } })
+    .then(function(stream) {
+      scannerStream = stream; video.srcObject = stream; video.play();
+      scannerInterval = setInterval(function() {
+        if(video.readyState === video.HAVE_ENOUGH_DATA) {
+          var canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          var code = jsQR(imageData.data, imageData.width, imageData.height);
+          if(code) { pararScanner(); document.getElementById('codigoManual').value = code.data; entrarPorCodigo(); }
+        }
+      }, 500);
+    })
+    .catch(function() {
+      alert('Câmera não disponível. Digite o código manualmente.');
+      container.style.display = 'none';
+    });
+  }
+
+  function pararScanner() {
+    if(scannerStream){ scannerStream.getTracks().forEach(function(t){ t.stop(); }); scannerStream=null; }
+    if(scannerInterval){ clearInterval(scannerInterval); scannerInterval=null; }
+    document.getElementById('scannerContainer').style.display = 'none';
+  }
+
+  function registrarPushAposLogin(callback) {
+    if(!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    var membroAtivo = JSON.parse(localStorage.getItem("membroAtivo") || "null");
+    var familiaId = localStorage.getItem("familiaId") || "";
+    if(!membroAtivo || !familiaId || !membroAtivo.membroIdBanco) return;
+    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+      var vapidKey = "BIqsxSNZWDq9_p40w5AdKxnnEdd_TRIUgy2L5pc3DU5KojTXUiTPTv4NTR6luUAuWPMnkSmLkLHAQxGtQGIf-SA";
+      var padding = "=".repeat((4 - vapidKey.length % 4) % 4);
+      var base64 = (vapidKey + padding).replace(/-/g, "+").replace(/_/g, "/");
+      var rawData = window.atob(base64);
+      var key = new Uint8Array(rawData.length);
+      for(var i = 0; i < rawData.length; ++i) { key[i] = rawData.charCodeAt(i); }
+      function fazerSubscribe() {
+        reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: key
+        }).then(function(sub) {
+          fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+              membro_id: membroAtivo.membroIdBanco,
+              familia_id: familiaId,
+              subscription: sub
+            })
+          }).then(function(r){ return r.json(); })
+          .then(function(r){ console.log("Push registrado:", r); if(callback) callback(); })
+          .catch(function(e){ console.log("Push salvar erro:", e); });
+        }).catch(function(e){ console.log("Push subscribe erro:", e); if(callback) callback(); });
+      }
+      reg.pushManager.getSubscription().then(function(existing) {
+        if(existing) {
+          existing.unsubscribe().then(fazerSubscribe);
+        } else {
+          fazerSubscribe();
+        }
+      });
+    });
+  }
+
+  function irParaApp() {
+    var usuario = JSON.parse(localStorage.getItem('usuarioCuidar') || 'null');
+    if(usuario && usuario.tipo === 'crianca') {
+      window.location.href = 'infantil.html';
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+
+  function entrarNoApp() {
+    if(Notification.permission === "granted") {
+      registrarPushAposLogin(irParaApp);
+    } else if(Notification.permission === "default") {
+      Notification.requestPermission().then(function(p) {
+        if(p === "granted") {
+          registrarPushAposLogin(irParaApp);
+        } else {
+          irParaApp();
+        }
+      });
+    } else {
+      irParaApp();
+    }
+  }
+</script>
+</body>
+</html>
