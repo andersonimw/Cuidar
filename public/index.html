@@ -327,20 +327,17 @@
         var convertedKey = urlBase64ToUint8Array(vapidKey);
         reg.pushManager.getSubscription().then(function(existingSub) {
           if(existingSub) {
-            return existingSub.unsubscribe().then(function() {
-              return reg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: convertedKey
-              });
-            });
+            // Ja tem subscription — apenas salva no banco (renova token)
+            salvarSubscription(existingSub);
           } else {
-            return reg.pushManager.subscribe({
+            // Nao tem — cria nova
+            reg.pushManager.subscribe({
               userVisibleOnly: true,
               applicationServerKey: convertedKey
-            });
+            }).then(function(sub) {
+              salvarSubscription(sub);
+            }).catch(function(e){ console.log("Push subscribe erro:", e); });
           }
-        }).then(function(sub) {
-          salvarSubscription(sub);
         }).catch(function(e){ console.log("Push sub erro:", e); });
       }
       function salvarSubscription(sub) {
