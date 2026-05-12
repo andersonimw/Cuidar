@@ -2,7 +2,7 @@
   "name": "VDA+ Vida Digital Assistida",
   "short_name": "VDA+",
   "description": "Vida Digital Assistida",
-  "id": "cdplus-cuidado-digital",
+  "id": "vdaplus-vida-digital",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a1628",
