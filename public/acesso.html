@@ -273,10 +273,14 @@
   }
 
   function criarId() {
-    familiaId = gerarId();
-    localStorage.setItem('familiaId', familiaId);
-    atualizarExibicao();
-    alert('ID criado com sucesso! ' + familiaId);
+    // Usa o familiaId que ja existe no banco — nao sobrescreve
+    var idExistente = localStorage.getItem('familiaId') || '';
+    if(idExistente) {
+      atualizarExibicao();
+      alert('Seu ID da família é: ' + idExistente);
+    } else {
+      alert('Nenhuma família encontrada. Faça login primeiro.');
+    }
   }
 
   function confirmarRecriar() {

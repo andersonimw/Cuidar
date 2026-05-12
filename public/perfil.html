@@ -286,7 +286,7 @@
 <script>
   var perfil = JSON.parse(localStorage.getItem('perfilIdoso') || 'null');
   var docs = JSON.parse(localStorage.getItem('documentos') || '[]');
-  var medicamentos = JSON.parse(localStorage.getItem('medicamentos') || '[]');
+  var medicamentos = JSON.parse(localStorage.getItem('medicamentos_usuario_principal') || '[]');
   var contatos = JSON.parse(localStorage.getItem('contatosEmergencia') || '[]');
   var docCatAtual = 'Todos';
   var arquivoBase64 = '';
@@ -510,7 +510,7 @@
         m.confirmadoHoje = true;
       }
     });
-    localStorage.setItem('medicamentos', JSON.stringify(medicamentos));
+    localStorage.setItem('medicamentos_usuario_principal', JSON.stringify(medicamentos));
     renderProximoRemedio();
   }
 
